@@ -17,8 +17,8 @@ def detect_mode(price, vacuum_limit, gray_upper) -> Mode:
 
 if __name__ == "__main__":
     local_high = 4000
-    take_profit = 0.2
-    loss_p = take_profit * 2
+    profit_p = 0.2  # take_profit
+    loss_p = profit_p * 2
     vacuum_limit = local_high * (1 - loss_p)
     print("vacuum_limit:", vacuum_limit)
 
@@ -27,13 +27,13 @@ if __name__ == "__main__":
     etp_price_spread = etp_price_ask - etp_price_bid
     print("etp_price_spread:", etp_price_spread)
 
-    gray_upper = vacuum_limit / (1 - take_profit)
+    gray_upper = vacuum_limit / (1 - profit_p)
     print("gray_upper:", gray_upper)
 
     mode = detect_mode(etp_price_ask, vacuum_limit, gray_upper)
     print("mode:", mode)
 
-    limit_order = etp_price_ask * (1 + take_profit)
+    limit_order = etp_price_ask * (1 + profit_p)
     print("limit_order:", limit_order)
 
     stop_loss = max(vacuum_limit, etp_price_ask * (1 - loss_p))
