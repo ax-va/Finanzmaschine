@@ -17,7 +17,7 @@ def detect_mode(price, vacuum_limit, gray_upper) -> Mode:
 
 if __name__ == "__main__":
     local_high = 4000
-    profit_p = 0.2  # take_profit
+    profit_p = 0.2  # take profit
     loss_p = profit_p * 2
     vacuum_limit = local_high * (1 - loss_p)
     print("vacuum_limit:", vacuum_limit)
