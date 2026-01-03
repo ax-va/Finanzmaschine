@@ -6,10 +6,10 @@ class Mode(Enum):
     HUNTER = "HUNTER"
 
 
-def detect_mode(price, vac_upper, acc_upper) -> Mode:
-    if price <= vac_upper:
+def detect_mode(entry_price, vac_upper, acc_upper) -> Mode:
+    if entry_price <= vac_upper:
         return Mode.VACUUM
-    elif price <= acc_upper:
+    elif entry_price <= acc_upper:
         return Mode.ACCUMULATOR
     else:
         return Mode.HUNTER
