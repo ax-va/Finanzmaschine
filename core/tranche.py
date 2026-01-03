@@ -15,11 +15,11 @@ class Tranche:
         asset_vac_upper: float = None,
         asset_acc_upper: float = None,
     ):
-        self.share_lot = share_lot
-        self.asset_local_high = asset_local_high
-        self.asset_profit_pct = asset_profit_pct
-        self.asset_loss_pct = asset_loss_pct
-        self.asset_vac_upper = (
+        self.share_lot: ShareLot = share_lot
+        self.asset_local_high: float = asset_local_high
+        self.asset_profit_pct: float = asset_profit_pct
+        self.asset_loss_pct: float = asset_loss_pct
+        self.asset_vac_upper: float = (
             asset_vac_upper
             if asset_vac_upper is not None
             else self.asset_local_high * (1 - self.asset_loss_pct)
@@ -27,7 +27,7 @@ class Tranche:
         # Can switch to HUNTER if:
         # price * (1 - p) >= vac_upper <=> price >= vac_upper / (1 - p).
         # Next bind `profit_pct` and `loss_pct` via the geometric mean:
-        self.asset_acc_upper = (
+        self.asset_acc_upper: float = (
             asset_acc_upper
             if asset_acc_upper is not None
             else self.asset_vac_upper / math.sqrt(
@@ -45,8 +45,8 @@ class Tranche:
 
     @property
     def asset_stop_loss(self) -> float:
-        asset_stop_loss_raw = self.share_lot.asset_lot.price_bought * (1 - self.asset_loss_pct)
-        asset_stop_loss = max(self.asset_vac_upper, asset_stop_loss_raw)
+        asset_stop_loss_raw: float = self.share_lot.asset_lot.price_bought * (1 - self.asset_loss_pct)
+        asset_stop_loss: float = max(self.asset_vac_upper, asset_stop_loss_raw)
         return asset_stop_loss
 
     def detect_mode(self, asset_price: float) -> Mode:

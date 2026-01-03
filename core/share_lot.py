@@ -11,8 +11,8 @@ class ShareLot(Lot):
         share_name: str = None,
         asset_name: str = None,
     ):
-        self.isin = share_isin
-        self.name = share_name
+        self.isin: str = share_isin
+        self.name: str = share_name
         self.asset_lot = AssetLot(asset_name)
         super().__init__()
 

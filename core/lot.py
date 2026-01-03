@@ -3,11 +3,11 @@ import datetime
 
 class Lot:
     def __init__(self):
-        self.amount = 0
-        self.price_bought = None
-        self.price_bought_dt = None
-        self.price_sold = None
-        self.price_sold_dt = None
+        self.amount: float = 0
+        self.price_bought: float = None
+        self.price_bought_dt: datetime.datetime = None
+        self.price_sold: float = None
+        self.price_sold_dt: float = None
 
     def buy(
         self,
