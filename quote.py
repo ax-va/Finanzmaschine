@@ -10,6 +10,7 @@ class Quote:
                     "ask_etp_eur": None,
                     "bid_eth_eur": 2610,
                     "ask_eth_eur": 2613,
+                    "eth_local_high": 4000,
                 }
             }
         }

@@ -7,14 +7,14 @@ from mode import Mode
 class Tranche:
     def __init__(
         self,
-        lot: AssetEtpLot,
+        etp_lot: EtpLot,
         asset_local_high: float,
         asset_profit_pct: float = 0.2,  # +20%
         asset_loss_pct: float = 0.4,  # -40%
         asset_vac_upper: float = None,
         asset_acc_upper: float = None,
     ):
-        self.lot = lot
+        self.etp_lot = etp_lot
         self.asset_local_high = asset_local_high
         self.asset_profit_pct = asset_profit_pct
         self.asset_loss_pct = asset_loss_pct
@@ -24,8 +24,8 @@ class Tranche:
             else self.asset_local_high * (1 - self.asset_loss_pct)
         )
         # Can switch to HUNTER if:
-        # entry_price * (1 - p) >= asset_vac_upper
-        # <=> entry_price >= asset_vac_upper / (1 - p)
+        # asset_price * (1 - p) >= asset_vac_upper
+        # <=> asset_price >= asset_vac_upper / (1 - p)
         # Next bind `asset_profit_pct` and `asset_loss_pct` via the geometric mean:
         self.asset_acc_upper = (
             asset_acc_upper
@@ -35,11 +35,11 @@ class Tranche:
 
     @property
     def start_date(self) -> datetime.date:
-        return self.lot.price_bought_dt.date()
+        return self.etp_lot.price_bought_dt.date()
 
     @property
     def asset_limit_order(self) -> float:
-        return self.lot.asset.price_bought * (1 + self.asset_profit_pct)
+        return self.etp_lot.asset.price_bought * (1 + self.asset_profit_pct)
 
     @property
     def asset_stop_loss(self) -> float:
