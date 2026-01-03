@@ -31,7 +31,7 @@ class Tranche:
         self.asset_acc_upper = (
             asset_acc_upper
             if asset_acc_upper is not None
-            else self.asset_vac_upper / math.sqrt((1 - self.asset_profit_pct) * (1 - self.asset_loss_pct))
+            else round(self.asset_vac_upper / math.sqrt((1 - self.asset_profit_pct) * (1 - self.asset_loss_pct)))
         )
 
     @property
