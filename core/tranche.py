@@ -1,6 +1,7 @@
 import datetime
 import math
 
+from core.share_lot import ShareLot
 from mode import Mode
 
 
