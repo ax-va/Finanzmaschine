@@ -22,14 +22,16 @@ class Tranche:
             if vac_upper is not None
             else self.local_high * (1 - self.loss_pct)
         )
-        # Switch to HUNTER if:
-        # entry_price * (1 - profit_pct) >= vac_upper
+        # Can switch to HUNTER if:
+        # entry_price * (1 - p) >= vac_upper
         # <=>
-        # entry_price >= vac_upper / (1 - profit_pct)
+        # entry_price >= vac_upper / (1 - p)
+        # Next bind `profit_pct` and `loss_pct` together:
+        # entry_price >= vac_upper / 2 * (1 / (1 - profit_pct) + 1 / (1 - loss_pct))
         self.acc_upper = (
             acc_upper
             if acc_upper is not None
-            else self.vac_upper / (1 - self.profit_pct)
+            else self.vac_upper / 2 * (1 / (1 - self.profit_pct) + 1 / (1 - self.loss_pct))
         )
 
     @property
