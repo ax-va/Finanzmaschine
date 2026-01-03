@@ -4,9 +4,9 @@ import datetime
 class Lot:
     def __init__(
         self,
-        lot_id: str,
+        name: str,
     ):
-        self.lot_id = lot_id
+        self.name: str = name
         self.amount = 0
         self.price_bought = None
         self.price_bought_dt = None
