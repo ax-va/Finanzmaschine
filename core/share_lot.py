@@ -22,10 +22,10 @@ class ShareLot(Lot):
         price_in: float,
         price_in_dt: datetime.datetime,
     ) -> float:
+        assert self.units_in == 0
         assert units_in > 0
         assert entitlement_in > 0
         assert price_in > 0
-        assert self.units_in == 0
 
         cash_in: float = units_in * price_in
         self.units_in: float = units_in
@@ -42,8 +42,10 @@ class ShareLot(Lot):
         price_out_dt: datetime.datetime,
     ) -> float:
         assert self.units_in > 0
+        assert units_out > 0
         assert units_out <= self.units_in - math.fsum(self.units_out_list)
         assert entitlement_out > 0
+        assert price_out > 0
 
         cash_out: float = units_out * price_out
         self.units_out_list.append(units_out)

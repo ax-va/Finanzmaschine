@@ -16,10 +16,11 @@ class AssetLot(Lot):
         price_in_implied: float,
         price_in_dt: datetime.datetime,
     ) -> None:
+        assert self.units_in == 0
         assert share_units_in > 0
         assert entitlement_in > 0
         assert price_in_implied > 0
-        assert self.units_in == 0
+
 
         self.units_in: float = share_units_in * entitlement_in
         self.price_in: float = price_in_implied
@@ -32,9 +33,10 @@ class AssetLot(Lot):
         price_out_implied: float,
         price_out_dt: datetime.datetime,
     ) -> None:
+        assert self.units_in > 0
         assert share_units_out > 0
         assert entitlement_out > 0
-        assert self.units_in > 0
+        assert price_out_implied > 0
 
         self.units_out_list.append(share_units_out * entitlement_out)
         self.price_out_list.append(price_out_implied)
