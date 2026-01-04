@@ -11,9 +11,9 @@ def detect_mode(
     vac_upper: float,
     acc_upper: float,
 ) -> Mode:
-    if price <= self.vac_upper:
+    if price <= vac_upper:
         return Mode.VACUUM
-    elif price <= self.acc_upper:
+    elif price <= acc_upper:
         return Mode.ACCUMULATOR
     else:
         return Mode.HUNTER

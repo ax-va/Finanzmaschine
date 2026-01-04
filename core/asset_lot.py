@@ -5,10 +5,11 @@ from core.lot import Lot
 
 class AssetLot(Lot):
     def __init__(self, asset_name: str):
-        self.name: str = asset_name
-        self.amount_bought: float = 0
-        self.amount_sold: float | None = None
         super().__init__()
+        self.name: str = asset_name
+        self.amount_bought: float = 0.0
+        self.amount_sold: float | None = None
+
 
     def buy(
         self,
