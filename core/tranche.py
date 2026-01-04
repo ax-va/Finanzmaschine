@@ -45,11 +45,11 @@ class Tranche:
         return self.share_lot.price_in_dt.date()
 
     @property
-    def share_limit_order(self) -> float:
+    def share_limit_order_price(self) -> float:
         return self.share_lot.price_in * (1 + self.share_profit_pct)
 
     @property
-    def asset_stop_loss(self) -> float:
+    def asset_stop_loss_price(self) -> float:
         asset_stop_loss_raw: float = self.share_lot.asset_lot.price_in * (1 - self.asset_loss_pct)
         asset_stop_loss: float = max(self.asset_vac_upper, asset_stop_loss_raw)
         return asset_stop_loss
