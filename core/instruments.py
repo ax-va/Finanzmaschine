@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
+from core.asset import Asset
 from core.exchange import Exchange
 
 
@@ -8,43 +9,29 @@ from core.exchange import Exchange
 class Instrument:
     isin: str
     name: str
-    local_ids: Dict[str, str] = field(default_factory=dict),
-    tickers: Dict[Exchange, str] = field(default_factory=dict),
+    local_ids: Dict[str, str] = field(default_factory=dict)
+    tickers: Dict[Exchange, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
-class ShareInstrument:
-    base: Instrument
-    asset_name: str = ""
+class Share(Instrument):
+    asset: Asset | None = None
 
-    @property
-    def isin(self) -> str:
-        return self.base.isin
-
-    @property
-    def name(self) -> str:
-        return self.base.name
-
-    @property
-    def local_ids(self) -> Dict[str, str]:
-        return self.base.local_ids
-
-    @property
-    def tickers(self) -> Dict[Exchange, str]:
-        return self.base.tickers
+    def require_asset(self) -> Asset:
+        if self.asset is None:
+            raise ValueError("Share has no underlying asset.")
+        return self.asset
 
 
 @dataclass(frozen=True)
-class Etp(ShareInstrument):
+class Etp(Share):
     pass
 
 
 COINSHARES_PHYSICAL_STAKED_ETH = Etp(
-    base=Instrument(
-        isin="GB00BLD4ZM24",
-        name="CoinShares Physical Staked Ethereum",
-        local_ids={"WKN": "A3GQ2N"},
-        tickers={Exchange.EIX: "CETH"},
-    ),
-    asset_name= "ETH",
+    isin="GB00BLD4ZM24",
+    name="CoinShares Physical Staked Ethereum",
+    local_ids={"WKN": "A3GQ2N"},
+    tickers={Exchange.EIX: "CETH"},
+    asset=Asset.ETH,
 )

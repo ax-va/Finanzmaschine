@@ -1,12 +1,13 @@
 import datetime
 
+from core.asset import Asset
 from core.lot import Lot
 
 
 class AssetLot(Lot):
-    def __init__(self, asset_name: str):
+    def __init__(self, asset: Asset):
         super().__init__()
-        self.name: str = asset_name
+        self.asset: str = asset
         self.amount_bought: float = 0.0
         self.amount_sold: float | None = None
 

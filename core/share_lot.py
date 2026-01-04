@@ -1,16 +1,16 @@
 import datetime
 
 from core.asset_lot import AssetLot
-from core.instruments import ShareInstrument
+from core.instruments import Share
 from core.lot import Lot
 
 
 class ShareLot(Lot):
-    def __init__(self, instrument: ShareInstrument):
+    def __init__(self, share: Share):
         super().__init__()
-        self.instrument: ShareInstrument = instrument
+        self.share: Share = share
         self.units: float = 0.0  # amount
-        self.asset_lot = AssetLot(self.instrument.asset_name)
+        self.asset_lot = AssetLot(self.share.require_asset())
         self.entitlement_bought: float | None = None  # asset per share
         self.entitlement_sold: float | None = None  # asset per share
 
