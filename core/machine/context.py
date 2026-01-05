@@ -1,7 +1,7 @@
 import datetime
 import math
 
-from core.positions.share_lot import ShareLot
+from core.positions import ShareLot
 
 
 class Context:
