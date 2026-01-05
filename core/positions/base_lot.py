@@ -1,4 +1,5 @@
 import datetime
+import math
 from typing import List
 
 
@@ -10,3 +11,11 @@ class BaseLot:
         self.units_out_list: List[float] = []
         self.price_out_list: List[float] = []
         self.datetime_out_list: List[datetime.datetime] = []
+
+    @property
+    def units_out_total(self):
+        return math.fsum(self.units_out_list)
+
+    @property
+    def units_open(self) -> float:
+        return self.units_in - self.units_out_total

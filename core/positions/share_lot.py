@@ -1,5 +1,4 @@
 import datetime
-import math
 from typing import List
 
 from core.positions.asset_lot import AssetLot
@@ -43,7 +42,7 @@ class ShareLot(BaseLot):
     ) -> float:
         assert self.units_in > 0
         assert units_out > 0
-        assert units_out <= self.units_in - math.fsum(self.units_out_list)
+        assert units_out <= self.units_open
         assert entitlement_out > 0
         assert price_out > 0
 
