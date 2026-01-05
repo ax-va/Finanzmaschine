@@ -4,7 +4,7 @@ import math
 from finanzmaschine.core.lots import ShareLot
 
 
-class Context:
+class ShareContext:
     """
     Based on the context, the machine determines the next steps.
 
@@ -16,20 +16,14 @@ class Context:
         self,
         share_lot: ShareLot,
         asset_local_high: float,
-        share_profit_pct: float = 0.2,  # +20%
-        asset_profit_pct: float = None,
+        asset_profit_pct: float = 0.2,  # +20%
         asset_loss_pct: float = 0.4,  # -40%
         asset_vac_upper_bound: float = None,
         asset_acc_upper_bound: float = None,
     ):
         self.share_lot: ShareLot = share_lot
         self.asset_local_high: float = asset_local_high
-        self.share_profit_pct: float = share_profit_pct
-        self.asset_profit_pct: float = (
-            asset_profit_pct
-            if asset_profit_pct is not None
-            else self.share_profit_pct
-        )
+        self.asset_profit_pct: float = asset_profit_pct
         self.asset_loss_pct: float = asset_loss_pct
         self.asset_vac_upper_bound: float = (
             asset_vac_upper_bound
@@ -48,12 +42,8 @@ class Context:
         )
 
     @property
-    def start_date(self) -> datetime.date:
-        return self.share_lot.datetime_in.date()
-
-    @property
-    def share_limit_order_price(self) -> float:
-        return self.share_lot.price_in * (1 + self.share_profit_pct)
+    def asset_limit_order_price(self) -> float:
+        return self.share_lot.asset_lot.price_in * (1 + self.asset_profit_pct)
 
     @property
     def asset_stop_loss_price(self) -> float:
