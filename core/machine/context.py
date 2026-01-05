@@ -4,7 +4,13 @@ import math
 from core.positions.share_lot import ShareLot
 
 
-class Tranche:
+class Context:
+    """
+    Based on the context, the machine determines the next steps.
+
+    The context defines the initial conditions, constraints, and
+    derived thresholds used by the machine to decide how to proceed.
+    """
     def __init__(
         self,
         share_lot: ShareLot,
@@ -12,8 +18,8 @@ class Tranche:
         share_profit_pct: float = 0.2,  # +20%
         asset_profit_pct: float = None,
         asset_loss_pct: float = 0.4,  # -40%
-        asset_vac_upper: float = None,
-        asset_acc_upper: float = None,
+        asset_vac_upper_bound: float = None,
+        asset_acc_upper_bound: float = None,
     ):
         self.share_lot: ShareLot = share_lot
         self.asset_local_high: float = asset_local_high
@@ -24,18 +30,18 @@ class Tranche:
             else self.share_profit_pct
         )
         self.asset_loss_pct: float = asset_loss_pct
-        self.asset_vac_upper: float = (
-            asset_vac_upper
-            if asset_vac_upper is not None
+        self.asset_vac_upper_bound: float = (
+            asset_vac_upper_bound
+            if asset_vac_upper_bound is not None
             else self.asset_local_high * (1 - self.asset_loss_pct)
         )
         # Can switch to HUNTER if:
-        # price * (1 - p) >= vac_upper <=> price >= vac_upper / (1 - p).
+        # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p).
         # Next bind `profit_pct` and `loss_pct` via the geometric mean:
-        self.asset_acc_upper: float = (
-            asset_acc_upper
-            if asset_acc_upper is not None
-            else self.asset_vac_upper / math.sqrt(
+        self.asset_acc_upper_bound: float = (
+            asset_acc_upper_bound
+            if asset_acc_upper_bound is not None
+            else self.asset_vac_upper_bound / math.sqrt(
                 (1 - self.asset_profit_pct) * (1 - self.asset_loss_pct)
             )
         )
@@ -51,5 +57,5 @@ class Tranche:
     @property
     def asset_stop_loss_price(self) -> float:
         asset_stop_loss_raw: float = self.share_lot.asset_lot.price_in * (1 - self.asset_loss_pct)
-        asset_stop_loss: float = max(self.asset_vac_upper, asset_stop_loss_raw)
+        asset_stop_loss: float = max(self.asset_vac_upper_bound, asset_stop_loss_raw)
         return asset_stop_loss
