@@ -25,13 +25,14 @@ class ShareContext:
         self.asset_local_high: float = asset_local_high
         self.asset_profit_pct: float = asset_profit_pct
         self.asset_loss_pct: float = asset_loss_pct
+        # VACUUM upper bound
         self.asset_vac_upper_bound: float = (
             asset_vac_upper_bound
             if asset_vac_upper_bound is not None
             else self.asset_local_high * (1 - self.asset_loss_pct)
         )
-        # Can switch to HUNTER if:
-        # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p).
+        # ACCUMULATOR upper bound: Can switch to HUNTER if
+        # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p) =: acc_upper_bound.
         # Next bind `profit_pct` and `loss_pct` via the geometric mean:
         self.asset_acc_upper_bound: float = (
             asset_acc_upper_bound
@@ -40,6 +41,10 @@ class ShareContext:
                 (1 - self.asset_profit_pct) * (1 - self.asset_loss_pct)
             )
         )
+
+    @property
+    def start_date(self) -> datetime.date:
+        return self.share_lot.datetime_in.date()
 
     @property
     def asset_limit_order_price(self) -> float:
