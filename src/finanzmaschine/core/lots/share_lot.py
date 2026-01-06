@@ -2,12 +2,12 @@ import datetime as dt
 from typing import override
 
 from finanzmaschine.core.lots.asset_lot import AssetLot
-from finanzmaschine.core.lots.position_lot import PositionLot
+from finanzmaschine.core.lots.nominal_lot import NominalLot
 from finanzmaschine.core.lots.share_lot_record import ShareLotRecord
 from finanzmaschine.core.market.instruments import Share
 
 
-class ShareLot(PositionLot[ShareLotRecord]):
+class ShareLot(NominalLot[ShareLotRecord]):
     record_cls = ShareLotRecord
 
     def __init__(self, share: Share):
