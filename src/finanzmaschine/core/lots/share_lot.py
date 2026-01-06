@@ -8,6 +8,13 @@ from finanzmaschine.core.market.instruments import Share
 
 
 class ShareLot(NominalLot[ShareLotRecord]):
+    """
+    A nominal lot corresponding to a share-based instrument.
+
+    Units are invariant in share terms.
+    Each share unit carries an entitlement to an underlying asset.
+    """
+
     record_cls = ShareLotRecord
 
     def __init__(self, share: Share):
@@ -19,7 +26,7 @@ class ShareLot(NominalLot[ShareLotRecord]):
     def record_in(
         self,
         *,
-        units: float,  # units bought
+        units: float,  # share units to buy
         price: float,
         datetime: dt.datetime,
         entitlement: float,  # asset units per a share unit when buying
@@ -41,7 +48,7 @@ class ShareLot(NominalLot[ShareLotRecord]):
     def record_out(
         self,
         *,
-        units: float,  # units sold
+        units: float,  # share units to sell
         price: float,
         datetime: dt.datetime,
         entitlement: float,  # asset units per a share unit when selling

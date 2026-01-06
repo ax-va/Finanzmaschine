@@ -7,7 +7,7 @@ from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
 
 class NominalLot(BaseLot[TLotRecord]):
     """
-    A lot that represents a lot with an invariant unit balance.
+    A lot representing a lot with an invariant unit balance.
 
     The number of units is invariant: units_open = units_in - units_out_total.
     """
