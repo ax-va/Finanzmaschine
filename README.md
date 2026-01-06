@@ -1,1 +1,1 @@
-© 2026 ax-va - Finanzmaschine. All rights reserved.
+Finanzmaschine © 2026 ax-va. All rights reserved.

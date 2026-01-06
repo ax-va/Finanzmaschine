@@ -1,9 +1,5 @@
 # ⚖️ Proprietary Source-Available License (Non-Commercial Research, EU / Germany)
 
-**© 2026 ax-va - Finanzmaschine. All rights reserved.**
-
-The license may not be sublicensed.
-
 ## 1. Definitions
 
 For the purposes of this license:
@@ -28,9 +24,16 @@ For the purposes of this license:
 
 - **Commercial Use** includes any use for direct or indirect economic benefit, including internal business use, SaaS, advisory tools, or fund-related activities.
 
+
+- **Sublicensing** means granting any rights to use, modify, or distribute the Software to third parties beyond those expressly granted by this License.
+
+
+- **Author** means the individual or legal person who created and owns   the Software and its Core Logic, identified by the GitHub account
+  https://github.com/ax-va, unless otherwise explicitly stated.
+
 ## 2. License Grant (Non-Commercial Use Only)
 
-The author grants a limited, non-exclusive, non-transferable license to use the Software **solely for non-commercial purposes**, including:
+The author grants a personal, limited, non-exclusive, non-transferable license to use the Software **solely for non-commercial purposes**, including:
 
 - **Education and Scientific Research**
     
@@ -45,6 +48,9 @@ The author grants a limited, non-exclusive, non-transferable license to use the 
 - **Simulation and Backtesting**
 
     Execution using historical or synthetic data only, without any connection to live trading systems.
+
+The Software may not be relicensed, sublicensed, or distributed under different licensing terms, in whole or in part, without the explicit
+prior written consent of the Author.
 
 ## 3. Prohibited Uses
 
@@ -63,6 +69,11 @@ Without an explicit commercial license agreement, the following uses are prohibi
 - **Reimplementation for Commercial Purposes**
 
     Any reproduction or reimplementation of the Core Logic or its essential components for commercial or live use, regardless of programming language or platform.
+
+
+- **Relicensing or Sublicensing**
+
+    Any attempt to sublicense, relicense, or otherwise grant third parties rights to the Software or its Core Logic under different terms.
 
 
 ## 4. No Financial Services / No Investment Advice
@@ -125,3 +136,5 @@ Place of jurisdiction shall be the author's place of residence, insofar as legal
 For commercial licensing, production deployment, or partnership inquiries, please contact the author via GitHub:
 
 https://github.com/ax-va
+
+Finanzmaschine © 2026 ax-va. All rights reserved.
