@@ -9,7 +9,7 @@ from finanzmaschine.core.market.exchange import Exchange
 class Instrument:
     isin: str
     name: str
-    local_ids: Dict[str, str] = field(default_factory=dict)
+    local_data: Dict[str, Dict[str, str]] = field(default_factory=dict)
     tickers: Dict[Exchange, str] = field(default_factory=dict)
 
 
