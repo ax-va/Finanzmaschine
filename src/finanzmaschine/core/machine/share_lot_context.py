@@ -43,7 +43,7 @@ class ShareLotContext:
         )
 
     @property
-    def start_date(self) -> datetime.date:
+    def date_in(self) -> datetime.date:
         return self.share_lot.datetime_in.date()
 
     @property
