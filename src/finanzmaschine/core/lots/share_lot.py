@@ -11,7 +11,7 @@ class ShareLot(NominalLot[ShareLotRecord]):
     """
     A nominal lot corresponding to a share-based instrument.
 
-    Units are invariant in share terms.
+    Units are invariant in share terms: units_open = units_in - units_out_total.
     Each share unit carries an entitlement to an underlying asset.
 
     Examples of such instruments include ETPs such as ETFs, ETNs, and ETCs.
