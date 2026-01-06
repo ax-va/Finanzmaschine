@@ -1,5 +1,7 @@
 # ⚖️ Proprietary Source-Available License (Non-Commercial Research, EU / Germany)
 
+**© 2026 ax-va - Finanzmaschine. All rights reserved.**
+
 The license may not be sublicensed.
 
 ## 1. Definitions
@@ -123,5 +125,3 @@ Place of jurisdiction shall be the author's place of residence, insofar as legal
 For commercial licensing, production deployment, or partnership inquiries, please contact the author via GitHub:
 
 https://github.com/ax-va
-
-© 2026 ax-va - Finanzmaschine. All rights reserved.
