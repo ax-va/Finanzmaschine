@@ -1,1 +1,1 @@
-© 2024–2026 ax-va. All rights reserved.
+© 2026 ax-va. All rights reserved.
