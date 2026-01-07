@@ -13,7 +13,7 @@ def detect_mode(
 ) -> Mode:
     if price <= vac_upper_bound:
         return Mode.VACUUM
-    elif price <= acc_upper_bound:
+    elif vac_upper_bound < price <= acc_upper_bound:
         return Mode.ACCUMULATOR
     else:
         return Mode.HUNTER
