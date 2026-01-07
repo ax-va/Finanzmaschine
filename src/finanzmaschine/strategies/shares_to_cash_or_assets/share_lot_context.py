@@ -35,27 +35,25 @@ class ShareLotContext:
         self.asset_local_high: float = asset_local_high
         self.asset_profit_pct: float = asset_profit_pct
         self.asset_loss_pct: float = asset_loss_pct
+
         # VACUUM mode upper bound for asset price
-        self.asset_vac_upper_bound: float = (
-            asset_vac_upper_bound
-            if asset_vac_upper_bound is not None
-            else self.asset_local_high * (1 - self.asset_loss_pct)
-        )
-        if self.asset_profit_pct < 1:
-            # ACCUMULATOR mode upper bound for asset price:
-            # Switch to the HUNTER mode if
-            # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p) =: acc_upper_bound.
-            # Next bind `profit_pct` and `loss_pct` via the geometric mean:
-            self.asset_acc_upper_bound: float = (
-                asset_acc_upper_bound
-                if asset_acc_upper_bound is not None
-                else self.asset_vac_upper_bound / math.sqrt(
+        if asset_vac_upper_bound is None:
+            asset_vac_upper_bound = self.asset_local_high * (1 - self.asset_loss_pct)
+        self.asset_vac_upper_bound: float = asset_vac_upper_bound
+
+        if asset_acc_upper_bound is None:
+            if self.asset_profit_pct < 1:
+                # ACCUMULATOR mode upper bound for asset price:
+                # Switch to the HUNTER mode if
+                # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p) =: acc_upper_bound.
+                # Next bind `profit_pct` and `loss_pct` via the geometric mean:
+                asset_acc_upper_bound =self.asset_vac_upper_bound / math.sqrt(
                     (1 - self.asset_profit_pct) * (1 - self.asset_loss_pct)
                 )
-            )
-        else:
-            # no ACCUMULATOR mode for asset price
-            self.asset_acc_upper_bound: float = self.asset_vac_upper_bound
+            else:
+                # no ACCUMULATOR mode for asset price
+                asset_acc_upper_bound = self.asset_vac_upper_bound
+        self.asset_acc_upper_bound: float = asset_acc_upper_bound
 
     @property
     def asset_limit_order_price(self) -> float:
