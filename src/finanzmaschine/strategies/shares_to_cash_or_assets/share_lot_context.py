@@ -1,6 +1,5 @@
 import math
 from datetime import date
-from typing import Tuple
 
 from finanzmaschine.core.lots import ShareLot
 
