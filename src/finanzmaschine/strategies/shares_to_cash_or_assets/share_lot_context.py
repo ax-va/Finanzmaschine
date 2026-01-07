@@ -24,6 +24,12 @@ class ShareLotContext:
         assert asset_local_high > 0
         assert asset_profit_pct > 0
         assert 0 < asset_loss_pct < 1
+        if asset_vac_upper_bound is not None:
+            assert 0 < asset_vac_upper_bound < asset_local_high
+        if asset_acc_upper_bound is not None:
+            assert 0 < asset_acc_upper_bound < asset_local_high
+        if asset_vac_upper_bound is not None and asset_acc_upper_bound is not None:
+            assert asset_vac_upper_bound <= asset_acc_upper_bound
 
         self.share_lot: ShareLot = share_lot
         self.asset_local_high: float = asset_local_high
