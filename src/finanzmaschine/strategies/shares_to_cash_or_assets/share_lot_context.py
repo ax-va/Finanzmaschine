@@ -47,7 +47,7 @@ class ShareLotContext:
         if asset_vac_upper_bound is None:
             if (
                 self.asset_local_high is not None
-                and asset_loss_pct is not None
+                and self.asset_loss_pct is not None
             ):
                 asset_vac_upper_bound = self.asset_local_high * (1 - self.asset_loss_pct)
         self.asset_vac_upper_bound: float | None = asset_vac_upper_bound
