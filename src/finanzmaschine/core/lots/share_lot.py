@@ -31,7 +31,7 @@ class ShareLot(NominalLot[ShareLotRecord]):
         units: float,  # share units to buy
         price: float,
         datetime: dt.datetime,
-        entitlement: float,  # asset units per a share unit when buying
+        entitlement: float | None,  # asset units per a share unit when buying
         **kwargs,
     ) -> float:
         assert entitlement > 0
@@ -53,7 +53,7 @@ class ShareLot(NominalLot[ShareLotRecord]):
         units: float,  # share units to sell
         price: float,
         datetime: dt.datetime,
-        entitlement: float,  # asset units per a share unit when selling
+        entitlement: float | None,  # asset units per a share unit when selling
         **kwargs,
     ) -> float:
         assert entitlement > 0
