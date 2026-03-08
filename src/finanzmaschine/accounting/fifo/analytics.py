@@ -18,10 +18,7 @@ df = (
     )
     .select([
         "datetime",
-        "broker",
         "venue",
-        "order_id",
-        "trade_id",
         "isin",
         "instrument",
         "units",
