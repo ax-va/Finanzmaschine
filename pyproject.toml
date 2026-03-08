@@ -1,0 +1,67 @@
+[tool.poetry]
+name = "Finanzmaschine"
+version = "0.1.0"
+description = "A system for recording investment trades and automatically making trading decisions."
+authors = ["ax-va"]
+license = "BSD-3-Clause OR MIT OR Apache-2.0"
+readme = "README.md"
+packages = [{ include = "finanzmaschine", from = "src" }]
+keywords = ["trading", "finance", "investment", "lot-accounting"]
+
+[tool.poetry.urls]
+homepage = "https://github.com/ax-va/Finanzmaschine"
+repository = "https://github.com/ax-va/Finanzmaschine"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+polars = "^1.38.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+ruff = "^0.12.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-ra"  # Show extra summary info for all except passed tests (e.g., reasons for skipped tests, XFAIL, etc.)
+markers = [
+    "unit: unit tests",
+    "integration: integration tests"
+]
+
+[tool.ruff]
+# Apply formatting + linting to these paths
+src = ["src", "tests"]
+
+# Formatting options
+line-length = 88  # black-compatible
+indent-width = 4
+target-version = "py312"  # Python version
+
+[tool.ruff.format]
+quote-style = "double"  # Enforce double quotes
+indent-style = "space"  # Use spaces over tabs
+skip-magic-trailing-comma = false  # Enable the Black-style magic trailing comma behavior (each arg on its own line when a trailing comma exists)
+line-ending = "lf"  # line feed `\n` - the standard on Linux/macOS and most modern tooling
+
+[tool.ruff.lint]
+# Enable common linting rule sets
+select = [
+  "E",  # pycodestyle errors like whitespace, indentation, spacing around operators.
+  "F",  # pyflakes catches things like unused imports, undefined variables.
+  "I",  # isort (import sorting) enforces consistent import sorting.
+  "B",  # bugbear warns about common pitfalls and bad practices (e.g. mutable defaults).
+  "UP", # pyupgrade suggests modern Python syntax (e.g. using `|` for union types instead of `Union[]`, f-strings instead of `.format`).
+]
+ignore = [
+  "E501",  # Ingnore "line too long" (handled by formatter) to avoid double-reporting the same thing
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Ignore F401 "imported but unused" (from Pyflakes) only in `__init__.py` files
