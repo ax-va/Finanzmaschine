@@ -7,7 +7,7 @@ PRIVATE_DIR = PROJECT_ROOT / SETTINGS.paths.private
 
 df = (
     pl.read_csv(
-        PRIVATE_DIR / "etp_ton.csv",
+        PRIVATE_DIR / "crypto_etp.csv",
         try_parse_dates=True,
     ).sort("datetime")
 )
@@ -18,9 +18,6 @@ df = (
     )
     .select([
         "datetime",
-        "venue",
-        "isin",
-        "instrument",
         "units",
         "price",
         "units * price",
