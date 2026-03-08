@@ -14,7 +14,7 @@ df = (
 
 df = (
     df.with_columns(
-        (pl.col("units") * pl.col("price")).round(2).alias("notional"),
+        (pl.col("units") * pl.col("price")).round(2).alias("units * price"),
     )
     .select([
         "datetime",
@@ -23,7 +23,7 @@ df = (
         "instrument",
         "units",
         "price",
-        "notional",
+        "units * price",
         "fee",
         "total",
         "currency",
