@@ -28,22 +28,22 @@ class InstrumentRegistry:
         if asset is not None:
             self._by_asset[asset].append(instrument)
 
-        wkn = self._extract_wkn(instrument)
+        wkn = self._get_wkn(instrument)
         if wkn is not None:
             self._by_wkn[wkn] = instrument
 
     def by_isin(self, isin: str) -> Instrument:
-        return self._by_isin[isin]
+        return self._by_isin.get(isin)
 
     def by_exchange_and_ticker(self, exchange: Exchange, ticker: str) -> Instrument:
-        return self._by_exchange_and_ticker[(exchange, ticker)]
+        return self._by_exchange_and_ticker.get((exchange, ticker))
 
     def by_asset(self, asset: Asset) -> List[Instrument]:
         return self._by_asset.get(asset, [])
 
     def by_wkn(self, wkn: str) -> Instrument:
-        return self._by_wkn[wkn]
+        return self._by_wkn.get(wkn)
 
     @staticmethod
-    def _extract_wkn(instrument: Instrument):
+    def _get_wkn(instrument: Instrument):
         return instrument.country_data.get("DE", {}).get("WKN")
