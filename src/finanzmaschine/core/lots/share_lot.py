@@ -24,7 +24,7 @@ class ShareLot(NominalLot):
 
 def open_share_lot(
     lot: ShareLot,
-    units: float,  # share units to buy
+    units: float,  # share units to open
     price: float,
     fee: float,
     dt: datetime,
@@ -53,7 +53,7 @@ def open_share_lot(
 
 def close_share_lot_part(
     lot: ShareLot,
-    units: float,  # share units to sell
+    units: float,  # share units to close
     price: float,
     fee: float,
     dt: datetime,
