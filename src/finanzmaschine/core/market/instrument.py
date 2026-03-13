@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
-from finanzmaschine.catalog.exchange import Exchange
+from finanzmaschine.catalog.exchange_enum import Exchange
 
 
 @dataclass(frozen=True)

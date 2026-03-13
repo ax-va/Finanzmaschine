@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from finanzmaschine.catalog.asset import Asset
+from finanzmaschine.catalog.asset_enum import Asset
 from finanzmaschine.core.market.instrument import Instrument
 
 
