@@ -45,11 +45,10 @@ class ShareLotContext:
 
         # VACUUM mode upper bound for asset price
         if asset_vac_upper_bound is None:
-            if (
-                self.asset_local_high is not None
-                and self.asset_loss_pct is not None
-            ):
-                asset_vac_upper_bound = self.asset_local_high * (1 - self.asset_loss_pct)
+            if self.asset_local_high is not None and self.asset_loss_pct is not None:
+                asset_vac_upper_bound = self.asset_local_high * (
+                    1 - self.asset_loss_pct
+                )
         self.asset_vac_upper_bound: float | None = asset_vac_upper_bound
 
         if asset_acc_upper_bound is None:
@@ -63,7 +62,7 @@ class ShareLotContext:
                 # Switch to the HUNTER mode if
                 # price * (1 - p) >= vac_upper_bound <=> price >= vac_upper_bound / (1 - p) =: acc_upper_bound.
                 # Next bind `profit_pct` and `loss_pct` via the geometric mean:
-                asset_acc_upper_bound =self.asset_vac_upper_bound / math.sqrt(
+                asset_acc_upper_bound = self.asset_vac_upper_bound / math.sqrt(
                     (1 - self.asset_profit_pct) * (1 - self.asset_loss_pct)
                 )
             else:
@@ -74,16 +73,22 @@ class ShareLotContext:
     @property
     def asset_limit_order_price(self) -> float | None:
         if self.asset_profit_pct is not None:
-            return self.share_lot.asset_lot.lot_record_in.price * (1 + self.asset_profit_pct)
+            return self.share_lot.asset_lot.lot_record_in.price * (
+                1 + self.asset_profit_pct
+            )
         else:
             return None
 
     @property
     def asset_stop_loss_price(self) -> float | None:
         if self.asset_loss_pct is not None:
-            asset_stop_loss: float = self.share_lot.asset_lot.lot_record_in.price * (1 - self.asset_loss_pct)
+            asset_stop_loss: float = self.share_lot.asset_lot.lot_record_in.price * (
+                1 - self.asset_loss_pct
+            )
             if self.asset_vac_upper_bound is not None:
-                asset_stop_loss: float = max(self.asset_vac_upper_bound, asset_stop_loss)
+                asset_stop_loss: float = max(
+                    self.asset_vac_upper_bound, asset_stop_loss
+                )
             return asset_stop_loss
         else:
             return None

@@ -23,9 +23,7 @@ def load_settings(settings_path: str | Path = None) -> Settings:
         data = yaml.safe_load(f)
 
     return Settings(
-        paths=Paths(
-            private_data=Path(data["paths"]["private_data"])
-        ),
+        paths=Paths(private_data=Path(data["paths"]["private_data"])),
     )
 
 

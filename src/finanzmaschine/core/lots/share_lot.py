@@ -59,10 +59,7 @@ def close_share_lot_part(
     dt: datetime,
     entitlement: float | None = None,  # asset units per a share unit when selling
 ) -> float:
-    if (
-        entitlement is not None and
-        lot.asset_lot.state == LotState.OPEN
-    ):
+    if entitlement is not None and lot.asset_lot.state == LotState.OPEN:
         asset_units = units * entitlement  # implied units
         asset_price = price / entitlement  # implied price
         lot.asset_lot.record_out(
