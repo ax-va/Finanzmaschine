@@ -1,5 +1,5 @@
 from finanzmaschine.core.lots.base_lot import BaseLot
-from finanzmaschine.core.market.asset import Asset
+from finanzmaschine.catalog.asset import Asset
 
 
 class AssetLot(BaseLot):
