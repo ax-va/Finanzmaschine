@@ -3,7 +3,7 @@ from datetime import datetime
 from finanzmaschine.core.lots.asset_lot import AssetLot
 from finanzmaschine.core.lots.lot_state import LotState
 from finanzmaschine.core.lots.nominal_lot import NominalLot
-from finanzmaschine.core.market.instruments import Share
+from finanzmaschine.core.market.share import Share
 
 
 class ShareLot(NominalLot):
