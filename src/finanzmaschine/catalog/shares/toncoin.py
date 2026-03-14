@@ -3,7 +3,7 @@ from finanzmaschine.catalog.instrument_registry import registry
 from finanzmaschine.core.market.share import Share
 
 
-SHARE_21SHARES_TON = registry.register(
+ETP_21SHARES_TON = registry.register(
     Share(
         isin="CH1297762812",
         name="21Shares Toncoin Staking ETP",

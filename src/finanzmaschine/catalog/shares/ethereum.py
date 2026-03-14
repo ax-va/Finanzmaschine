@@ -3,7 +3,7 @@ from finanzmaschine.catalog.instrument_registry import registry
 from finanzmaschine.core.market.share import Share
 
 
-SHARE_COINSHARES_ETH = registry.register(
+ETP_COINSHARES_ETH = registry.register(
     Share(
         isin="GB00BLD4ZM24",
         name="CoinShares Physical Staked Ethereum",
