@@ -14,7 +14,7 @@ def load_shares(dir_path: Path) -> List[Share]:
         with share_def_file.open() as f:
             data = yaml.safe_load(f) or {}
             if not isinstance(data, dict):
-                raise ValueError(f"Invalid YAML sturcture in {share_def_file!r}")
+                raise ValueError(f"Invalid YAML structure in {share_def_file!r}")
 
             for isin, metadata in data.items():
                 name = metadata.get("name")
