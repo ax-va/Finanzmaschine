@@ -22,6 +22,13 @@ class BaseLot:
     def units_closed(self) -> float:
         return fsum(r.units for r in self.lot_records_out)
 
+    @property
+    def records(self) -> Tuple[LotRecord, ...] | None:
+        if self.lot_record_in is not None:
+            return self.lot_record_in, *self.lot_records_out
+        else:
+            return None
+
     @classmethod
     def open(
         cls: Type[T],
@@ -113,5 +120,8 @@ class BaseLot:
         dt: datetime,
     ) -> None:
         self._validate_record(units, price, fee)
+        assert self.lot_record_in is not None
         assert self.lot_record_in.units > 0
         assert self.lot_record_in.dt <= dt
+        for record_out in self.lot_records_out:
+            assert record_out.dt <= dt
