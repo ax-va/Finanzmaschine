@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import override
 
 from finanzmaschine.core.lots.base_lot import BaseLot
-from finanzmaschine.utils.float_helper import is_zero, round_to_zero, EPS
+from finanzmaschine.utils.float_helper import round_to_zero
 
 
 class NominalLot(BaseLot):
@@ -35,4 +35,4 @@ class NominalLot(BaseLot):
         dt: datetime,
     ) -> None:
         super()._validate_record_out(units, price, fee, dt)
-        assert units <= self.units_open + EPS
+        assert round_to_zero(self.units_open - units) >= 0
