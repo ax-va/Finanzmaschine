@@ -73,18 +73,17 @@ class ShareLotContext:
     @property
     def asset_limit_order_price(self) -> float | None:
         if self.asset_profit_pct is not None:
-            return self.share_lot.asset_lot.lot_record_in.price * (
-                1 + self.asset_profit_pct
-            )
+            asset_price_in = float(self.share_lot.asset_lot.lot_record_in.price)
+            return asset_price_in * (1 + self.asset_profit_pct)
         else:
             return None
 
     @property
     def asset_stop_loss_price(self) -> float | None:
         if self.asset_loss_pct is not None:
-            asset_stop_loss: float = self.share_lot.asset_lot.lot_record_in.price * (
-                1 - self.asset_loss_pct
-            )
+            asset_price_in = float(self.share_lot.asset_lot.lot_record_in.price)
+            asset_stop_loss: float = asset_price_in * (1 - self.asset_loss_pct)
+
             if self.asset_vac_upper_bound is not None:
                 asset_stop_loss: float = max(
                     self.asset_vac_upper_bound, asset_stop_loss
@@ -95,7 +94,7 @@ class ShareLotContext:
 
     @property
     def date_in(self) -> date:
-        return self.share_lot.lot_record_in.datetime.date()
+        return self.share_lot.lot_record_in.dt.date()
 
     # @property
     # def is_tax_exempt(self):
