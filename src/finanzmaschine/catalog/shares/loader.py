@@ -13,10 +13,15 @@ def load_shares(dir_path: Path) -> List[Share]:
     for share_def_file in share_def_files:
         with share_def_file.open() as f:
             data = yaml.safe_load(f) or {}
+
             if not isinstance(data, dict):
                 raise ValueError(f"Invalid YAML structure in {share_def_file!r}")
 
             for isin, metadata in data.items():
+
+                if not isinstance(metadata, dict):
+                    raise ValueError(f"Invalid YAML structure in {share_def_file!r}")
+
                 name = metadata.get("name")
                 if name is None:
                     raise ValueError(f"Name missing for ISIN {isin!r}")
@@ -26,7 +31,6 @@ def load_shares(dir_path: Path) -> List[Share]:
                     raise ValueError(f"Asset missing for ISIN {isin!r}")
 
                 asset = parse_asset(asset_str)
-
                 share = Share(
                     isin=isin,
                     name=name,
