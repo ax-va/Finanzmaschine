@@ -13,7 +13,7 @@ pprint(instrument)
 #        name='CoinShares Physical Staked Ethereum',
 #        asset=<Asset.ETH: 'ETH'>)]
 
-shares =registry.get_all_shares()
+shares = registry.get_all_shares()
 pprint(shares)
 # [Share(isin='GB00BLD4ZM24',
 #        name='CoinShares Physical Staked Ethereum',

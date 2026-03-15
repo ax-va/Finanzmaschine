@@ -7,13 +7,11 @@ from finanzmaschine.core.market.share import Share
 
 
 class InstrumentRegistry:
-
     def __init__(self):
         self._by_isin: Dict[str, Instrument] = {}
         self._by_asset: DefaultDict[Asset, List[Instrument]] = defaultdict(list)
 
     def register(self, instrument: Instrument) -> Instrument:
-
         if instrument.isin in self._by_isin:
             raise ValueError(f"Duplicate instrument {instrument.isin}")
 
@@ -25,8 +23,12 @@ class InstrumentRegistry:
 
         return instrument
 
-    def find(self, *, asset: Asset | None = None, instrument_type: type | None = None) -> List[Instrument]:
-
+    def find(
+        self,
+        *,
+        asset: Asset | None = None,
+        instrument_type: type | None = None,
+    ) -> List[Instrument]:
         instruments = self._by_isin.values()
 
         if asset is not None:

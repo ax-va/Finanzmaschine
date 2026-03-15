@@ -33,7 +33,6 @@ class ShareLot(NominalLot):
         dt: datetime,
         entitlement: float | None = None,
     ) -> None:
-
         super().close_units(
             units=units,
             price=price,
@@ -75,7 +74,6 @@ class ShareLot(NominalLot):
         self,
         entitlement: float | None = None,
     ) -> None:
-
         if entitlement is None:
             return
 
@@ -92,5 +90,5 @@ class ShareLot(NominalLot):
             price_currency=self.lot_record_in.price_currency,
             fee=self.lot_record_in.fee,
             fee_currency=self.lot_record_in.fee_currency,
-            dt=self.lot_record_in.dt
+            dt=self.lot_record_in.dt,
         )

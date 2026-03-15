@@ -8,6 +8,7 @@ from finanzmaschine.core.lots.lot_record import LotRecord
 
 T = TypeVar("T", bound="BaseLot")
 
+
 class BaseLot:
     """
     Base lot managing immutable lot records.
@@ -41,7 +42,6 @@ class BaseLot:
         dt: datetime,
         **kwargs: Any,
     ) -> T:
-
         constructor_kwargs = cls._constructor_kwargs(kwargs)
         lot = cls(**constructor_kwargs)
 
@@ -86,7 +86,9 @@ class BaseLot:
     ) -> None:
         self._validate_record(units, price, fee)
 
-        self.lot_record_in = LotRecord(units, price, price_currency, fee, fee_currency, dt)
+        self.lot_record_in = LotRecord(
+            units, price, price_currency, fee, fee_currency, dt
+        )
 
     def _record_out(
         self,
