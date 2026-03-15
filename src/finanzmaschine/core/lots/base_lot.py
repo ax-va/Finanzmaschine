@@ -41,6 +41,7 @@ class BaseLot:
         # noinspection PyProtectedMember
         lot._record_in(units, price, price_currency, fee, fee_currency, dt)
 
+        # remaining kwargs
         post_kwargs = {k: v for k, v in kwargs.items() if k not in ctor_kwargs}
         # noinspection PyProtectedMember
         lot._post_open(**post_kwargs)
