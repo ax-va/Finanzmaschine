@@ -17,11 +17,6 @@ class BaseLot:
     def __init__(self, **kwargs):
         self.lot_record_in: LotRecord | None = None
         self.lot_records_out: Tuple[LotRecord, ...] = ()
-        self._units_closed: float = 0.0
-
-    @property
-    def units_closed(self) -> float:
-        return fsum(r.units for r in self.lot_records_out)
 
     @property
     def records(self) -> Tuple[LotRecord, ...] | None:

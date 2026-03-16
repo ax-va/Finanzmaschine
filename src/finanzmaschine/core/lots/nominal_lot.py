@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from math import fsum
 from typing import override
 
 from finanzmaschine.core.lots.base_lot import BaseLot
@@ -13,6 +14,14 @@ class NominalLot(BaseLot):
     The open units are derived from the incoming units and all outgoing units:
     units_open = units_in - units_closed.
     """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._units_closed: float = 0.0
+
+    @property
+    def units_closed(self) -> float:
+        return fsum(r.units for r in self.lot_records_out)
 
     @property
     def units_open(self) -> float:
