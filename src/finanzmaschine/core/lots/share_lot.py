@@ -1,95 +1,87 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import override
+from typing import override, Self, Type, Any
 
-from finanzmaschine.core.lots.asset_lot import AssetLot
-from finanzmaschine.core.lots.currency_enum import Currency
-from finanzmaschine.core.lots.nominal_lot import NominalLot
+from finanzmaschine.catalog.asset_enum import Asset
+from finanzmaschine.core.lots.base_lot import BaseLot
+from finanzmaschine.core.lots.share_lot_record import ShareLotRecord
 from finanzmaschine.core.market.share import Share
 
 
-class ShareLot(NominalLot):
+class ShareLot(BaseLot[ShareLotRecord]):
     """
     A lot corresponding to a share-based instrument.
 
-    Units are invariant in share terms: units_open = units_in - units_out_total.
-    Each share unit carries an entitlement to an underlying asset.
+    Each share unit carries an entitlement to an underlying asset:
+
+    underlying_asset_quantity = base_asset_quantity * entitlement
+    underlying_asset_price = price / entitlement
     """
 
-    def __init__(self, share: Share):
-        super().__init__()
-        share.require_asset()
-        self.share: Share = share
-        self.asset_lot: AssetLot | None = None
+    lot_record_cls = ShareLotRecord
+
+    def __init__(self, base_asset: Share):
+        super().__init__(base_asset)
+
+    @property
+    def shared_asset(self) -> Asset:
+        return self.base_asset.asset
+
+    @classmethod
+    def open(
+        cls: Type[Self],
+        *,
+        base_asset: Share,
+        quantity: float,
+        price: Decimal,
+        quote_asset: Asset,
+        fee: Decimal,
+        fee_asset: Asset,
+        dt: datetime,
+        entitlement: float | None = None,
+    ) -> Self:
+        return super().open(
+            base_asset=base_asset,
+            quantity=quantity,
+            price=price,
+            quote_asset=quote_asset,
+            fee=fee,
+            fee_asset=fee_asset,
+            dt=dt,
+            entitlement=entitlement,
+        )
 
     @override
-    def close_units(
+    def close_quantity(
         self,
         *,
-        units: float,
+        quantity: float,
         price: Decimal,
-        price_currency: Currency,
+        quote_asset: Asset,
         fee: Decimal,
-        fee_currency: Currency,
+        fee_asset: Asset,
         dt: datetime,
         entitlement: float | None = None,
     ) -> None:
-        super().close_units(
-            units=units,
+        super().close_quantity(
+            quantity=quantity,
             price=price,
-            price_currency=price_currency,
+            quote_asset=quote_asset,
             fee=fee,
-            fee_currency=fee_currency,
+            fee_asset=fee_asset,
             dt=dt,
-        )
-
-        if entitlement is None:
-            return
-
-        # implied units
-        asset_units = units * entitlement
-        # implied price
-        asset_price = price / Decimal(str(entitlement))
-
-        assert self.asset_lot is not None
-
-        self.asset_lot.close_units(
-            units=asset_units,
-            price=asset_price,
-            price_currency=price_currency,
-            fee=fee,
-            fee_currency=fee_currency,
-            dt=dt,
+            entitlement=entitlement,
         )
 
     @override
-    @classmethod
-    def _constructor_kwargs(
-        cls,
-        kwargs: dict,
-    ) -> dict:
-        return {"share": kwargs["share"]}
-
-    @override
-    def _post_open(
-        self,
+    @staticmethod
+    def _validate_record(
+        quantity: float,
+        price: Decimal,
+        fee: Decimal,
         entitlement: float | None = None,
     ) -> None:
-        if entitlement is None:
-            return
+        super()._validate_record(quantity, price, fee)
 
-        assert self.lot_record_in is not None
-
-        # implied units
-        asset_units = self.lot_record_in.units * entitlement
-        # implied price
-        asset_price = self.lot_record_in.price / Decimal(str(entitlement))
-
-        self.asset_lot = AssetLot.open(
-            units=asset_units,
-            price=asset_price,
-            price_currency=self.lot_record_in.price_currency,
-            fee=self.lot_record_in.fee,
-            fee_currency=self.lot_record_in.fee_currency,
-            dt=self.lot_record_in.dt,
-        )
+        if entitlement is not None:
+            assert entitlement > 0

@@ -8,13 +8,13 @@ df = pl.read_csv(
 ).sort("datetime")
 
 df = df.with_columns(
-    (pl.col("units") * pl.col("price")).round(2).alias("units * price"),
+    (pl.col("quantity") * pl.col("price")).round(2).alias("quantity * price"),
 ).select(
     [
         "datetime",
-        "units",
+        "quantity",
         "price",
-        "units * price",
+        "quantity * price",
         "fee",
         "total",
         "currency",
