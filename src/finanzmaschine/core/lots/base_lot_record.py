@@ -13,3 +13,8 @@ class BaseLotRecord:
     fee: Decimal
     fee_asset: Asset
     dt: datetime
+
+    def validate(self):
+        assert self.quantity > 0
+        assert self.price > 0
+        assert self.fee >= 0

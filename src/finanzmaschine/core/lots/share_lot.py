@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import override, Self, Type, Any
+from typing import override, Self, Type
 
 from finanzmaschine.catalog.asset_enum import Asset
 from finanzmaschine.core.lots.base_lot import BaseLot
@@ -12,10 +12,10 @@ class ShareLot(BaseLot[ShareLotRecord]):
     """
     A lot corresponding to a share-based instrument.
 
-    Each share unit carries an entitlement to an underlying asset:
+    Each share unit carries an entitlement to an underlying shared asset:
 
     shared_asset_quantity = base_asset_quantity * entitlement
-    shared__asset_price = price / entitlement
+    shared_asset_price = price / entitlement
     """
 
     lot_record_cls = ShareLotRecord
@@ -25,7 +25,7 @@ class ShareLot(BaseLot[ShareLotRecord]):
 
     @property
     def shared_asset(self) -> Asset:
-        return self.base_asset.asset
+        return self.base_asset.shared_asset
 
     @classmethod
     def open(
@@ -72,17 +72,3 @@ class ShareLot(BaseLot[ShareLotRecord]):
             dt=dt,
             entitlement=entitlement,
         )
-
-    @override
-    @staticmethod
-    def _validate_record(
-        quantity: float,
-        price: Decimal,
-        fee: Decimal,
-        entitlement: float | None = None,
-        **kwargs: Any,
-    ) -> None:
-        super()._validate_record(quantity, price, fee, **kwargs)
-
-        if entitlement is not None:
-            assert entitlement > 0
