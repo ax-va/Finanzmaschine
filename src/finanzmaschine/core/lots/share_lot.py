@@ -14,8 +14,8 @@ class ShareLot(BaseLot[ShareLotRecord]):
 
     Each share unit carries an entitlement to an underlying asset:
 
-    underlying_asset_quantity = base_asset_quantity * entitlement
-    underlying_asset_price = price / entitlement
+    shared_asset_quantity = base_asset_quantity * entitlement
+    shared__asset_price = price / entitlement
     """
 
     lot_record_cls = ShareLotRecord
@@ -80,8 +80,9 @@ class ShareLot(BaseLot[ShareLotRecord]):
         price: Decimal,
         fee: Decimal,
         entitlement: float | None = None,
+        **kwargs: Any,
     ) -> None:
-        super()._validate_record(quantity, price, fee)
+        super()._validate_record(quantity, price, fee, **kwargs)
 
         if entitlement is not None:
             assert entitlement > 0
