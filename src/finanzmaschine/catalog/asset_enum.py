@@ -14,4 +14,4 @@ def parse_asset(s: str) -> Asset:
     try:
         return Asset[s.upper()]
     except KeyError:
-        raise ValueError(f"Unknown asset: {s}")
+        raise ValueError(f"Unknown asset: {s!r}")
