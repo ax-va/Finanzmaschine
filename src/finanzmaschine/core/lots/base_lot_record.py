@@ -14,7 +14,12 @@ class BaseLotRecord:
     fee_asset: Asset
     dt: datetime
 
-    def validate(self):
-        assert self.quantity > 0
-        assert self.price > 0
-        assert self.fee >= 0
+    def __post_init__(self) -> None:
+        if not (self.quantity > 0):
+            raise ValueError("`quantity` must be positive")
+
+        if not (self.price > 0):
+            raise ValueError("`price` must be positive")
+
+        if not (self.fee >= 0):
+            raise ValueError("`fee` must be not negative")

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import override
 
 from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
 
@@ -8,11 +7,11 @@ from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
 class ShareLotRecord(BaseLotRecord):
     entitlement: float | None
 
-    @override
-    def validate(self):
-        super().validate()
-        if self.entitlement is not None:
-            assert self.entitlement > 0
+    def __post_init__(self) -> None:
+        super().__post_init__()
+
+        if self.entitlement is not None and not (self.entitlement > 0):
+            raise ValueError("`entitlement` must be positive if not `None`")
 
     def require_entitlement(self) -> float:
         if self.entitlement is None:
