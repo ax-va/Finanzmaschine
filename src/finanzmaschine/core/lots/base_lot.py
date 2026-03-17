@@ -127,16 +127,10 @@ class BaseLot(Generic[R]):
             **kwargs,
         )
         lot_record_out.validate()
-        self._validate_record_out(quantity, dt)
-        self.lot_records_out = *self.lot_records_out, lot_record_out
-
-    def _validate_record_out(
-        self,
-        quantity: float,
-        dt: datetime,
-    ) -> None:
         assert self.lot_record_in is not None
         assert round_to_zero(self.quantity_open - quantity) >= 0
-        assert self.lot_record_in.dt <= dt
+        assert self.lot_record_in.dt < dt
         for lot_record_out in self.lot_records_out:
-            assert lot_record_out.dt <= dt
+            assert lot_record_out.dt < dt
+
+        self.lot_records_out = *self.lot_records_out, lot_record_out
