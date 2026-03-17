@@ -4,7 +4,7 @@ from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
 
 
 @dataclass(frozen=True)
-class ShareLotRecord(BaseLotRecord):
+class EtpLotRecord(BaseLotRecord):
     entitlement: float | None
 
     def __post_init__(self) -> None:

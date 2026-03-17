@@ -3,7 +3,7 @@ import polars as pl
 from finanzmaschine.config import PRIVATE_DATA_DIR
 
 df = pl.read_csv(
-    PRIVATE_DATA_DIR / "trades" / "shares" / "toncoin.csv",
+    PRIVATE_DATA_DIR / "trades" / "etps" / "toncoin.csv",
     try_parse_dates=True,
 ).sort("datetime")
 

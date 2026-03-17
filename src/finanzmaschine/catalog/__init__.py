@@ -1,4 +1,4 @@
-from .instrument_registry import registry
+from .security_registry import registry
 
 # side-effect imports
-from .shares import bootstrap
+from .etps import bootstrap

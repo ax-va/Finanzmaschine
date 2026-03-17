@@ -1,23 +1,25 @@
 from math import fsum
-from typing import Tuple, Any, TypeVar, Generic
+from typing import Tuple, TypeVar, Generic
 
 from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
+from finanzmaschine.core.market.instruments.instrument import Instrument
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
+I = TypeVar("I", bound="Instrument")
 R = TypeVar("R", bound="BaseLotRecord")
 
 
-class BaseLot(Generic[R]):
+class BaseLot(Generic[I, R]):
     """
-    Base lot manages immutable lot records and its invariant is the base asset quantity.
+    Base lot manages immutable lot records and its invariant is the quantity.
 
     The open quantity is derived from the incoming quantity and all outgoing quantity:
 
     quantity_open = quantity_in - quantity_closed.
     """
 
-    def __init__(self, base_asset: Any, record_in: R):
-        self.base_asset: Any = base_asset
+    def __init__(self, instrument: I, record_in: R):
+        self.instrument: I = instrument
         self.record_in: R = record_in
         self.records_out: Tuple[R, ...] = ()
 
@@ -55,6 +57,6 @@ class BaseLot(Generic[R]):
             raise ValueError("Cannot close more than open quantity")
 
         last_dt = self.last_record.dt
-        if not (last_dt < record_out.dt):
-            raise ValueError("Records must be strictly increasing ordered by datetime")
+        if not (last_dt <= record_out.dt):
+            raise ValueError("Records must be increasing ordered by datetime")
 

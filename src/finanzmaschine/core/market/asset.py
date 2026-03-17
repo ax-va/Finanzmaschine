@@ -2,6 +2,5 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class Instrument:
-    isin: str
+class Asset:
     name: str

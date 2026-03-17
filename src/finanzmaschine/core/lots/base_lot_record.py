@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
-from finanzmaschine.catalog.asset_enum import Asset
+from finanzmaschine.core.market.asset import Asset
 
 
 @dataclass(frozen=True)
