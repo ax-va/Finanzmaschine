@@ -1,7 +1,7 @@
 from finanzmaschine.catalog.asset_enum import Asset
 from finanzmaschine.core.lots.base_lot import BaseLot
 from finanzmaschine.core.lots.etp_lot_record import EtpLotRecord
-from finanzmaschine.core.market.etp import Etp
+from finanzmaschine.core.assets.etp import Etp
 
 
 class EtpLot(BaseLot[Etp, EtpLotRecord]):
@@ -14,9 +14,9 @@ class EtpLot(BaseLot[Etp, EtpLotRecord]):
     underlying_price = etp_price / entitlement
     """
 
-    def __init__(self, instrument: Etp, record_in: EtpLotRecord) -> None:
-        super().__init__(instrument, record_in)
+    def __init__(self, base_asset: Etp, record_in: EtpLotRecord) -> None:
+        super().__init__(base_asset, record_in)
 
     @property
-    def underlying(self) -> Asset:
-        return self.instrument.underlying
+    def underlying_asset(self) -> Asset:
+        return self.base_asset.underlying_asset

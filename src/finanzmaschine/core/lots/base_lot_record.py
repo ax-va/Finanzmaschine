@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
 
-from finanzmaschine.core.market.asset import Asset
+from finanzmaschine.core.assets.asset import Asset
 
 
 @dataclass(frozen=True)
 class BaseLotRecord:
     quantity: float
-    price: Decimal
+    price: float
     quote_asset: Asset
-    fee: Decimal
+    fee: float
     fee_asset: Asset
     dt: datetime
 

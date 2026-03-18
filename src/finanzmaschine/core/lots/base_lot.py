@@ -2,24 +2,24 @@ from math import fsum
 from typing import Tuple, TypeVar, Generic
 
 from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
-from finanzmaschine.core.market.instruments.instrument import Instrument
+from finanzmaschine.core.assets.asset import Asset
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
-I = TypeVar("I", bound="Instrument")
+A = TypeVar("A", bound="Asset")
 R = TypeVar("R", bound="BaseLotRecord")
 
 
-class BaseLot(Generic[I, R]):
+class BaseLot(Generic[A, R]):
     """
-    Base lot manages immutable lot records and its invariant is the quantity.
+    Base lot manages immutable lot records and its invariant is the quantity in the lot.
 
     The open quantity is derived from the incoming quantity and all outgoing quantity:
 
     quantity_open = quantity_in - quantity_closed.
     """
 
-    def __init__(self, instrument: I, record_in: R):
-        self.instrument: I = instrument
+    def __init__(self, base_asset: A, record_in: R):
+        self.base_asset: A = base_asset
         self.record_in: R = record_in
         self.records_out: Tuple[R, ...] = ()
 
