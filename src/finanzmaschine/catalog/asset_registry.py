@@ -1,13 +1,16 @@
-from typing import Dict, List
+from typing import Dict, List, TypeVar, Generic
 
 from finanzmaschine.core.assets.asset import Asset
 
 
-class AssetRegistry:
-    def __init__(self):
-        self._by_id: Dict[str, Asset] = {}
+A = TypeVar("A", bound="Asset")
 
-    def register(self, asset: Asset) -> Asset:
+
+class AssetRegistry(Generic[A]):
+    def __init__(self):
+        self._by_id: Dict[str, A] = {}
+
+    def register(self, asset: A) -> A:
         if asset.id in self._by_id:
             raise ValueError(f"Duplicate asset {asset.id!r}")
 
@@ -15,10 +18,10 @@ class AssetRegistry:
 
         return asset
 
-    def get_all(self) -> List[Asset]:
+    def get_all(self) -> List[A]:
         return list(self._by_id.values())
 
-    def get(self, key: str) -> Asset:
+    def get(self, key: str) -> A:
         return self._by_id.get(key)
 
 

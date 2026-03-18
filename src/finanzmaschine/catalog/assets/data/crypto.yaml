@@ -1,0 +1,14 @@
+BTC:
+  name: Bitcoin
+
+ETH:
+  name: Ethereum
+
+NEAR:
+  name: "NEAR Protocol"
+
+SOL:
+  name: Solana
+
+TON:
+  name: Toncoin

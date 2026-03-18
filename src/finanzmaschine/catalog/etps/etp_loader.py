@@ -3,7 +3,7 @@ import yaml
 from pathlib import Path
 from typing import List
 
-from finanzmaschine.catalog.asset_enum import parse_asset
+from finanzmaschine.catalog import asset_registry
 from finanzmaschine.core.assets.etp import Etp
 
 
@@ -24,15 +24,14 @@ def load_etps(dir_path: Path) -> List[Etp]:
                 if name is None:
                     raise ValueError(f"Name missing for ISIN {isin!r}")
 
-                underlying_asset_str = metadata.get("underlying_asset")
-                if underlying_asset_str is None:
+                underlying_asset = metadata.get("underlying_asset")
+                if underlying_asset is None:
                     raise ValueError(f"Asset missing for ISIN {isin!r}")
 
-                underlying_asset = parse_asset(underlying_asset_str)
                 etp = Etp(
                     id=isin,
                     name=name,
-                    underlying_asset=underlying_asset,
+                    underlying_asset=asset_registry.get(underlying_asset),
                 )
                 etps.append(etp)
 
