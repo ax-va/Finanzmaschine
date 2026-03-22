@@ -8,3 +8,9 @@ A = TypeVar("A", bound="Asset")
 class Asset:
     id: str
     name: str
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Asset):
+            return NotImplemented
+
+        return self.id == other.id
