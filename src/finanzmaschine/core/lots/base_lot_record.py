@@ -29,7 +29,7 @@ class BaseLotRecord:
 
     def clone_with_change(self, **kwargs) -> R:
         attr_dict = asdict(self)
-        for key in kwargs:
-            attr_dict.pop(key)
+        for k in kwargs:
+            attr_dict.pop(k)
 
         return type(self)(**kwargs, **attr_dict)
