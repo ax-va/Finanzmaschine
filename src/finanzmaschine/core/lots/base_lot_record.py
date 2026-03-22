@@ -27,7 +27,7 @@ class BaseLotRecord:
             raise ValueError("`fee` must be not negative")
 
 
-    def clone_with_change(self, **kwargs) -> R:
+    def copy(self, **kwargs) -> R:
         attr_dict = asdict(self)
         for k in kwargs:
             attr_dict.pop(k)
