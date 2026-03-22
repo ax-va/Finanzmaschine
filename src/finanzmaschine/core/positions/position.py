@@ -22,7 +22,7 @@ class Position(Generic[A]):
         else:
             return None
 
-    def input_lot(self, lot_in: L) -> None:
+    def add_lot(self, lot_in: L) -> None:
         if self.base_asset is not None and self.base_asset != lot_in.base_asset:
             raise ValueError("The position's base asset is not equal to the incoming lot's base asset")
 
