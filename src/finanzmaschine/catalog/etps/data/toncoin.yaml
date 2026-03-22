@@ -1,3 +1,5 @@
 CH1297762812:
+  type: ETP
   name: "21Shares Toncoin Staking ETP"
-  underlying_asset: TON
+  underlying_asset:
+    id: TON

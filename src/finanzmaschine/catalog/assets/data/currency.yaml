@@ -1,5 +1,7 @@
 EUR:
+  type: Asset
   name: Euro
 
 USD:
+  type: Asset
   name: "United States Dollar"
