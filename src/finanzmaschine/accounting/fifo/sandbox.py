@@ -12,12 +12,15 @@ df = df.with_columns(
 ).select(
     [
         "datetime",
+        "base_asset",
         "quantity",
         "price",
+        "quote_asset",
         "quantity * price",
         "fee",
+        "fee_asset",
         "total",
-        "currency",
+        "total_asset",
         "side",
     ]
 )
