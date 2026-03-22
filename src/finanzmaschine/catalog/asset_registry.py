@@ -1,9 +1,6 @@
-from typing import Dict, List, TypeVar, Generic
+from typing import Dict, List, Generic
 
-from finanzmaschine.core.assets.asset import Asset
-
-
-A = TypeVar("A", bound="Asset")
+from finanzmaschine.core.assets.asset import A
 
 
 class AssetRegistry(Generic[A]):

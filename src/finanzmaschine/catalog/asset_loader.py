@@ -1,13 +1,11 @@
 import yaml
 
 from pathlib import Path
-from typing import List, TypeVar
+from typing import List
 
 from finanzmaschine.catalog import asset_registry
 from finanzmaschine.core import assets as assets_module
-from finanzmaschine.core.assets import Asset
-
-A = TypeVar("A", bound="Asset")
+from finanzmaschine.core.assets.asset import A
 
 
 def load_assets(dir_path: Path) -> List[A]:

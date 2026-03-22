@@ -1,4 +1,4 @@
-from finanzmaschine.catalog.asset_enum import Asset
+from finanzmaschine.core.assets import Asset
 from finanzmaschine.core.lots.base_lot import BaseLot
 from finanzmaschine.core.lots.etp_lot_record import EtpLotRecord
 from finanzmaschine.core.assets.etp import Etp

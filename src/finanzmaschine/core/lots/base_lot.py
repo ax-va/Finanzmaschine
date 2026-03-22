@@ -1,12 +1,12 @@
 from math import fsum
-from typing import Tuple, TypeVar, Generic
+from typing import Tuple, Generic, TypeVar
 
-from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
-from finanzmaschine.core.assets.asset import Asset
+from finanzmaschine.core.assets.asset import A
+from finanzmaschine.core.lots.base_lot_record import R
+from finanzmaschine.core.lots.lot_errors import ClosingMoreThanOpenQuantityError, OrderingByDatetimeError
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
-A = TypeVar("A", bound="Asset")
-R = TypeVar("R", bound="BaseLotRecord")
+L = TypeVar("L", bound="BaseLot")
 
 
 class BaseLot(Generic[A, R]):
@@ -47,16 +47,21 @@ class BaseLot(Generic[A, R]):
     def is_closed(self) -> bool:
         return not self.is_open
 
-    def close_quantity(self, record_out: R) -> None:
-        self._ensure_can_close(record_out)
+    def close_record(self, record_out: R) -> None:
+        self.ensure_can_close(record_out)
         self.records_out = self.records_out + (record_out, )
 
-    def _ensure_can_close(self, record_out: R) -> None:
+    def can_close_by_quantity(self, record_out: R) -> bool:
         remaining_quantity = self.quantity_open - record_out.quantity
-        if remaining_quantity < 0 and not is_zero(remaining_quantity):
-            raise ValueError("Cannot close more than open quantity")
+        return remaining_quantity >= 0 or is_zero(remaining_quantity)
 
+    def can_close_by_datetime(self, record_out: R) -> bool:
         last_dt = self.last_record.dt
-        if not (last_dt <= record_out.dt):
-            raise ValueError("Records must be increasing ordered by datetime")
+        return last_dt <= record_out.dt
 
+    def ensure_can_close(self, record_out: R) -> None:
+        if not self.can_close_by_quantity(record_out):
+            raise ClosingMoreThanOpenQuantityError()
+
+        if not self.can_close_by_datetime(record_out):
+            raise OrderingByDatetimeError()

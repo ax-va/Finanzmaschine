@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import TypeVar
 
 from finanzmaschine.core.assets.asset import Asset
+
+R = TypeVar("R", bound="BaseLotRecord")
 
 
 @dataclass(frozen=True)
