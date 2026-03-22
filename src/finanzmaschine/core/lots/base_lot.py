@@ -57,8 +57,8 @@ class BaseLot(Generic[A, R]):
         remaining_record: R | None = None
         remaining_quantity = self.quantity_open - record_out.quantity
         if remaining_quantity < 0 and not is_zero(remaining_quantity):
-            remaining_record: R = record_out.copy(quantity=remaining_quantity)
-            record_out: R = record_out.copy(quantity=self.quantity_open)
+            remaining_record: R = record_out.copy_with(quantity=remaining_quantity)
+            record_out: R = record_out.copy_with(quantity=self.quantity_open)
 
         self.records_out = self.records_out + (record_out, )
 
