@@ -1,9 +1,9 @@
-from typing import Dict, List, Generic
+from typing import Dict, List
 
-from finanzmaschine.core.assets.asset import A
+from finanzmaschine.core.assets import BaseAsset
 
 
-class AssetRegistry(Generic[A]):
+class AssetRegistry[A: BaseAsset]:
     def __init__(self):
         self._by_id: Dict[str, A] = {}
 

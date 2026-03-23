@@ -1,19 +1,17 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from typing import TypeVar
+from typing import Self
 
-from finanzmaschine.core.assets.asset import Asset
-
-R = TypeVar("R", bound="BaseLotRecord")
+from finanzmaschine.core.assets.base_asset import BaseAsset
 
 
 @dataclass(frozen=True)
 class BaseLotRecord:
     quantity: float
     price: float
-    quote_asset: Asset
+    quote_asset: BaseAsset
     fee: float
-    fee_asset: Asset
+    fee_asset: BaseAsset
     dt: datetime
 
     def __post_init__(self) -> None:
@@ -27,9 +25,8 @@ class BaseLotRecord:
             raise ValueError("`fee` must be not negative")
 
 
-    def copy_with(self, **kwargs) -> R:
+    def copy_with_changes(self, **kwargs) -> Self:
         attr_dict = asdict(self)
         for k in kwargs:
             attr_dict.pop(k)
-
         return type(self)(**kwargs, **attr_dict)

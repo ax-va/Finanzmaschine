@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Exchange(Enum):
+class Exchange(StrEnum):
     EIX = "EIX"
     GETTEX = "gettex"

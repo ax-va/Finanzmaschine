@@ -1,19 +1,14 @@
 BTC:
-  type: Asset
   name: Bitcoin
 
 ETH:
-  type: Asset
   name: Ethereum
 
 NEAR:
-  type: Asset
   name: "NEAR Protocol"
 
 SOL:
-  type: Asset
   name: Solana
 
 TON:
-  type: Asset
   name: Toncoin

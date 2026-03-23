@@ -1,5 +1,4 @@
 GB00BLD4ZM24:
-  type: ETP
   name: "CoinShares Physical Staked Ethereum"
   underlying_asset:
     id: ETH

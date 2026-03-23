@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from finanzmaschine.core.assets.asset import Asset
+from finanzmaschine.core.assets.base_asset import BaseAsset
 
 
 @dataclass(frozen=True)
-class Security(Asset):
+class Security(BaseAsset):
     pass

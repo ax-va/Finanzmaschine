@@ -1,15 +1,12 @@
 from math import fsum
-from typing import Tuple, Generic, TypeVar
+from typing import Tuple, List
 
-from finanzmaschine.core.assets.asset import A
-from finanzmaschine.core.lots.base_lot_record import R
-from finanzmaschine.core.lots.lot_errors import OrderingByDatetimeError
+from finanzmaschine.core.assets.base_asset import BaseAsset
+from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
-L = TypeVar("L", bound="BaseLot")
 
-
-class BaseLot(Generic[A, R]):
+class BaseLot[A: BaseAsset, R: BaseLotRecord]:
     """
     Base lot manages immutable lot records and its invariant is the quantity in the lot.
 
@@ -19,25 +16,37 @@ class BaseLot(Generic[A, R]):
     """
 
     def __init__(self, base_asset: A, record_in: R):
-        self.base_asset: A = base_asset
-        self.record_in: R = record_in
-        self.records_out: Tuple[R, ...] = ()
+        self._base_asset: A = base_asset
+        self._record_in: R = record_in
+        self._records_out: List[R] = []
+
+    @property
+    def base_asset(self) -> A:
+        return self._base_asset
+
+    @property
+    def record_in(self) -> R:
+        return self._record_in
+
+    @property
+    def records_out(self) -> Tuple[R, ...]:
+        return tuple(self._records_out)
 
     @property
     def records(self) -> Tuple[R, ...]:
-        return (self.record_in, ) + self.records_out
+        return (self._record_in, ) + self.records_out
 
     @property
     def last_record(self) -> R:
-        return self.record_in if not self.records_out else self.records_out[-1]
+        return self._record_in if not self._records_out else self._records_out[-1]
 
     @property
     def quantity_closed(self) -> float:
-        return fsum(r_out.quantity for r_out in self.records_out)
+        return fsum(r_out.quantity for r_out in self._records_out)
 
     @property
     def quantity_open(self) -> float:
-        return round_to_zero(self.record_in.quantity - self.quantity_closed)
+        return round_to_zero(self._record_in.quantity - self.quantity_closed)
 
     @property
     def is_open(self) -> bool:
@@ -57,10 +66,10 @@ class BaseLot(Generic[A, R]):
         remaining_record: R | None = None
         remaining_quantity = self.quantity_open - record_out.quantity
         if remaining_quantity < 0 and not is_zero(remaining_quantity):
-            remaining_record: R = record_out.copy_with(quantity=remaining_quantity)
-            record_out: R = record_out.copy_with(quantity=self.quantity_open)
+            remaining_record: R = record_out.copy_with_changes(quantity=remaining_quantity)
+            record_out: R = record_out.copy_with_changes(quantity=self.quantity_open)
 
-        self.records_out = self.records_out + (record_out, )
+        self._records_out.append(record_out)
 
         return remaining_record
 

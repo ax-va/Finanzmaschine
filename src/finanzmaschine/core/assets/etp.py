@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from finanzmaschine.core.assets.asset import Asset
+from finanzmaschine.core.assets.base_asset import BaseAsset
 from finanzmaschine.core.assets.security import Security
 
 
 @dataclass(frozen=True)
 class Etp(Security):
-    underlying_asset: Asset
+    underlying_asset: BaseAsset

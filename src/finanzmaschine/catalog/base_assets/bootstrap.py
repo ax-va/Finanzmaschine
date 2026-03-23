@@ -2,6 +2,7 @@ from pathlib import Path
 
 from finanzmaschine.catalog.asset_loader import load_assets
 from finanzmaschine.catalog.asset_registry import asset_registry
+from finanzmaschine.core.assets import BaseAsset
 
-for asset in load_assets(Path(__file__).parent / "data"):
+for asset in load_assets(Path(__file__).parent / "data", asset_type=BaseAsset):
     asset_registry.register(asset)
