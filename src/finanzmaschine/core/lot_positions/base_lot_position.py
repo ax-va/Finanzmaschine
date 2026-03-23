@@ -22,7 +22,7 @@ class BaseLotPosition[A, R, L]:
         elif self._lots_closed:
             return self._lots_closed[0].base_asset
         else:
-            raise ValueError("The position doesn't contain any lot")
+            raise ValueError("Position doesn't contain any lot")
 
     @property
     def lots_open(self) -> Tuple[L, ...]:
@@ -33,18 +33,15 @@ class BaseLotPosition[A, R, L]:
         return tuple(self._lots_closed)
 
     def open_lot(self, lot_in: L) -> None:
-        asset = self.base_asset
-        if asset != lot_in.base_asset:
-            raise ValueError(
-                f"The position's asset {asset!r} is not equal to the incoming lot's asset {lot_in.base_asset!r}"
-            )
+        if self.base_asset != lot_in.base_asset:
+            raise ValueError(f"Position's asset must be equal to incoming lot's asset")
 
         last_dt = self._lots_open[-1].record_in.dt
         if last_dt > lot_in.record_in.dt:
             raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot_in.records_out:
-            raise ValueError("The incoming lot must not have outgoing reports")
+            raise ValueError("Incoming lot must not have outgoing reports")
 
         self._lots_open.append(lot_in)
 
@@ -54,4 +51,4 @@ class BaseLotPosition[A, R, L]:
         elif in_which_lot == "last":
             lot = self._lots_open[-1]
         else:
-            raise ValueError("The value of `in_which_lot` must be either 'first' or 'last'")
+            raise ValueError("The `in_which_lot` parameter must be either 'first' or 'last'")
