@@ -66,8 +66,8 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
         remaining_record: R | None = None
         remaining_quantity = self.quantity_open - record_out.quantity
         if remaining_quantity < 0 and not is_zero(remaining_quantity):
-            remaining_record: R = record_out.copy_with_changes(quantity=remaining_quantity)
-            record_out: R = record_out.copy_with_changes(quantity=self.quantity_open)
+            remaining_record: R = record_out.replace(quantity=remaining_quantity)
+            record_out: R = record_out.replace(quantity=self.quantity_open)
 
         self._records_out.append(record_out)
 
