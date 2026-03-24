@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from typing import Self
+from typing import Self, Any
 
 from finanzmaschine.core.assets.base_asset import BaseAsset
 
@@ -25,7 +25,7 @@ class BaseLotRecord:
             raise ValueError("`fee` must be not negative")
 
 
-    def replace(self, **kwargs) -> Self:
+    def copy(self, **kwargs: Any) -> Self:
         attr_dict = asdict(self)
         for k in kwargs:
             attr_dict.pop(k)
