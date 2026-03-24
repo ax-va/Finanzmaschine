@@ -36,9 +36,10 @@ class BaseLotPosition[A, R, L]:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"Position's asset must be equal to incoming lot's asset")
 
-        last_dt = self._lots_open[-1].record_in.dt
-        if last_dt > lot_in.record_in.dt:
-            raise ValueError("Open lots in the position must be in ascending order by date and time")
+        if self._lots_open:
+            last_dt = self._lots_open[-1].record_in.dt
+            if last_dt > lot_in.record_in.dt:
+                raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot_in.records_out:
             raise ValueError("Incoming lot must not have outgoing reports")
