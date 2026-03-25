@@ -1,3 +1,4 @@
+from datetime import datetime
 from math import fsum
 from typing import Tuple, List
 
@@ -63,16 +64,16 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        remaining_record: R | None = None
-        remaining_quantity = self.quantity_open - record_out.quantity
-        if remaining_quantity < 0 and not is_zero(remaining_quantity):
-            remaining_record: R = record_out.copy(quantity=abs(remaining_quantity))
+        record_left: R | None = None
+        quantity_left: float = self.quantity_open - record_out.quantity
+        if quantity_left < 0 and not is_zero(quantity_left):
+            record_left: R = record_out.copy(quantity=abs(quantity_left))
             record_out: R = record_out.copy(quantity=self.quantity_open)
 
         self._records_out.append(record_out)
 
-        return remaining_record
+        return record_left
 
     def can_close_by_datetime(self, record_out: R) -> bool:
-        last_dt = self.last_record.dt
+        last_dt: datetime = self.last_record.dt
         return last_dt <= record_out.dt
