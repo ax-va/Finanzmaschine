@@ -5,8 +5,8 @@ from finanzmaschine.core.lot_positions.base_lot_position import BaseLotPosition,
 
 class FifoLotPosition(BaseLotPosition):
 
-    def fo_close_record(self, record_out: R) -> None:
+    def fifo_close_record(self, record_out: R) -> None:
         return super().close_record(
             record_out=record_out,
-            out=Out.FIRST_OUT,
+            out=Out.FI,
         )

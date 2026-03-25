@@ -13,8 +13,8 @@ L = TypeVar("L", bound=BaseLot)
 
 
 class Out(StrEnum):
-    FIRST_OUT = "first_out"
-    LAST_OUT = "last_out"
+    FI = "first_in"
+    LI = "last_in"
 
 
 class BaseLotPosition[A, R, L]:
@@ -40,13 +40,13 @@ class BaseLotPosition[A, R, L]:
         return tuple(self._lots_closed)
 
     @property
-    def first_open(self) -> L:
+    def first_in(self) -> L:
         if not self._lots_open:
             raise ValueError("There are no open lots in the position")
         return self._lots_open[0]
 
     @property
-    def last_open(self) -> L:
+    def last_in(self) -> L:
         if not self._lots_open:
             raise ValueError("There are no open lots in the position")
         return self._lots_open[-1]
@@ -74,10 +74,10 @@ class BaseLotPosition[A, R, L]:
         self._lots_open.append(lot_in)
 
     def close_record(self, record_out: R, out: Out) -> None:
-        lot_out: L = self.first_open if out == Out.FIRST_OUT else self.last_open
+        lot_out: L = self.first_in if out == Out.FI else self.last_in
         record_left: R | None = lot_out.close_record(record_out)
         if record_left:
-            closed_lot: L = self._lots_open.popleft() if out == Out.FIRST_OUT else self._lots_open.pop()
+            closed_lot: L = self._lots_open.popleft() if out == Out.FI else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
             self.close_record(
                 record_out=record_left,
