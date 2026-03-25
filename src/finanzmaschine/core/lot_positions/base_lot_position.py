@@ -1,5 +1,6 @@
 import math
 from collections import deque
+from datetime import datetime
 from enum import StrEnum
 from typing import Deque, List, Tuple, TypeVar
 
@@ -61,7 +62,7 @@ class BaseLotPosition[A, R, L]:
         if self.first_open.records_out:
             lot_list.append(self.first_open)
 
-        if not lot_list and self.last_open.records_out:
+        if self.first_open is not self.last_open and self.last_open.records_out:
             lot_list.append(self.last_open)
 
         return math.fsum(lot.quantity_closed for lot in self._lots_closed + lot_list)
@@ -77,23 +78,34 @@ class BaseLotPosition[A, R, L]:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"Position's asset must be equal to incoming lot's asset")
 
-        if self._lots_open:
-            last_dt = self._lots_open[-1].record_in.dt
-            if last_dt > lot_in.record_in.dt:
-                raise ValueError("Open lots in the position must be in ascending order by date and time")
+        last_dt: datetime = self.last_open.record_in.dt
+        if last_dt > lot_in.record_in.dt:
+            raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot_in.records_out:
             raise ValueError("Incoming lot must not have outgoing reports")
 
         self._lots_open.append(lot_in)
 
-    def close_record(self, record_out: R, io_order: IoOrder) -> None:
+    def close_record_fifo(self, record_out) -> None:
+        self._close_record(
+            record_out=record_out,
+            io_order=IoOrder.FIFO,
+        )
+
+    def close_record_lifo(self, record_out) -> None:
+        self._close_record(
+            record_out=record_out,
+            io_order=IoOrder.LIFO,
+        )
+
+    def _close_record(self, record_out: R, io_order: IoOrder) -> None:
         lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
         record_left: R | None = lot_out.close_record(record_out)
         if record_left:
             closed_lot: L = self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
-            self.close_record(
+            self._close_record(
                 record_out=record_left,
                 io_order=io_order,
             )
