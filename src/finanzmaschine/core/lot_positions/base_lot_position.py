@@ -57,14 +57,14 @@ class BaseLotPosition[A, R, L]:
 
     @property
     def quantity_closed(self) -> float:
-        lots_open: List[L] = []
+        lot_list: List[L] = []
         if self.first_open.records_out:
-            lots_open.append(self.first_open)
+            lot_list.append(self.first_open)
 
-        if self.last_open.records_out and id(self.first_open) != id(self.last_open):
-            lots_open.append(self.last_open)
+        if not lot_list and self.last_open.records_out:
+            lot_list.append(self.last_open)
 
-        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lots_open)
+        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lot_list)
 
     @property
     def price_average_open(self) -> float:
