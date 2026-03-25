@@ -57,19 +57,20 @@ class BaseLotPosition[A, R, L]:
 
     @property
     def quantity_closed(self) -> float:
-        lots: List[L] = (
-            [self.first_open, self.last_open]
-            if id(self.first_open) != id(self.last_open)
-            else [self.first_open]
-        )
-        lots = self._lots_closed + lots
-        return math.fsum(lot.quantity_closed for lot in lots)
+        lots_open: List[L] = []
+        if self.first_open.records_out:
+            lots_open.append(self.first_open)
+
+        if self.last_open.records_out and id(self.first_open) != id(self.last_open):
+            lots_open.append(self.last_open)
+
+        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lots_open)
 
     @property
     def price_average_open(self) -> float:
         return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
 
-    def add_open_lot(self, lot_in: L) -> None:
+    def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"Position's asset must be equal to incoming lot's asset")
 
