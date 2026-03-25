@@ -12,9 +12,9 @@ R = TypeVar("R", bound=BaseLotRecord)
 L = TypeVar("L", bound=BaseLot)
 
 
-class Out(StrEnum):
-    FI = "first_in"
-    LI = "last_in"
+class IoOrder(StrEnum):
+    FIFO = "FIFO"
+    LIFO = "LIFO"
 
 
 class BaseLotPosition[A, R, L]:
@@ -57,7 +57,17 @@ class BaseLotPosition[A, R, L]:
 
     @property
     def quantity_closed(self) -> float:
-        return math.fsum(lot.quantity_closed for lot in self._lots_closed)
+        lots: List[L] = (
+            [self.first_open, self.last_open]
+            if id(self.first_open) != id(self.last_open)
+            else [self.first_open]
+        )
+        lots = self._lots_closed + lots
+        return math.fsum(lot.quantity_closed for lot in lots)
+
+    @property
+    def price_average_open(self) -> float:
+        return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
 
     def add_open_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
@@ -73,13 +83,13 @@ class BaseLotPosition[A, R, L]:
 
         self._lots_open.append(lot_in)
 
-    def close_record(self, record_out: R, out: Out) -> None:
-        lot_out: L = self.first_open if out == Out.FI else self.last_open
+    def close_record(self, record_out: R, io_order: IoOrder) -> None:
+        lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
         record_left: R | None = lot_out.close_record(record_out)
         if record_left:
-            closed_lot: L = self._lots_open.popleft() if out == Out.FI else self._lots_open.pop()
+            closed_lot: L = self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
             self.close_record(
                 record_out=record_left,
-                out=out,
+                io_order=io_order,
             )
