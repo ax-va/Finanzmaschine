@@ -87,13 +87,13 @@ class BaseLotPosition[A, R, L]:
 
         self._lots_open.append(lot_in)
 
-    def close_record_fifo(self, record_out) -> None:
+    def _close_record_fifo(self, record_out) -> None:
         self._close_record(
             record_out=record_out,
             io_order=IoOrder.FIFO,
         )
 
-    def close_record_lifo(self, record_out) -> None:
+    def _close_record_lifo(self, record_out) -> None:
         self._close_record(
             record_out=record_out,
             io_order=IoOrder.LIFO,
