@@ -1,3 +1,4 @@
+import math
 from collections import deque
 from enum import StrEnum
 from typing import Deque, List, Tuple, TypeVar
@@ -11,9 +12,9 @@ R = TypeVar("R", bound=BaseLotRecord)
 L = TypeVar("L", bound=BaseLot)
 
 
-class FirstOrLast(StrEnum):
-    FIRST = "first"
-    LAST = "last"
+class Out(StrEnum):
+    FIRST_OUT = "first_out"
+    LAST_OUT = "last_out"
 
 
 class BaseLotPosition[A, R, L]:
@@ -50,7 +51,15 @@ class BaseLotPosition[A, R, L]:
             raise ValueError("There are no open lots in the position")
         return self._lots_open[-1]
 
-    def add(self, lot_in: L) -> None:
+    @property
+    def quantity_open(self) -> float:
+        return math.fsum(lot.quantity_open for lot in self._lots_open)
+
+    @property
+    def quantity_closed(self) -> float:
+        return math.fsum(lot.quantity_closed for lot in self._lots_closed)
+
+    def add_open_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"Position's asset must be equal to incoming lot's asset")
 
@@ -64,19 +73,13 @@ class BaseLotPosition[A, R, L]:
 
         self._lots_open.append(lot_in)
 
-    def close_record(self, record_out: R, in_which_lot: str) -> None:
-        lot: L = self._get_open_lot(in_which_lot)
-        record_left: R | None = lot.close_record(record_out)
+    def close_record(self, record_out: R, out: Out) -> None:
+        lot_out: L = self.first_open if out == Out.FIRST_OUT else self.last_open
+        record_left: R | None = lot_out.close_record(record_out)
         if record_left:
-            closed_lot: L = self._lots_open.popleft() if in_which_lot == "first" else self._lots_open.pop()
+            closed_lot: L = self._lots_open.popleft() if out == Out.FIRST_OUT else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
             self.close_record(
                 record_out=record_left,
-                in_which_lot=in_which_lot,
+                out=out,
             )
-
-    def _get_open_lot(self, which_lot: str) -> L:
-        if which_lot not in (FirstOrLast.FIRST, FirstOrLast.LAST):
-            raise ValueError("The `which_lot` parameter must be either 'first' or 'last'")
-        lot: L = self.first_open if which_lot == FirstOrLast.FIRST else self.last_open
-        return  lot
