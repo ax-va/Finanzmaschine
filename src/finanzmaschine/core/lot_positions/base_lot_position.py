@@ -24,12 +24,12 @@ class BaseLotPosition[A, R, L]:
 
     @property
     def base_asset(self) -> A:
-        if self._lots_open:
-            return self._lots_open[0].base_asset
-        elif self._lots_closed:
-            return self._lots_closed[0].base_asset
-        else:
+        if self.is_empty():
             raise ValueError("Position doesn't contain any lot")
+
+        lot_0: L = self._lots_open[0] if self._lots_open else self._lots_closed[0]
+
+        return lot_0.base_asset
 
     @property
     def lots_open(self) -> Tuple[L, ...]:
@@ -69,6 +69,9 @@ class BaseLotPosition[A, R, L]:
     @property
     def price_average_open(self) -> float:
         return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
+
+    def is_empty(self) -> bool:
+        return True if not self._lots_open and not self._lots_closed else False
 
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
