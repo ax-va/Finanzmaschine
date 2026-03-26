@@ -18,14 +18,14 @@ class IoOrder(StrEnum):
     LIFO = "LIFO"
 
 
-class BaseLotPosition[A, R, L]:
+class BasePosition[A, R, L]:
     def __init__(self):
         self._lots_open: Deque[L] = deque()
         self._lots_closed: List[L] = []
 
     @property
     def base_asset(self) -> A:
-        if self.is_empty():
+        if not self.contains_lots():
             raise ValueError("Position doesn't contain any lot")
 
         lot_0: L = self._lots_open[0] if self._lots_open else self._lots_closed[0]
@@ -69,10 +69,11 @@ class BaseLotPosition[A, R, L]:
 
     @property
     def price_average_open(self) -> float:
+        # TODO: different quote assets -> Dict[BaseAsset, float]
         return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
 
-    def is_empty(self) -> bool:
-        return True if not self._lots_open and not self._lots_closed else False
+    def contains_lots(self) -> bool:
+        return True if self._lots_open or self._lots_closed else False
 
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
@@ -87,25 +88,13 @@ class BaseLotPosition[A, R, L]:
 
         self._lots_open.append(lot_in)
 
-    def _close_record_fifo(self, record_out) -> None:
-        self._close_record(
-            record_out=record_out,
-            io_order=IoOrder.FIFO,
-        )
-
-    def _close_record_lifo(self, record_out) -> None:
-        self._close_record(
-            record_out=record_out,
-            io_order=IoOrder.LIFO,
-        )
-
-    def _close_record(self, record_out: R, io_order: IoOrder) -> None:
+    def close_record(self, record_out: R, io_order: IoOrder) -> None:
         lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
         record_left: R | None = lot_out.close_record(record_out)
         if record_left:
             closed_lot: L = self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
-            self._close_record(
+            self.close_record(
                 record_out=record_left,
                 io_order=io_order,
             )
