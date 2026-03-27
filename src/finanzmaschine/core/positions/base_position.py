@@ -6,7 +6,7 @@ from typing import Deque, List, Tuple, TypeVar
 
 from finanzmaschine.core.assets.base_asset import BaseAsset
 from finanzmaschine.core.lots.base_lot import BaseLot
-from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
+from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseLotRecord)

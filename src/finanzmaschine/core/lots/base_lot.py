@@ -3,7 +3,7 @@ from math import fsum
 from typing import Tuple, List
 
 from finanzmaschine.core.assets.base_asset import BaseAsset
-from finanzmaschine.core.lots.base_lot_record import BaseLotRecord
+from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 

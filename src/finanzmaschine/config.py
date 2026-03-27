@@ -2,13 +2,12 @@ from dataclasses import dataclass
 
 import yaml
 from pathlib import Path
-from finanzmaschine import SETTINGS_PATH, PROJECT_ROOT
+from finanzmaschine import SETTINGS_PATH
 
 
 @dataclass
 class Paths:
-    private_data: Path
-    public_data: Path
+    data: Path
 
 
 @dataclass
@@ -25,12 +24,10 @@ def load_settings(settings_path: str | Path = None) -> Settings:
 
     return Settings(
         paths=Paths(
-            private_data=Path(data["paths"]["private_data"]),
-            public_data=Path(data["paths"]["public_data"]),
+            data=Path(data["paths"]["data"]),
         ),
     )
 
 
 SETTINGS = load_settings()
-PRIVATE_DATA_DIR = PROJECT_ROOT / SETTINGS.paths.private_data
-PUBLIC_DATA_DIR = PROJECT_ROOT / SETTINGS.paths.public_data
+DATA_DIR: Path = SETTINGS.paths.data

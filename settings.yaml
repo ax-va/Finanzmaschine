@@ -1,3 +1,2 @@
 paths:
-  private_data: "private_data"
-  public_data: "public_data"
+  data: "/home/delorian/PycharmProjects/Finanzmaschine/data"
