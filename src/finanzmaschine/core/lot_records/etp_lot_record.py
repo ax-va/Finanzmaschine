@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
+from finanzmaschine.core.lot_records.secure_lot_record import SecureLotRecord
 
 
 @dataclass(frozen=True)
-class EtpLotRecord(BaseLotRecord):
+class EtpLotRecord(SecureLotRecord):
     entitlement: float | None
 
     def __post_init__(self) -> None:
