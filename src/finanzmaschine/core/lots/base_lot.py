@@ -1,14 +1,14 @@
 import math
 
 from datetime import datetime
-from typing import Tuple, List, TypeVar, Generic
+from typing import Tuple, List
 
 from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
+from finanzmaschine.core.records.base_record import BaseRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 
-class BaseLot[A: BaseAsset, R: BaseLotRecord]:
+class BaseLot[A: BaseAsset, R: BaseRecord]:
     """
     Base lot manages immutable lot records and its invariant is the quantity in the lot.
 

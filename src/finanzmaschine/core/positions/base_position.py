@@ -7,10 +7,10 @@ from typing import Deque, List, Tuple, TypeVar
 
 from finanzmaschine.core.assets.base_asset import BaseAsset
 from finanzmaschine.core.lots.base_lot import BaseLot
-from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
+from finanzmaschine.core.records.base_record import BaseRecord
 
 A = TypeVar("A", bound=BaseAsset)
-R = TypeVar("R", bound=BaseLotRecord)
+R = TypeVar("R", bound=BaseRecord)
 L = TypeVar("L", bound=BaseLot)
 
 
@@ -89,13 +89,25 @@ class BasePosition[A, R, L]:
 
         self._lots_open.append(lot_in)
 
-    def close_record(self, record_out: R, io_order: IoOrder) -> None:
+    def close_record_fifo(self, record_out: R) -> None:
+        self._close_record(
+            record_out=record_out,
+            io_order=IoOrder.FIFO,
+        )
+
+    def close_record_lifo(self, record_out: R) -> None:
+        self._close_record(
+            record_out=record_out,
+            io_order=IoOrder.LIFO,
+        )
+
+    def _close_record(self, record_out: R, io_order: IoOrder) -> None:
         lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
         record_left: R | None = lot_out.close_record(record_out)
         if record_left:
             closed_lot: L = self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
             self._lots_closed.append(closed_lot)
-            self.close_record(
+            self._close_record(
                 record_out=record_left,
                 io_order=io_order,
             )

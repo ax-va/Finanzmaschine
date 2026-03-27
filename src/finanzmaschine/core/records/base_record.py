@@ -6,7 +6,7 @@ from finanzmaschine.core.assets.base_asset import BaseAsset
 
 
 @dataclass(frozen=True)
-class BaseLotRecord[A: "BaseAsset"]:
+class BaseRecord[A: "BaseAsset"]:
     quantity: float
     quote_asset: A
     price: float
