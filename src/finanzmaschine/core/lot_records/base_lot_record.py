@@ -8,10 +8,9 @@ from finanzmaschine.core.assets.base_asset import BaseAsset
 @dataclass(frozen=True)
 class BaseLotRecord:
     quantity: float
-    price: float
     quote_asset: BaseAsset
+    price: float
     fee: float
-    fee_asset: BaseAsset
     dt: datetime
 
     def __post_init__(self) -> None:

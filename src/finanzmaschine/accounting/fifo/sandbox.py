@@ -14,13 +14,11 @@ df = df.with_columns(
         "datetime",
         "base_asset",
         "quantity",
-        "price",
         "quote_asset",
+        "price",
         "quantity × price",
         "fee",
-        "fee_asset",
         "total",
-        "total_asset",
         "side",
     ]
 )

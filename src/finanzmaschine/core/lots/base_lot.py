@@ -26,6 +26,10 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
         return self._base_asset
 
     @property
+    def quote_assets(self) -> Tuple[BaseAsset, ...]:
+        return tuple(r.quote_asset for r in self.records)
+
+    @property
     def record_in(self) -> R:
         return self._record_in
 
