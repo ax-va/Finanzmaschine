@@ -8,7 +8,7 @@ df = pl.read_csv(
 ).sort("datetime")
 
 df = df.with_columns(
-    (pl.col("quantity") * pl.col("price")).round(2).alias("quantity * price"),
+    (pl.col("quantity") * pl.col("price")).round(2).alias("quantity × price"),
 ).select(
     [
         "datetime",
@@ -16,7 +16,7 @@ df = df.with_columns(
         "quantity",
         "price",
         "quote_asset",
-        "quantity * price",
+        "quantity × price",
         "fee",
         "fee_asset",
         "total",
