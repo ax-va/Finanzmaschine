@@ -26,8 +26,8 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
         return self._base_asset
 
     @property
-    def quote_assets(self) -> Tuple[BaseAsset, ...]:
-        return tuple(r.quote_asset for r in self.records)
+    def quote_asset(self) -> BaseAsset:
+        return self._record_in.quote_asset
 
     @property
     def record_in(self) -> R:
@@ -64,6 +64,12 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
     def close_record(self, record_out: R) -> R | None:
         if self.is_closed:
             raise ValueError("Lot already closed")
+
+        if self.quote_asset.id != record_out.quote_asset.id:
+            raise ValueError(
+                f"Quote asset in the closing record is "
+                f"{record_out.quote_asset.id!r} instead of {self.quote_asset.id!r}"
+            )
 
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
