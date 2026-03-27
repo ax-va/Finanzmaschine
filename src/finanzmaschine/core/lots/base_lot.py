@@ -1,8 +1,9 @@
-from datetime import datetime
-from math import fsum
-from typing import Tuple, List
+import math
 
-from finanzmaschine.core.assets.base_asset import BaseAsset
+from datetime import datetime
+from typing import Tuple, List, TypeVar, Generic
+
+from finanzmaschine.core.assets import BaseAsset
 from finanzmaschine.core.lot_records.base_lot_record import BaseLotRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
@@ -26,10 +27,6 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
         return self._base_asset
 
     @property
-    def quote_asset(self) -> BaseAsset:
-        return self._record_in.quote_asset
-
-    @property
     def record_in(self) -> R:
         return self._record_in
 
@@ -47,7 +44,7 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
 
     @property
     def quantity_closed(self) -> float:
-        return fsum(r_out.quantity for r_out in self._records_out)
+        return math.fsum(r_out.quantity for r_out in self._records_out)
 
     @property
     def quantity_open(self) -> float:
@@ -64,12 +61,6 @@ class BaseLot[A: BaseAsset, R: BaseLotRecord]:
     def close_record(self, record_out: R) -> R | None:
         if self.is_closed:
             raise ValueError("Lot already closed")
-
-        if self.quote_asset.id != record_out.quote_asset.id:
-            raise ValueError(
-                f"Quote asset in the closing record is "
-                f"{record_out.quote_asset.id!r} instead of {self.quote_asset.id!r}"
-            )
 
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")

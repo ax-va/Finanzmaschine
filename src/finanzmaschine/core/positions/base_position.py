@@ -1,4 +1,5 @@
 import math
+
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
@@ -69,6 +70,7 @@ class BasePosition[A, R, L]:
 
     @property
     def price_average_open(self) -> float:
+        # TODO: different quote assets -> Dict[A, float]
         return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
 
     def contains_lots(self) -> bool:

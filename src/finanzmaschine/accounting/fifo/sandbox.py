@@ -18,7 +18,7 @@ df = df.with_columns(
         "price",
         "quantity × price",
         "fee",
-        "total",
+        "cost_basis",
         "side",
     ]
 )

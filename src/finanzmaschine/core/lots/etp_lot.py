@@ -4,7 +4,7 @@ from finanzmaschine.core.lot_records.etp_lot_record import EtpLotRecord
 from finanzmaschine.core.assets.etp import Etp
 
 
-class ETPLot(BaseLot[Etp, EtpLotRecord]):
+class EtpLot(BaseLot[Etp, EtpLotRecord]):
     """
     A lot corresponding to a share-based instrument.
 
