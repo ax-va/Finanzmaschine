@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Tuple, List
 
 from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.records.base_record import BaseRecord
+from finanzmaschine.core.records.base_record import BaseRecord, RecordDirection
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 
@@ -19,36 +19,41 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
 
     def __init__(self, base_asset: A, record_in: R):
         self._base_asset: A = base_asset
-        self._record_in: R = record_in
-        self._records_out: List[R] = []
+
+        if record_in.direction is None:
+            record_in: R = record_in.copy(direction=RecordDirection.IN)
+        elif record_in.direction != RecordDirection.IN:
+            raise ValueError(f"Direction of the incoming record must be {RecordDirection.IN!r}")
+
+        self._records: List[R] = [record_in]
 
     @property
     def base_asset(self) -> A:
         return self._base_asset
 
     @property
+    def records(self) -> Tuple[R, ...]:
+        return tuple(self._records)
+
+    @property
     def record_in(self) -> R:
-        return self._record_in
+        return self._records[0]
 
     @property
     def records_out(self) -> Tuple[R, ...]:
-        return tuple(self._records_out)
-
-    @property
-    def records(self) -> Tuple[R, ...]:
-        return (self._record_in, ) + self.records_out
+        return tuple(self._records[1:])
 
     @property
     def last_record(self) -> R:
-        return self._record_in if not self._records_out else self._records_out[-1]
+        return self._records[-1]
 
     @property
     def quantity_closed(self) -> float:
-        return math.fsum(r_out.quantity for r_out in self._records_out)
+        return math.fsum(r_out.quantity for r_out in self._records[1:])
 
     @property
     def quantity_open(self) -> float:
-        return round_to_zero(self._record_in.quantity - self.quantity_closed)
+        return round_to_zero(self._records[0].quantity - self.quantity_closed)
 
     @property
     def is_open(self) -> bool:
@@ -62,6 +67,11 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
         if self.is_closed:
             raise ValueError("Lot already closed")
 
+        if record_out.direction is None:
+            record_out: R = record_out.copy(direction=RecordDirection.OUT)
+        elif record_out.direction != RecordDirection.OUT:
+            raise ValueError(f"Direction of the outgoing record must be {RecordDirection.OUT!r}")
+
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
@@ -71,7 +81,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
             record_left: R = record_out.copy(quantity=abs(quantity_left))
             record_out: R = record_out.copy(quantity=self.quantity_open)
 
-        self._records_out.append(record_out)
+        self._records.append(record_out)
 
         return record_left
 

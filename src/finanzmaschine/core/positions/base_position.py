@@ -78,7 +78,7 @@ class BasePosition[A, R, L]:
 
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
-            raise ValueError(f"Position's asset must be equal to incoming lot's asset")
+            raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
         last_dt: datetime = self.last_open.record_in.dt
         if last_dt > lot_in.record_in.dt:
@@ -104,10 +104,11 @@ class BasePosition[A, R, L]:
     def _close_record(self, record_out: R, io_order: IoOrder) -> None:
         lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
         record_left: R | None = lot_out.close_record(record_out)
-        if record_left:
-            closed_lot: L = self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
-            self._lots_closed.append(closed_lot)
-            self._close_record(
-                record_out=record_left,
-                io_order=io_order,
-            )
+        if lot_out.is_closed:
+            self._lots_closed.append(lot_out)
+            self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
+            if record_left:
+                self._close_record(
+                    record_out=record_left,
+                    io_order=io_order,
+                )
