@@ -40,19 +40,23 @@ class BasePosition[A, R, L]:
     @property
     def lots_open(self) -> Tuple[L, ...]:
         return tuple(self._lots_open)
+    
+    @property
+    def lots_open_with_records_out(self) -> Tuple[L, ...]:
+        return tuple(self._lots_open_with_records_out)
 
     @property
     def lots_closed(self) -> Tuple[L, ...]:
         return tuple(self._lots_closed)
 
     @property
-    def first_open(self) -> L:
+    def first_open_lot(self) -> L:
         if not self._lots_open:
             raise ValueError("There are no open lots in the position")
         return self._lots_open[0]
 
     @property
-    def last_open(self) -> L:
+    def last_open_lot(self) -> L:
         if not self._lots_open:
             raise ValueError("There are no open lots in the position")
         return self._lots_open[-1]
@@ -63,25 +67,29 @@ class BasePosition[A, R, L]:
 
     @property
     def quantity_closed(self) -> float:
-        lots_partially_closed: List[L] = []
-        if self.first_open.records_out:
-            lots_partially_closed.append(self.first_open)
+        return math.fsum(lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out)
 
-        if self.first_open is not self.last_open and self.last_open.records_out:
-            lots_partially_closed.append(self.last_open)
+    @property
+    def _lots_open_with_records_out(self) -> List[L]:
+        lots: List[L] = []
+        if self.first_open_lot.records_out:
+            lots.append(self.first_open_lot)
 
-        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lots_partially_closed)
+        if self.first_open_lot is not self.last_open_lot and self.last_open_lot.records_out:
+            lots.append(self.last_open_lot)
+
+        return lots
 
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
-        last_dt: datetime = self.last_open.record_in.dt
+        last_dt: datetime = self.last_open_lot.record_in.dt
         if last_dt > lot_in.record_in.dt:
             raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot_in.records_out:
-            raise ValueError("Incoming lot must not have outgoing reports")
+            raise ValueError("Incoming lots must not have outgoing reports")
 
         self._lots_open.append(lot_in)
 
@@ -98,7 +106,7 @@ class BasePosition[A, R, L]:
         )
 
     def _close_record(self, record_out: R, io_order: IoOrder) -> None:
-        lot_out: L = self.first_open if io_order == IoOrder.FIFO else self.last_open
+        lot_out: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
         record_left: R | None = lot_out.close_record(record_out)
         if lot_out.is_closed:
             self._lots_closed.append(lot_out)
