@@ -5,7 +5,7 @@ from finanzmaschine.catalog.exchange_enum import Exchange
 
 
 @dataclass(frozen=True)
-class SecurityTradeInfo:
+class SecurityTradeExecutionInfo:
     broker: Broker
     order_id: str
     exchange: Exchange

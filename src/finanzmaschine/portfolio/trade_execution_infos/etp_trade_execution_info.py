@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from finanzmaschine.portfolio.trade_infos.security_trade_info import SecurityTradeInfo
+from finanzmaschine.portfolio.trade_execution_infos.security_trade_execution_info import SecurityTradeExecutionInfo
 
 
 @dataclass(frozen=True)
-class EtpTradeInfo(SecurityTradeInfo):
+class EtpTradeExecutionInfo(SecurityTradeExecutionInfo):
     entitlement: float | None
 
     def __post_init__(self) -> None:

@@ -1,5 +1,5 @@
 from finanzmaschine.portfolio.assets import BaseAsset
-from finanzmaschine.portfolio.trade_infos.etp_trade_info import EtpRecord
+from finanzmaschine.portfolio.trade_execution_infos.etp_trade_execution_info import EtpRecord
 from finanzmaschine.portfolio.assets.etp import Etp
 from finanzmaschine.portfolio.lots.security_lot import SecurityLot
 
