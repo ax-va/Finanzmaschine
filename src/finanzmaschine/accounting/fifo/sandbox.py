@@ -8,7 +8,7 @@ df = pl.read_csv(
 ).sort("datetime")
 
 df = df.with_columns(
-    (pl.col("quantity") * pl.col("price")).round(2).alias("quantity × price"),
+    (pl.col("quantity") * pl.col("price")).round(2).alias("gross_value"),
 ).select(
     [
         "datetime",
@@ -16,10 +16,11 @@ df = df.with_columns(
         "quantity",
         "quote_asset",
         "price",
-        "quantity × price",
+        "gross_value",
         "fee",
+        "direction",
         "cash_flow",
-        "side",
+        "operation",
     ]
 )
 pl.Config.set_tbl_rows(-1)
