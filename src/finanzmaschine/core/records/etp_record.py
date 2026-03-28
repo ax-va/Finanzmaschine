@@ -11,7 +11,7 @@ class EtpRecord(SecurityRecord):
         super().__post_init__()
 
         if self.entitlement is not None and not (self.entitlement > 0):
-            raise ValueError("`entitlement` must be positive if not `None`")
+            raise ValueError("Specified entitlement must be positive")
 
     def require_entitlement(self) -> float:
         if self.entitlement is None:
