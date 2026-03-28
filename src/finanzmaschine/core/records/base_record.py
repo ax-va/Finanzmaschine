@@ -30,6 +30,14 @@ class BaseRecord[A: "BaseAsset"]:
         if not (self.fee >= 0):
             raise ValueError("Fee must be not negative")
 
+    @property
+    def cash_flow(self) -> float:
+        if self.direction == RecordDirection.IN:
+            return -(self.quantity * self.price + self.fee)
+        elif self.direction == RecordDirection.OUT:
+            return self.quantity * self.price - self.fee
+        else:
+            raise ValueError("Direction is not specified")
 
     def copy(self, **kwargs: Any) -> Self:
         attr_dict = asdict(self)
