@@ -59,19 +59,14 @@ class BasePosition[A, R, L]:
 
     @property
     def quantity_closed(self) -> float:
-        lot_list: List[L] = []
+        lots_particularly_closed: List[L] = []
         if self.first_open.records_out:
-            lot_list.append(self.first_open)
+            lots_particularly_closed.append(self.first_open)
 
         if self.first_open is not self.last_open and self.last_open.records_out:
-            lot_list.append(self.last_open)
+            lots_particularly_closed.append(self.last_open)
 
-        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lot_list)
-
-    @property
-    def price_average_open(self) -> float:
-        # TODO: different quote assets -> Dict[A, float]
-        return math.fsum(lot.quantity_open * lot.record_in.price for lot in self._lots_open) / self.quantity_open
+        return math.fsum(lot.quantity_closed for lot in self._lots_closed + lots_particularly_closed)
 
     def contains_lots(self) -> bool:
         return True if self._lots_open or self._lots_closed else False
