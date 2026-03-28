@@ -6,14 +6,14 @@ from typing import Self, Any
 from finanzmaschine.core.assets.base_asset import BaseAsset
 
 
-class RecordDirection(StrEnum):
+class Direction(StrEnum):
     IN = "IN"
     OUT = "OUT"
 
 
 @dataclass(frozen=True)
 class BaseRecord[A: "BaseAsset"]:
-    direction: RecordDirection | None
+    direction: Direction | None
     quantity: float
     quote_asset: A
     price: float
@@ -36,16 +36,16 @@ class BaseRecord[A: "BaseAsset"]:
 
     @property
     def cash_flow(self) -> float:
-        if self.direction == RecordDirection.IN:
+        if self.direction == Direction.IN:
             return -(self.gross_value + self.fee)
-        elif self.direction == RecordDirection.OUT:
+        elif self.direction == Direction.OUT:
             return self.gross_value - self.fee
         else:
             raise ValueError("Direction is not specified")
 
     @property
     def cost_basis(self) -> float:
-        if self.direction == RecordDirection.IN:
+        if self.direction == Direction.IN:
             return (self.gross_value + self.fee) / self.quantity
         else:
             raise ValueError(f"{self.direction!r} record has no cost basis")

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Tuple, List
 
 from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.records.base_record import BaseRecord, RecordDirection
+from finanzmaschine.core.records.base_record import BaseRecord, Direction
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 
@@ -21,9 +21,9 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
         self._base_asset: A = base_asset
 
         if record_in.direction is None:
-            record_in: R = record_in.copy(direction=RecordDirection.IN)
-        elif record_in.direction != RecordDirection.IN:
-            raise ValueError(f"Direction of the incoming record must be {RecordDirection.IN!r}")
+            record_in: R = record_in.copy(direction=Direction.IN)
+        elif record_in.direction != Direction.IN:
+            raise ValueError(f"Direction of the incoming record must be {Direction.IN!r}")
 
         self._records: List[R] = [record_in]
 
@@ -68,9 +68,9 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
             raise ValueError("Lot already closed")
 
         if record_out.direction is None:
-            record_out: R = record_out.copy(direction=RecordDirection.OUT)
-        elif record_out.direction != RecordDirection.OUT:
-            raise ValueError(f"Direction of the outgoing record must be {RecordDirection.OUT!r}")
+            record_out: R = record_out.copy(direction=Direction.OUT)
+        elif record_out.direction != Direction.OUT:
+            raise ValueError(f"Direction of the outgoing record must be {Direction.OUT!r}")
 
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
