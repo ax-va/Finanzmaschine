@@ -8,6 +8,7 @@ from finanzmaschine.core.records.base_record import BaseRecord, Direction
 class Reason(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
+    TRANSFER_IN = "TRANSFER_IN"
 
 
 @dataclass(frozen=True)
