@@ -22,13 +22,13 @@ class BaseRecord[A: "BaseAsset"]:
 
     def __post_init__(self) -> None:
         if not (self.quantity > 0):
-            raise ValueError("`quantity` must be positive")
+            raise ValueError("Quantity must be positive")
 
         if not (self.price > 0):
-            raise ValueError("`price` must be positive")
+            raise ValueError("Price must be positive")
 
         if not (self.fee >= 0):
-            raise ValueError("`fee` must be not negative")
+            raise ValueError("Fee must be not negative")
 
 
     def copy(self, **kwargs: Any) -> Self:
