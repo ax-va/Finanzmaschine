@@ -43,13 +43,6 @@ class BaseRecord[A: "BaseAsset"]:
         else:
             raise ValueError("Direction is not specified")
 
-    @property
-    def unit_cost_basis(self) -> float:
-        if self.direction == Direction.IN:
-            return (self.gross_value + self.fee) / self.quantity
-        else:
-            raise ValueError(f"{self.direction!r} record has no unit cost basis")
-
     def copy(self, **kwargs: Any) -> Self:
         attr_dict = asdict(self)
         for k in kwargs:

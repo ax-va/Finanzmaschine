@@ -1,14 +1,17 @@
 import math
 
 from datetime import datetime
-from typing import Tuple, List
+from typing import Tuple, List, TypeVar
 
 from finanzmaschine.core.assets import BaseAsset
 from finanzmaschine.core.records.base_record import BaseRecord, Direction
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
+A = TypeVar("A", bound=BaseAsset)
+R = TypeVar("R", bound=BaseRecord)
 
-class BaseLot[A: BaseAsset, R: BaseRecord]:
+
+class BaseLot[A, R]:
     """
     Base lot manages immutable lot records.
 
@@ -63,6 +66,10 @@ class BaseLot[A: BaseAsset, R: BaseRecord]:
     @property
     def is_closed(self) -> bool:
         return not self.is_open
+
+    @property
+    def unit_cost_basis(self) -> float:
+        return (self.record_in.gross_value + self.record_in.fee) / self.record_in.quantity
 
     def close_record(self, record_out: R) -> R | None:
         if self.is_closed:
