@@ -8,7 +8,6 @@ from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 class Side(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
-    SWAP = "SWAP"
 
 
 @dataclass(frozen=True)
