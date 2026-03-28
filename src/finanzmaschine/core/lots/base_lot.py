@@ -4,14 +4,16 @@ from datetime import datetime
 from typing import Tuple, List, TypeVar
 
 from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.records.base_record import BaseRecord, Direction
+from finanzmaschine.core.records.base_record import Direction, BaseRecord
+from finanzmaschine.core.records.priced_record import PricedRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
+P = TypeVar("P", bound=PricedRecord)
 
 
-class BaseLot[A, R]:
+class BaseLot[A, R, P]:
     """
     Base lot manages immutable lot records.
 
@@ -21,11 +23,11 @@ class BaseLot[A, R]:
     quantity_open = quantity_in - quantity_closed.
     """
 
-    def __init__(self, base_asset: A, record_in: R):
+    def __init__(self, base_asset: A, record_in: P):
         self._base_asset: A = base_asset
 
         if record_in.direction is None:
-            record_in: R = record_in.copy(direction=Direction.IN)
+            record_in: P = record_in.copy(direction=Direction.IN)
         elif record_in.direction != Direction.IN:
             raise ValueError(f"Direction of the incoming record must be {Direction.IN!r}")
 
@@ -40,7 +42,7 @@ class BaseLot[A, R]:
         return tuple(self._records)
 
     @property
-    def record_in(self) -> R:
+    def record_in(self) -> P:
         return self._records[0]
 
     @property
