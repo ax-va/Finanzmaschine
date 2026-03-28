@@ -15,7 +15,7 @@ class Reason(StrEnum):
 class PricedRecord[A: "BaseAsset"](BaseRecord):
     reason: Reason
     quote_asset: A
-    price: float
+    unit_cost: float
     fee: float
 
     def __post_init__(self) -> None:
@@ -29,7 +29,7 @@ class PricedRecord[A: "BaseAsset"](BaseRecord):
 
     @property
     def gross_value(self) -> float:
-        return self.quantity * self.price
+        return self.quantity * self.unit_cost
 
     @property
     def quote_asset_flow(self) -> float:
