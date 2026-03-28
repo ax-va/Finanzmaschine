@@ -20,7 +20,7 @@ df = df.with_columns(
         "fee",
         "direction",
         "cash_flow",
-        "operation",
+        "side",
     ]
 )
 pl.Config.set_tbl_rows(-1)
