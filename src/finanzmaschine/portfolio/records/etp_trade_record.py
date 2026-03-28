@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
 from finanzmaschine.portfolio.records.security_trade_record import SecurityTradeRecord
-from finanzmaschine.portfolio.trade_execution_infos.etp_trade_execution_info import EtpTradeExecutionInfo
+from finanzmaschine.portfolio.infos.etp_underlying_asset_info import EtpUnderlyingAssetInfo
 
 
 @dataclass(frozen=True)
-class EtpTradeRecord[I: EtpTradeExecutionInfo](SecurityTradeRecord):
-    pass
+class EtpTradeRecord(SecurityTradeRecord):
+    underlying_asset_info: EtpUnderlyingAssetInfo
