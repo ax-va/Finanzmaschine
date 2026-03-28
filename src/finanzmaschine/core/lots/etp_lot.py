@@ -10,8 +10,8 @@ class EtpLot[A: BaseAsset](SecurityLot[Etp, EtpRecord]):
 
     Each ETP unit carries an entitlement to an underlying asset:
 
-    underlying_quantity = etp_quantity * entitlement
-    underlying_price = etp_price / entitlement
+    underlying_asset_quantity = etp_quantity * entitlement
+    underlying_asset_price = etp_price / entitlement
     """
 
     def __init__(self, base_asset: Etp, record_in: EtpRecord) -> None:

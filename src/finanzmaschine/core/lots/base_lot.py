@@ -10,8 +10,9 @@ from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 class BaseLot[A: BaseAsset, R: BaseRecord]:
     """
-    Base lot manages immutable lot records and its invariant is the quantity in the lot.
+    Base lot manages immutable lot records.
 
+    Its invariant is the quantity in the lot.
     The open quantity is derived from the incoming quantity and all outgoing quantity:
 
     quantity_open = quantity_in - quantity_closed.
