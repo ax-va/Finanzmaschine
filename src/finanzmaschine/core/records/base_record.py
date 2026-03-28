@@ -48,7 +48,7 @@ class BaseRecord[A: "BaseAsset"]:
         if self.direction == RecordDirection.IN:
             return (self.gross_value + self.fee) / self.quantity
         else:
-            raise ValueError(f"{self.direction!r} record has no cost_basis")
+            raise ValueError(f"{self.direction!r} record has no cost basis")
 
     def copy(self, **kwargs: Any) -> Self:
         attr_dict = asdict(self)
