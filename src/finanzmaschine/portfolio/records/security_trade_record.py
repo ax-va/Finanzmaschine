@@ -1,9 +1,13 @@
 from dataclasses import dataclass
 
+from finanzmaschine.catalog.broker_enum import Broker
+from finanzmaschine.catalog.exchange_enum import Exchange
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
-from finanzmaschine.portfolio.record_infos.security_trade_execution_info import SecurityTradeExecutionInfo
 
 
 @dataclass(frozen=True)
 class SecurityTradeRecord(TradeRecord):
-    execution_info: SecurityTradeExecutionInfo
+    broker: Broker
+    order_id: str
+    exchange: Exchange
+    trade_id: str
