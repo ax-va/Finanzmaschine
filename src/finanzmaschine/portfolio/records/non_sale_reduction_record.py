@@ -16,4 +16,4 @@ class NonSaleReductionRecord(BaseRecord):
         super().__post_init__()
 
         if self.direction is not None and self.direction != Direction.OUT:
-            raise ValueError(f"Direction of reduction records must be {Direction.OUT!r}")
+            raise ValueError(f"Direction of non-sale reduction records must be {Direction.OUT!r}")
