@@ -1,11 +1,18 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
 from finanzmaschine.core.assets.base_asset import BaseAsset
 from finanzmaschine.core.records.base_record import BaseRecord, Direction
 
 
+class Reason(StrEnum):
+    BUY = "BUY"
+    SELL = "SELL"
+
+
 @dataclass(frozen=True)
 class PricedRecord[A: "BaseAsset"](BaseRecord):
+    reason: Reason
     quote_asset: A
     price: float
     fee: float
