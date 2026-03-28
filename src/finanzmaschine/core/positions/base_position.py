@@ -25,8 +25,12 @@ class BasePosition[A, R, L]:
         self._lots_closed: List[L] = []
 
     @property
+    def contains_lots(self) -> bool:
+        return True if self._lots_open or self._lots_closed else False
+
+    @property
     def base_asset(self) -> A:
-        if not self.contains_lots():
+        if not self.contains_lots:
             raise ValueError("Position doesn't contain any lot")
 
         lot_0: L = self._lots_open[0] if self._lots_open else self._lots_closed[0]
@@ -67,9 +71,6 @@ class BasePosition[A, R, L]:
             lots_partially_closed.append(self.last_open)
 
         return math.fsum(lot.quantity_closed for lot in self._lots_closed + lots_partially_closed)
-
-    def contains_lots(self) -> bool:
-        return True if self._lots_open or self._lots_closed else False
 
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
