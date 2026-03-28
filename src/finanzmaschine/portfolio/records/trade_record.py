@@ -8,10 +8,11 @@ from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 class Side(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
+    SWAP = "SWAP"
 
 
 @dataclass(frozen=True)
-class PricedRecord[A: "BaseAsset"](BaseRecord):
+class TradeRecord[A: "BaseAsset"](BaseRecord):
     side: Side
     quote_asset: A
     price: float

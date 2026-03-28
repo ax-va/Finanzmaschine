@@ -4,13 +4,13 @@ from enum import StrEnum
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
 
-class Reason(StrEnum):
+class ReductionReason(StrEnum):
     TRANSFER_OUT = "TRANSFER_OUT"
 
 
 @dataclass(frozen=True)
-class ReductionRecord(BaseRecord):
-    reason: Reason
+class NonSaleReductionRecord(BaseRecord):
+    reason: ReductionReason
 
     def __post_init__(self):
         super().__post_init__()

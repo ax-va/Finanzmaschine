@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from finanzmaschine.portfolio.records.priced_record import PricedRecord
-from finanzmaschine.portfolio.infos.security_trade_execution_info import SecurityTradeExecutionInfo
+from finanzmaschine.portfolio.records.trade_record import TradeRecord
+from finanzmaschine.portfolio.record_infos.security_trade_execution_info import SecurityTradeExecutionInfo
 
 
 @dataclass(frozen=True)
-class SecurityTradeRecord(PricedRecord):
+class SecurityTradeRecord(TradeRecord):
     execution_info: SecurityTradeExecutionInfo
