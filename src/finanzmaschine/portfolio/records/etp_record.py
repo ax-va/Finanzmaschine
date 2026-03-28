@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from finanzmaschine.core.records.security_record import SecurityRecord
+from finanzmaschine.portfolio.records.security_record import SecurityRecord
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,7 @@
-from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.records.etp_record import EtpRecord
-from finanzmaschine.core.assets.etp import Etp
-from finanzmaschine.core.lots.security_lot import SecurityLot
+from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.records.etp_record import EtpRecord
+from finanzmaschine.portfolio.assets.etp import Etp
+from finanzmaschine.portfolio.lots.security_lot import SecurityLot
 
 
 class EtpLot[A: BaseAsset](SecurityLot[Etp, EtpRecord]):

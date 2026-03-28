@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from finanzmaschine.core.assets import BaseAsset
+from finanzmaschine.portfolio.assets import BaseAsset
 
 
 class AssetRegistry[A: BaseAsset]:

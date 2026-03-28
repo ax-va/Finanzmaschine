@@ -5,9 +5,9 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Deque, List, Tuple, TypeVar
 
-from finanzmaschine.core.assets.base_asset import BaseAsset
-from finanzmaschine.core.lots.base_lot import BaseLot
-from finanzmaschine.core.records.base_record import BaseRecord
+from finanzmaschine.portfolio.assets.base_asset import BaseAsset
+from finanzmaschine.portfolio.lots.base_lot import BaseLot
+from finanzmaschine.portfolio.records.base_record import BaseRecord
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)

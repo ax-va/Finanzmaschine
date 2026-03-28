@@ -3,9 +3,9 @@ import math
 from datetime import datetime
 from typing import Tuple, List, TypeVar
 
-from finanzmaschine.core.assets import BaseAsset
-from finanzmaschine.core.records.base_record import Direction, BaseRecord
-from finanzmaschine.core.records.priced_record import PricedRecord
+from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
+from finanzmaschine.portfolio.records.priced_record import PricedRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 A = TypeVar("A", bound=BaseAsset)

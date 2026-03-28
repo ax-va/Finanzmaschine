@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
-from finanzmaschine.core.assets.base_asset import BaseAsset
-from finanzmaschine.core.records.base_record import BaseRecord, Direction
+from finanzmaschine.portfolio.assets.base_asset import BaseAsset
+from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
 
 class Reason(StrEnum):

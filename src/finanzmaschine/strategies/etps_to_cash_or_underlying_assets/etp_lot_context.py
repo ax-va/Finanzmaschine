@@ -1,7 +1,7 @@
 import math
 from datetime import date
 
-from finanzmaschine.core.lots import EtpLot
+from finanzmaschine.portfolio.lots import EtpLot
 
 
 class ShareLotContext:

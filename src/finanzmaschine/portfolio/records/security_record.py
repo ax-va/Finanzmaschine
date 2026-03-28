@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from finanzmaschine.catalog.broker_enum import Broker
 from finanzmaschine.catalog.exchange_enum import Exchange
-from finanzmaschine.core.records.base_record import BaseRecord
+from finanzmaschine.portfolio.records.base_record import BaseRecord
 
 
 @dataclass(frozen=True)

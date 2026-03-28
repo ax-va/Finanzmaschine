@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 from finanzmaschine.catalog import asset_registry
-from finanzmaschine.core.assets.base_asset import BaseAsset
+from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 
 
 def load_assets[A: BaseAsset](dir_path: Path, asset_type: type[A]) -> List[A]:
