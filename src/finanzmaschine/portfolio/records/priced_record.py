@@ -5,17 +5,16 @@ from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
 
-class Reason(StrEnum):
+class Side(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
-    TRANSFER_IN = "TRANSFER_IN"
 
 
 @dataclass(frozen=True)
 class PricedRecord[A: "BaseAsset"](BaseRecord):
-    reason: Reason
+    side: Side
     quote_asset: A
-    unit_cost: float
+    price: float
     fee: float
 
     def __post_init__(self) -> None:
@@ -29,7 +28,7 @@ class PricedRecord[A: "BaseAsset"](BaseRecord):
 
     @property
     def gross_value(self) -> float:
-        return self.quantity * self.unit_cost
+        return self.quantity * self.price
 
     @property
     def quote_asset_flow(self) -> float:
