@@ -25,8 +25,16 @@ class BasePosition[A, R, L]:
         self._lots_closed: List[L] = []
 
     @property
+    def contains_open_lots(self) -> bool:
+        return True if self._lots_open else False
+
+    @property
+    def contains_closed_lots(self) -> bool:
+        return True if self._lots_closed else False
+
+    @property
     def contains_lots(self) -> bool:
-        return True if self._lots_open or self._lots_closed else False
+        return self.contains_open_lots or self.contains_closed_lots
 
     @property
     def base_asset(self) -> A:
@@ -51,14 +59,12 @@ class BasePosition[A, R, L]:
 
     @property
     def first_open_lot(self) -> L:
-        if not self._lots_open:
-            raise ValueError("There are no open lots in the position")
+        self.check_contains_open_lots()
         return self._lots_open[0]
 
     @property
     def last_open_lot(self) -> L:
-        if not self._lots_open:
-            raise ValueError("There are no open lots in the position")
+        self.check_contains_open_lots()
         return self._lots_open[-1]
 
     @property
@@ -80,6 +86,10 @@ class BasePosition[A, R, L]:
 
         return lots
 
+    def check_contains_open_lots(self) -> None:
+        if not self.contains_open_lots:
+            raise ValueError("There are no open lots in the position")
+
     def add_lot(self, lot_in: L) -> None:
         if self.base_asset != lot_in.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
@@ -89,7 +99,7 @@ class BasePosition[A, R, L]:
             raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot_in.records_out:
-            raise ValueError("Incoming lots must not have outgoing reports")
+            raise ValueError("Lots-in must not contain reports-out")
 
         self._lots_open.append(lot_in)
 
