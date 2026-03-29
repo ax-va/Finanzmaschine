@@ -83,7 +83,7 @@ class BaseLot[A, N, P]:
         elif record_out.direction != Direction.OUT:
             raise ValueError(f"Direction of records-out must be {Direction.OUT!r}")
 
-        if not self.can_close_by_datetime(record_out):
+        if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
         record_left: N | P | None = None
@@ -96,6 +96,6 @@ class BaseLot[A, N, P]:
 
         return record_left
 
-    def can_close_by_datetime(self, record_out: N | P) -> bool:
+    def has_valid_datetime(self, record_out: N | P) -> bool:
         last_dt: datetime = self.last_record.dt
         return last_dt <= record_out.dt
