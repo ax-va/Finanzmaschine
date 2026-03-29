@@ -1,10 +1,16 @@
+from typing import TypeVar
+
 from finanzmaschine.portfolio.assets import BaseAsset
-from finanzmaschine.portfolio.record_infos.etp_underlying_asset_info import EtpRecord
 from finanzmaschine.portfolio.assets.etp import Etp
 from finanzmaschine.portfolio.lots.security_lot import SecurityLot
+from finanzmaschine.portfolio.records.base_record import BaseRecord
+from finanzmaschine.portfolio.records.etp_trade_record import EtpTradeRecord
+
+A = TypeVar("A", bound=BaseAsset)
+R = TypeVar("R", bound=BaseRecord)
 
 
-class EtpLot[A: BaseAsset](SecurityLot[Etp, EtpRecord]):
+class EtpLot(SecurityLot[Etp[A], R, EtpTradeRecord]):
     """
     A lot corresponding to an ETP instrument.
 
@@ -14,7 +20,7 @@ class EtpLot[A: BaseAsset](SecurityLot[Etp, EtpRecord]):
     underlying_asset_price = etp_price / entitlement
     """
 
-    def __init__(self, base_asset: Etp, record_in: EtpRecord) -> None:
+    def __init__(self, base_asset: Etp[A], record_in: EtpTradeRecord) -> None:
         super().__init__(base_asset, record_in)
 
     @property

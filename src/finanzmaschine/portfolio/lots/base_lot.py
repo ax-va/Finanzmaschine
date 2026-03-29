@@ -5,15 +5,15 @@ from typing import Tuple, List, TypeVar
 
 from finanzmaschine.portfolio.assets import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
-from finanzmaschine.portfolio.records.trade_record import TradeRecord
+from finanzmaschine.portfolio.records.priced_record import PricedRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
-T = TypeVar("T", bound=TradeRecord)
+P = TypeVar("P", bound=PricedRecord)
 
 
-class BaseLot[A, R, T]:
+class BaseLot[A, R, P]:
     """
     Base lot manages immutable lot records.
 
@@ -23,13 +23,13 @@ class BaseLot[A, R, T]:
     quantity_open = quantity_in - quantity_closed.
     """
 
-    def __init__(self, base_asset: A, record_in: T):
+    def __init__(self, base_asset: A, record_in: P):
         self._base_asset: A = base_asset
 
         if record_in.direction is None:
-            record_in: T = record_in.copy(direction=Direction.IN)
+            record_in: P = record_in.copy(direction=Direction.IN)
         elif record_in.direction != Direction.IN:
-            raise ValueError(f"Direction of the incoming record must be {Direction.IN!r}")
+            raise ValueError(f"Direction of the record-in must be {Direction.IN!r}")
 
         self._records: List[R] = [record_in]
 
@@ -42,7 +42,7 @@ class BaseLot[A, R, T]:
         return tuple(self._records)
 
     @property
-    def record_in(self) -> T:
+    def record_in(self) -> P:
         return self._records[0]
 
     @property
@@ -80,7 +80,7 @@ class BaseLot[A, R, T]:
         if record_out.direction is None:
             record_out: R = record_out.copy(direction=Direction.OUT)
         elif record_out.direction != Direction.OUT:
-            raise ValueError(f"Direction of the outgoing record must be {Direction.OUT!r}")
+            raise ValueError(f"Direction of records-out must be {Direction.OUT!r}")
 
         if not self.can_close_by_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
