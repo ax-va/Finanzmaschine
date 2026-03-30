@@ -1,7 +1,7 @@
-from typing import TypeVar, Generic
+from typing import TypeVar
 
 from finanzmaschine.portfolio.assets import BaseAsset
-from finanzmaschine.portfolio.lots.base_lot import BaseLot
+from finanzmaschine.portfolio.lots.priced_lot import PricedLot
 from finanzmaschine.portfolio.records.non_sale_reduction_record import NonSaleReductionRecord
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
 
@@ -10,5 +10,5 @@ N = TypeVar("N", bound=NonSaleReductionRecord)
 T = TypeVar("T", bound=TradeRecord)
 
 
-class TradeLot(BaseLot, Generic[A, N, T]):
+class TradeLot(PricedLot[A, N | T, T]):
     pass

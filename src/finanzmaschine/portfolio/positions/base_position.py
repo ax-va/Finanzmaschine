@@ -1,5 +1,3 @@
-import math
-
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
@@ -8,6 +6,7 @@ from typing import Deque, List, Tuple, TypeVar
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.base_record import BaseRecord
+from finanzmaschine.utils.float_helper import safe_sum
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
@@ -69,11 +68,14 @@ class BasePosition[A, R, L]:
 
     @property
     def quantity_open(self) -> float:
-        return math.fsum(lot.quantity_open for lot in self._lots_open)
+        return safe_sum((lot.quantity_open for lot in self._lots_open), float_eps=0.0)
 
     @property
     def quantity_closed(self) -> float:
-        return math.fsum(lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out)
+        return safe_sum(
+            (lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out),
+            float_eps=0.0,
+        )
 
     @property
     def _lots_open_with_records_out(self) -> List[L]:

@@ -10,5 +10,5 @@ N = TypeVar("N", bound=NonSaleReductionRecord)
 T = TypeVar("T", bound=SecurityTradeRecord)
 
 
-class SecurityLot(TradeLot[S, N, T]):
+class SecurityLot(TradeLot[S, N | T, T]):
     pass
