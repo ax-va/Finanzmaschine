@@ -52,11 +52,11 @@ class BaseLot[A, R, I]:
 
     @property
     def quantity_closed(self) -> float:
-        return safe_sum((r_out.quantity for r_out in self._records[1:]), float_eps=0.0)
+        return safe_sum(r_out.quantity for r_out in self._records[1:])
 
     @property
     def quantity_open(self) -> float:
-        return safe_sum((self._records[0].quantity - self.quantity_closed), float_eps=FLOAT_EPS)
+        return round_to_zero((self._records[0].quantity - self.quantity_closed), float_eps=FLOAT_EPS)
 
     @property
     def is_open(self) -> bool:

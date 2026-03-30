@@ -68,14 +68,11 @@ class BasePosition[A, R, L]:
 
     @property
     def quantity_open(self) -> float:
-        return safe_sum((lot.quantity_open for lot in self._lots_open), float_eps=0.0)
+        return safe_sum(lot.quantity_open for lot in self._lots_open)
 
     @property
     def quantity_closed(self) -> float:
-        return safe_sum(
-            (lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out),
-            float_eps=0.0,
-        )
+        return safe_sum(lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out)
 
     @property
     def _lots_open_with_records_out(self) -> List[L]:

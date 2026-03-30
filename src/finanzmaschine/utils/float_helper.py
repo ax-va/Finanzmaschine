@@ -13,5 +13,5 @@ def round_to_zero(x: float, float_eps: float) -> float:
     return 0.0 if is_zero(x, float_eps) else x
 
 
-def safe_sum(iter_obj: Iterable[float], float_eps: float) -> float:
-    return round_to_zero(math.fsum(iter_obj), float_eps)
+def safe_sum(iter_obj: Iterable[float]) -> float:
+    return math.fsum(iter_obj)
