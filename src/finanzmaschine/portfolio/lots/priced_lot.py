@@ -15,10 +15,7 @@ class PricedLot(BaseLot[A, N | P, P]):
 
     @property
     def quantity_realized(self) -> float:
-        return safe_sum(
-            (r_out.quantity for r_out in self.records_out if isinstance(r_out, PricedRecord)),
-            float_eps=0.0,
-        )
+        return safe_sum(r_out.quantity for r_out in self.records_out if isinstance(r_out, PricedRecord))
 
     @property
     def initial_cost_basis(self) -> float:
