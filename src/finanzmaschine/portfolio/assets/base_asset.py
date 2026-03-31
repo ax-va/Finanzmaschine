@@ -7,4 +7,6 @@ class BaseAsset[A: "BaseAsset"]:
     name: str
 
     def __eq__(self, other: A) -> bool:
+        if type(self) != type(other):
+            return False
         return self.id == other.id

@@ -1,0 +1,9 @@
+CH1297762812:
+  name: "21Shares Toncoin Staking ETP"
+  underlying_asset:
+    id: TON
+
+GB00BLD4ZM24:
+  name: "CoinShares Physical Staked Ethereum"
+  underlying_asset:
+    id: ETH

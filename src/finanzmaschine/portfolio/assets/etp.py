@@ -8,5 +8,5 @@ A = TypeVar("A", bound=BaseAsset)
 
 
 @dataclass(frozen=True)
-class Etp(Security, Generic[A]):
+class Etp(Security[A]):
     underlying_asset: A
