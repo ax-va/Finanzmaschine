@@ -16,24 +16,28 @@ def load_assets[A: BaseAsset](path: Path, asset_type: type[A]) -> List[A]:
     else:
         asset_def_files = (path, ) if path.suffix.lower() in {".yml", ".yaml"} else ()
 
+    if not asset_def_files:
+        raise ValueError(f"YAML files not found: {str(path)!r}")
+
     assets = []
     for asset_def_file in asset_def_files:
         with asset_def_file.open() as f:
             # YAML dictionary
             data = yaml.safe_load(f) or {}
             if not isinstance(data, dict):
-                raise ValueError(f"Invalid YAML structure in {asset_def_file!r}")
+                raise ValueError(f"Invalid YAML structure: {str(asset_def_file)!r}")
 
             # metadata dictionary
             for key, metadata in data.items():
                 if not isinstance(metadata, dict):
-                    raise ValueError(f"Invalid YAML structure in {asset_def_file!r}")
+                    raise ValueError(f"Invalid YAML structure: {str(asset_def_file)!r}")
 
                 # metadata attributes
                 kwargs = {"id": key}
                 for attr_key, attr_val in metadata.items():
                     if isinstance(attr_val, dict):
-                        kwargs[attr_key] = asset_registry.get(attr_val.get("id"))
+                        # for example, attr_key="underlying_asset"
+                        kwargs[attr_key] = asset_registry.get(attr_val["id"])
                     else:
                         kwargs[attr_key] = attr_val
 
