@@ -3,9 +3,9 @@ from typing import TypeVar
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 
-A = TypeVar("A", bound=BaseAsset)
+S = TypeVar("S", bound="Security")
 
 
 @dataclass(frozen=True)
-class Security(BaseAsset[A]):
+class Security(BaseAsset[S]):
     pass

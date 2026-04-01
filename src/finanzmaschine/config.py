@@ -30,4 +30,4 @@ def load_settings(settings_path: str | Path = None) -> Settings:
 
 
 SETTINGS = load_settings()
-DATA_DIR: Path = SETTINGS.paths.data
+DATA_DIR_PATH: Path = SETTINGS.paths.data
