@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
 from typing import Self, Any
@@ -20,7 +20,4 @@ class BaseRecord:
             raise ValueError("Quantity must be positive")
 
     def copy(self, **kwargs: Any) -> Self:
-        attr_dict = asdict(self)
-        for k in kwargs:
-            attr_dict.pop(k)
-        return type(self)(**kwargs, **attr_dict)
+        return replace(self,**kwargs)
