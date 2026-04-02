@@ -1,12 +1,15 @@
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
-from typing import Deque, List, Tuple, TypeVar
+from typing import Deque, List, Tuple, TypeVar, Dict
+from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.base_record import BaseRecord
 from finanzmaschine.utils.float_helper import safe_sum
+
+lot_to_position_mapping: Dict[UUID, UUID] = {}
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
@@ -20,6 +23,7 @@ class IoOrder(StrEnum):
 
 class BasePosition[A, R, L]:
     def __init__(self):
+        self._id: UUID = uuid4()
         self._lots_open: Deque[L] = deque()
         self._lots_closed: List[L] = []
 
@@ -89,18 +93,26 @@ class BasePosition[A, R, L]:
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
 
-    def add_lot(self, lot_in: L) -> None:
-        if self.base_asset != lot_in.base_asset:
+    def add_lot(self, lot: L) -> None:
+        if self.base_asset != lot.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
         last_dt: datetime = self.last_open_lot.record_in.datetime
-        if last_dt > lot_in.record_in.datetime:
+        if last_dt > lot.record_in.datetime:
             raise ValueError("Open lots in the position must be in ascending order by date and time")
 
-        if lot_in.records_out:
+        if lot.records_out:
             raise ValueError("Lots-in must not contain reports-out")
 
-        self._lots_open.append(lot_in)
+        if lot.id in lot_to_position_mapping:
+            raise ValueError(
+                f"Lot with id {lot.id!r} already mapped to "
+                f"position with id {lot_to_position_mapping[lot.id]}"
+            )
+        else:
+            lot_to_position_mapping[lot.id] = self._id
+
+        self._lots_open.append(lot)
 
     def close_record_in_fifo_order(self, record_out: R) -> None:
         self._close_record(
