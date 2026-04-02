@@ -8,19 +8,19 @@ df = pl.read_csv(
 ).sort("datetime")
 
 df = df.with_columns(
-    (pl.col("quantity") * pl.col("price")).round(2).alias("gross_value"),
+    (pl.col("base_asset_flow") * pl.col("price")).round(2).alias("signed_gross_value"),
 ).select(
     [
         "datetime",
-        "base_asset",
-        "quantity",
-        "quote_asset",
+        "base_asset_id",
+        "base_asset_name",
+        "base_asset_flow",
+        "quote_asset_id",
         "price",
-        "gross_value",
+        "signed_gross_value",
         "fee",
-        "direction",
-        "cash_flow",
-        "action",
+        "quote_asset_flow",
+        "operation_type",
     ]
 )
 pl.Config.set_tbl_rows(-1)
