@@ -101,7 +101,7 @@ class ShareLotContext:
 
     @property
     def date_in(self) -> date:
-        return self.etp_lot.record_in.dt.date()
+        return self.etp_lot.record_in.datetime.date()
 
     # @property
     # def is_tax_exempt(self):

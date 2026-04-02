@@ -2,6 +2,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
 from typing import Self, Any
+from uuid import UUID
 
 
 class Direction(StrEnum):
@@ -11,9 +12,11 @@ class Direction(StrEnum):
 
 @dataclass(frozen=True)
 class BaseRecord:
-    direction: Direction | None
+    id: UUID
     quantity: float
-    dt: datetime
+    datetime: datetime
+    direction: Direction
+    split_from_id: UUID | None
 
     def __post_init__(self) -> None:
         if not (self.quantity > 0):

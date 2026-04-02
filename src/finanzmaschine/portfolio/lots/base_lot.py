@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Tuple, List, TypeVar
+from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
@@ -21,11 +22,10 @@ class BaseLot[A, R, I]:
     """
 
     def __init__(self, base_asset: A, record_in: I):
+        self._id: UUID = uuid4()
         self._base_asset: A = base_asset
 
-        if record_in.direction is None:
-            record_in: I = record_in.copy(direction=Direction.IN)
-        elif record_in.direction != Direction.IN:
+        if record_in.direction != Direction.IN:
             raise ValueError(f"Direction of the record-in must be {Direction.IN!r}")
 
         self._records: List[R] = [record_in]
@@ -70,9 +70,7 @@ class BaseLot[A, R, I]:
         if self.is_closed:
             raise ValueError("Lot already closed")
 
-        if record_out.direction is None:
-            record_out: R = record_out.copy(direction=Direction.OUT)
-        elif record_out.direction != Direction.OUT:
+        if record_out.direction != Direction.OUT:
             raise ValueError(f"Direction of records-out must be {Direction.OUT!r}")
 
         if not self.has_valid_datetime(record_out):
@@ -81,13 +79,21 @@ class BaseLot[A, R, I]:
         record_left: R | None = None
         quantity_left: float = self.quantity_open - record_out.quantity
         if quantity_left < 0 and not is_zero(quantity_left, float_eps=FLOAT_EPS):
-            record_left: R = record_out.copy(quantity=abs(quantity_left))
-            record_out: R = record_out.copy(quantity=self.quantity_open)
+            record_out: R = record_out.copy(
+                id=uuid4(),
+                quantity=self.quantity_open,
+                split_from_id=record_out.id,
+            )
+            record_left: R = record_out.copy(
+                id=uuid4(),
+                quantity=abs(quantity_left),
+                split_from_id=record_out.id,
+            )
 
         self._records.append(record_out)
 
         return record_left
 
     def has_valid_datetime(self, record_out: R) -> bool:
-        last_dt: datetime = self.last_record.dt
-        return last_dt <= record_out.dt
+        last_dt: datetime = self.last_record.datetime
+        return last_dt <= record_out.datetime
