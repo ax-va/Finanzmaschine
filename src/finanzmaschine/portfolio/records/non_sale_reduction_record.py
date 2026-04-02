@@ -1,16 +1,17 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from typing import TypeVar
 
-from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
+from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction, BaseOperationType
+
+O = TypeVar("O", bound="ReductionOperationType")
 
 
-class ReductionReason(StrEnum):
+class ReductionOperationType(BaseOperationType):
     TRANSFER_OUT = "TRANSFER_OUT"
 
 
 @dataclass(frozen=True)
-class NonSaleReductionRecord(BaseRecord):
-    reason: ReductionReason
+class NonSaleReductionRecord(BaseRecord[O]):
 
     def __post_init__(self):
         super().__post_init__()

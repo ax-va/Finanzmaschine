@@ -1,11 +1,15 @@
 from dataclasses import dataclass
+from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
-from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
+from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction, BaseOperationType
+
+A = TypeVar("A", bound=BaseAsset)
+O = TypeVar("O", bound=BaseOperationType)
 
 
 @dataclass(frozen=True)
-class PricedRecord[A: BaseAsset](BaseRecord):
+class PricedRecord(BaseRecord[O], Generic[A, O]):
     quote_asset: A
     price: float
     fee: float
