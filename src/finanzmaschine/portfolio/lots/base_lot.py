@@ -33,7 +33,7 @@ class BaseLot[A, R, I]:
         if record_in.id in record_to_lot_mapping:
             raise ValueError(
                 f"Record-in with id {record_in.id!r} already mapped to "
-                f"lot with id {record_to_lot_mapping[record_in.id]}"
+                f"lot with id {record_to_lot_mapping[record_in.id]!r}"
             )
         else:
             record_to_lot_mapping[record_in.id] = self._id
@@ -89,7 +89,7 @@ class BaseLot[A, R, I]:
         if record_out.id in record_to_lot_mapping:
             raise ValueError(
                 f"Record-out with id {record_out.id!r} already mapped to "
-                f"lot with id {record_to_lot_mapping[record_out.id]}"
+                f"lot with id {record_to_lot_mapping[record_out.id]!r}"
             )
         else:
             record_to_lot_mapping[record_out.id] = self._id

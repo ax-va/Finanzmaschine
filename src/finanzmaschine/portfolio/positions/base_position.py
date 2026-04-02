@@ -107,7 +107,7 @@ class BasePosition[A, R, L]:
         if lot.id in lot_to_position_mapping:
             raise ValueError(
                 f"Lot with id {lot.id!r} already mapped to "
-                f"position with id {lot_to_position_mapping[lot.id]}"
+                f"position with id {lot_to_position_mapping[lot.id]!r}"
             )
         else:
             lot_to_position_mapping[lot.id] = self._id
