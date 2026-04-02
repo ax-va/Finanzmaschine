@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
-from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction, BaseOperationType
+from finanzmaschine.portfolio.operation_types.priced_operation_type import PricedOperationType
+from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
 A = TypeVar("A", bound=BaseAsset)
-O = TypeVar("O", bound=BaseOperationType)
+O = TypeVar("O", bound=PricedOperationType)
 
 
 @dataclass(frozen=True)

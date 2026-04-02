@@ -1,17 +1,15 @@
 from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
-from typing import Self, Any, TypeVar
+from typing import Self, Any
 from uuid import UUID
+
+from finanzmaschine.portfolio.operation_types.base_operation_type import BaseOperationType
 
 
 class Direction(StrEnum):
     IN = "IN"
     OUT = "OUT"
-
-
-class BaseOperationType(StrEnum):
-    pass
 
 
 @dataclass(frozen=True)
