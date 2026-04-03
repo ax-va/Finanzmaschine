@@ -14,4 +14,4 @@ class NonTradeDecreaseRecord(BaseRecord[O]):
         super().__post_init__()
 
         if self.direction is not None and self.direction != Direction.OUT:
-            raise ValueError(f"Direction of non-trade decrease records must be always {Direction.OUT!r}")
+            raise ValueError(f"Direction of non-trade decrease records must always be {Direction.OUT!r}")

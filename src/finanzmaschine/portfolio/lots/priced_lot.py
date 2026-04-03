@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets import BaseAsset
@@ -11,7 +12,7 @@ D = TypeVar("D", bound=NonTradeDecreaseRecord)
 P = TypeVar("P", bound=PricedRecord)
 
 
-class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
+class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P], ABC):
 
     @property
     def quantity_realized(self) -> float:

@@ -17,4 +17,4 @@ class NonTradeIncreaseRecord(PricedRecord[A, O]):
         super().__post_init__()
 
         if self.direction is not None and self.direction != Direction.IN:
-            raise ValueError(f"Direction of non-trade increase records must be always {Direction.IN!r}")
+            raise ValueError(f"Direction of non-trade increase records must always be {Direction.IN!r}")

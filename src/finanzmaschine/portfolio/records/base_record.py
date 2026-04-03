@@ -1,3 +1,4 @@
+from abc import ABC
 from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
@@ -13,7 +14,7 @@ class Direction(StrEnum):
 
 
 @dataclass(frozen=True)
-class BaseRecord[O: BaseOperationType]:
+class BaseRecord[O: BaseOperationType](ABC):
     id: UUID
     quantity: float
     datetime: datetime

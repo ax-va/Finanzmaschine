@@ -1,3 +1,4 @@
+from abc import ABC
 from datetime import datetime
 from typing import Tuple, List, TypeVar, Dict
 from uuid import UUID, uuid4
@@ -13,13 +14,12 @@ R = TypeVar("R", bound=BaseRecord)
 I = TypeVar("I", bound=BaseRecord)
 
 
-class BaseLot[A, R, I]:
+class BaseLot[A, R, I](ABC):
     """
-    Base lot manages immutable lot records.
+    Abstract base class to manage immutable lot records.
 
     Its invariant is the quantity in the lot.
     The open quantity is derived from the incoming quantity and all outgoing quantity:
-
     quantity_open = quantity_in - quantity_closed.
     """
 
@@ -28,7 +28,7 @@ class BaseLot[A, R, I]:
         self._base_asset: A = base_asset
 
         if record_in.direction != Direction.IN:
-            raise ValueError(f"Direction of the record-in must be always {Direction.IN!r}")
+            raise ValueError(f"Direction of the record-in must always be {Direction.IN!r}")
 
         if record_in.id in record_to_lot_mapping:
             raise ValueError(
@@ -81,7 +81,7 @@ class BaseLot[A, R, I]:
             raise ValueError("Lot already closed")
 
         if record_out.direction != Direction.OUT:
-            raise ValueError(f"Direction of records-out must be always {Direction.OUT!r}")
+            raise ValueError(f"Direction of records-out must always be {Direction.OUT!r}")
 
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
