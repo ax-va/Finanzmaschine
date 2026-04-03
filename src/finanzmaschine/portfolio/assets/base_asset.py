@@ -1,8 +1,9 @@
+from abc import ABC
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class BaseAsset[A: "BaseAsset"]:
+class BaseAsset[A: "BaseAsset"](ABC):
     id: str
     name: str
 

@@ -1,3 +1,4 @@
+from abc import ABC
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
@@ -21,7 +22,7 @@ class IoOrder(StrEnum):
     LIFO = "LIFO"
 
 
-class BasePosition[A, R, L]:
+class BasePosition[A, R, L](ABC):
     def __init__(self):
         self._id: UUID = uuid4()
         self._lots_open: Deque[L] = deque()
