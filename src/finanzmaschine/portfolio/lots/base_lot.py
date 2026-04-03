@@ -16,9 +16,13 @@ I = TypeVar("I", bound=BaseRecord)
 
 class BaseLot[A, R, I](ABC):
     """
-    Abstract base class to manage immutable lot records.
+    Abstract base class to manage lot records.
 
-    Its invariant is the quantity in the lot.
+    The first record in the lot must be a record-in, which opens the lot.
+    All other records must be records-out,
+    which reduce the quantity of the base asset until the lot will be closed.
+
+    The lot's invariant is the quantity of the base asset.
     The open quantity is derived from the incoming quantity and all outgoing quantity:
     quantity_open = quantity_in - quantity_closed.
     """

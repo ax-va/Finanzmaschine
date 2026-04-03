@@ -7,11 +7,10 @@ from finanzmaschine.portfolio.operation_types.non_trade_increase_type import Non
 from finanzmaschine.portfolio.records.etp_trade_record import EtpTradeRecord
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 
-E = TypeVar("E", bound="Etp")
 U = TypeVar("U", bound=BaseAsset)
 
 
-class EtpLot(SecurityLot[Etp[E, U], NonTradeDecreaseRecord, EtpTradeRecord, NonTradeIncreaseRecord]):
+class EtpLot(SecurityLot[Etp[U], NonTradeDecreaseRecord, EtpTradeRecord, NonTradeIncreaseRecord]):
     """
     A lot corresponding to an ETP instrument.
 
