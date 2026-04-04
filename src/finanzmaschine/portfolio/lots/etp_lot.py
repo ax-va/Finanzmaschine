@@ -3,18 +3,14 @@ from typing import TypeVar, Generic
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.assets.etp import Etp
 from finanzmaschine.portfolio.lots.security_lot import SecurityLot
-from finanzmaschine.portfolio.operation_types.non_trade_increase_type import NonTradeIncreaseRecord
 from finanzmaschine.portfolio.records.etp_trade_record import EtpTradeRecord
-from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 
 E = TypeVar("E", bound=Etp)
-D = TypeVar("D", bound=NonTradeDecreaseRecord)
-I = TypeVar("I", bound=NonTradeIncreaseRecord)
 T = TypeVar("T", bound=EtpTradeRecord)
 U = TypeVar("U", bound=Asset)
 
 
-class EtpLot(SecurityLot[E, D, T, I], Generic[E, D, T, I, U]):
+class EtpLot(SecurityLot[E, T], Generic[E, T, U]):
     """
     A lot corresponding to an ETP instrument.
 
