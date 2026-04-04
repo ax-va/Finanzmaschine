@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import TypeVar
 
 from finanzmaschine.catalog.broker_enum import Broker
 from finanzmaschine.catalog.exchange_enum import Exchange

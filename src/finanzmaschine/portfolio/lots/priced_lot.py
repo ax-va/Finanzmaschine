@@ -1,13 +1,13 @@
 from abc import ABC
 from typing import TypeVar, Generic
 
-from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 from finanzmaschine.portfolio.records.priced_record import PricedRecord
 from finanzmaschine.utils.float_helper import safe_sum
 
-A = TypeVar('A', bound=BaseAsset)
+A = TypeVar('A', bound=Asset)
 D = TypeVar("D", bound=NonTradeDecreaseRecord)
 P = TypeVar("P", bound=PricedRecord)
 

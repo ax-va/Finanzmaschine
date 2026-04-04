@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.assets.asset import Asset
 
 
 @dataclass(frozen=True)
-class Currency(BaseAsset):
+class Currency(Asset):
     pass
