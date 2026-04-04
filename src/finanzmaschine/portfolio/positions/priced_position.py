@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.asset import Asset
@@ -12,5 +13,5 @@ P = TypeVar("P", bound=PricedRecord)
 L = TypeVar("L", bound=PricedLot)
 
 
-class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
+class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L], ABC):
     pass
