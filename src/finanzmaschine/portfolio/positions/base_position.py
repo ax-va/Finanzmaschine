@@ -92,7 +92,7 @@ class BasePosition[A, R, L](ABC):
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
 
-    def add_lot(self, lot: L) -> None:
+    def increase(self, lot: L) -> None:
         if self.base_asset != lot.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
@@ -105,19 +105,19 @@ class BasePosition[A, R, L](ABC):
 
         self._lots_open.append(lot)
 
-    def close_record_in_fifo_order(self, record_out: R) -> None:
-        self._close_record(
+    def decrease_in_fifo_order(self, record_out: R) -> None:
+        self._decrease(
             record_out=record_out,
             io_order=IoOrder.FIFO,
         )
 
-    def close_record_in_lifo_order(self, record_out: R) -> None:
-        self._close_record(
+    def decrease_in_lifo_order(self, record_out: R) -> None:
+        self._decrease(
             record_out=record_out,
             io_order=IoOrder.LIFO,
         )
 
-    def _close_record(self, record_out: R, io_order: IoOrder) -> None:
+    def _decrease(self, record_out: R, io_order: IoOrder) -> None:
         if not self.contains_open_lots:
             raise ValueError(
                 f"You're trying to close open lots in the position even though there are none. "
@@ -126,13 +126,13 @@ class BasePosition[A, R, L](ABC):
                 f"Closing record-out: {record_out}."
             )
 
-        lot_out: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
-        record_left: R | None = lot_out.close_record(record_out)
-        if lot_out.is_closed:
-            self._lots_closed.append(lot_out)
+        lot: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
+        record_left: R | None = lot.reduce(record_out)
+        if lot.is_closed:
+            self._lots_closed.append(lot)
             self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
             if record_left:
-                self._close_record(
+                self._decrease(
                     record_out=record_left,
                     io_order=io_order,
                 )
