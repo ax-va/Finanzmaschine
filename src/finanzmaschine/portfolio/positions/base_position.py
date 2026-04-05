@@ -121,7 +121,7 @@ class BasePosition[A, R, L](ABC):
         self.check_contains_open_lots()
 
         lot: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
-        record_left: R | None = lot.reduce(record_out)
+        record_left: R | None = lot.decrease(record_out)
         if lot.is_closed:
             self._lots_closed.append(lot)
             self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
