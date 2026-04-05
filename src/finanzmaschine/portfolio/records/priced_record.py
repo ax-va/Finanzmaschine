@@ -1,4 +1,3 @@
-from abc import ABC
 from dataclasses import dataclass
 from typing import TypeVar, Generic
 
@@ -11,7 +10,7 @@ O = TypeVar("O", bound=PricedOperationType)
 
 
 @dataclass(frozen=True)
-class PricedRecord(BaseRecord[O], Generic[Q, O], ABC):
+class PricedRecord(BaseRecord[O], Generic[Q, O]):
     quote_asset: Q
     price: float
     fee: float

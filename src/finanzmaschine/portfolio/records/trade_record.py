@@ -1,4 +1,3 @@
-from abc import ABC
 from dataclasses import dataclass
 from typing import TypeVar
 
@@ -11,5 +10,5 @@ O = TypeVar("O", bound=TradeType)
 
 
 @dataclass(frozen=True)
-class TradeRecord(PricedRecord[Q, O], ABC):
+class TradeRecord(PricedRecord[Q, O]):
     pass
