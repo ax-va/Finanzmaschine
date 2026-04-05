@@ -8,7 +8,7 @@ O = TypeVar("O", bound="NonTradeDecreaseType")
 
 
 @dataclass(frozen=True)
-class NonTradeDecreaseType(BaseRecord[O]):
+class NonTradeDecreaseRecord(BaseRecord[O]):
 
     def __post_init__(self):
         super().__post_init__()
