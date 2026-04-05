@@ -128,6 +128,14 @@ class BasePosition[A, R, L](ABC):
         )
 
     def _close_record(self, record_out: R, io_order: IoOrder) -> None:
+        if not self.contains_open_lots:
+            raise ValueError(
+                f"You're trying to close open lots in the position even though there are none. "
+                f"Open lots: {self.lots_open}. "
+                f"Closed lots: {self.lots_closed}. "
+                f"Record-out: {record_out}."
+            )
+
         lot_out: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
         record_left: R | None = lot_out.close_record(record_out)
         if lot_out.is_closed:
