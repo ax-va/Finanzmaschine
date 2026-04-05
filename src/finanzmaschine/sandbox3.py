@@ -41,6 +41,5 @@ for row in df.iter_rows(named=True):
         order_id=order_id,
         exchange=exchange,
         trade_id=trade_id,
-        entitlement=None,
     )
     pprint(record)
