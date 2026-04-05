@@ -1,18 +1,14 @@
 from abc import ABC
 from datetime import datetime
-from typing import Tuple, List, TypeVar
+from typing import Tuple, List
 from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero, safe_sum, FLOAT_EPS
 
-A = TypeVar("A", bound=BaseAsset)
-R = TypeVar("R", bound=BaseRecord)
-I = TypeVar("I", bound=BaseRecord)
 
-
-class BaseLot[A, R, I](ABC):
+class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     """
     Abstract base class to manage lot records.
 
@@ -32,35 +28,32 @@ class BaseLot[A, R, I](ABC):
         if record_in.direction != Direction.IN:
             raise ValueError(f"Direction of the record-in must always be {Direction.IN!r}")
 
-        self._records: List[R] = [record_in]
+        self._record_in: I = record_in
+        self._records_out: List[R] = []
 
     @property
     def base_asset(self) -> A:
         return self._base_asset
 
     @property
-    def records(self) -> Tuple[R, ...]:
-        return tuple(self._records)
-
-    @property
     def record_in(self) -> I:
-        return self._records[0]
+        return self._record_in
 
     @property
     def records_out(self) -> Tuple[R, ...]:
-        return tuple(self._records[1:])
+        return tuple(self._records_out)
 
     @property
-    def last_record(self) -> R:
-        return self._records[-1]
+    def last_record(self) -> R | I:
+        return self._record_in if not self._records_out else self._records_out[-1]
 
     @property
     def quantity_closed(self) -> float:
-        return safe_sum(r_out.quantity for r_out in self._records[1:])
+        return safe_sum(r_out.quantity for r_out in self._records_out)
 
     @property
     def quantity_open(self) -> float:
-        return round_to_zero((self._records[0].quantity - self.quantity_closed), float_eps=FLOAT_EPS)
+        return round_to_zero((self._record_in.quantity - self.quantity_closed), float_eps=FLOAT_EPS)
 
     @property
     def is_open(self) -> bool:
@@ -94,7 +87,7 @@ class BaseLot[A, R, I](ABC):
                 split_from_id=record_out.id,
             )
 
-        self._records.append(record_out)
+        self._records_out.append(record_out)
 
         return record_left
 
