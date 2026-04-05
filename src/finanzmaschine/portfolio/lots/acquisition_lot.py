@@ -2,6 +2,7 @@ from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.priced_lot import PricedLot
+from finanzmaschine.portfolio.operation_types.trade_type import TradeType
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 from finanzmaschine.portfolio.records.non_trade_increase_record import NonTradeIncreaseRecord
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
@@ -16,5 +17,8 @@ T = TypeVar("T", bound=TradeRecord)
 class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
-    def quantity_sale(self) -> float:
-        return safe_sum(r_out.quantity for r_out in self.records_out if isinstance(r_out, TradeRecord))
+    def quantity_sold(self) -> float:
+        return safe_sum(
+            r_out.quantity for r_out in self._records_out
+            if isinstance(r_out, TradeRecord) and r_out.operation_type == TradeType.SELL
+        )
