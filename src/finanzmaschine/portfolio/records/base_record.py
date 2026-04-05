@@ -3,7 +3,6 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
 from typing import Self, Any
-from uuid import UUID
 
 from finanzmaschine.portfolio.operation_types.base_operation_type import BaseOperationType
 
@@ -15,7 +14,6 @@ class Direction(StrEnum):
 
 @dataclass(frozen=True)
 class BaseRecord[O: BaseOperationType](ABC):
-    id: UUID
     quantity: float
     datetime: datetime
     direction: Direction

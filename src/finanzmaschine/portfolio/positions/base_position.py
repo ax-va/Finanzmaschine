@@ -3,7 +3,6 @@ from collections import deque
 from datetime import datetime
 from enum import StrEnum
 from typing import Deque, List, Tuple, TypeVar
-from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
@@ -22,7 +21,6 @@ class IoOrder(StrEnum):
 
 class BasePosition[A, R, L](ABC):
     def __init__(self):
-        self._id: UUID = uuid4()
         self._lots_open: Deque[L] = deque()
         self._lots_closed: List[L] = []
 

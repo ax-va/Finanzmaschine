@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import datetime
 from typing import Tuple, List
-from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
@@ -22,7 +21,6 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     """
 
     def __init__(self, base_asset: A, record_in: I):
-        self._id: UUID = uuid4()
         self._base_asset: A = base_asset
 
         if record_in.direction != Direction.IN:
@@ -73,23 +71,19 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        record_left: R | None = None
         quantity_left: float = self.quantity_open - record_out.quantity
         if quantity_left < 0 and not is_zero(quantity_left, float_eps=FLOAT_EPS):
-            record_out: R = record_out.copy(
-                id=uuid4(),
+            record_closing: R = record_out.copy(
                 quantity=self.quantity_open,
-                split_from_id=record_out.id,
             )
             record_left: R = record_out.copy(
-                id=uuid4(),
                 quantity=abs(quantity_left),
-                split_from_id=record_out.id,
             )
+            self._records_out.append(record_closing)
+            return record_left
 
         self._records_out.append(record_out)
-
-        return record_left
+        return None
 
     def has_valid_datetime(self, record_out: R) -> bool:
         last_dt: datetime = self.last_record.datetime
