@@ -61,7 +61,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     def is_closed(self) -> bool:
         return not self.is_open
 
-    def decrease(self, record_out: R) -> R | None:
+    def reduce(self, record_out: R) -> R | None:
         if self.is_closed:
             raise ValueError("Lot already closed")
 

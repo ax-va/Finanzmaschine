@@ -14,7 +14,7 @@ R = TypeVar("R", bound=BaseRecord)
 L = TypeVar("L", bound=BaseLot)
 
 
-class IoOrder(StrEnum):
+class ClosingOrder(StrEnum):
     FIFO = "FIFO"
     LIFO = "LIFO"
 
@@ -50,8 +50,8 @@ class BasePosition[A, R, L](ABC):
         return tuple(self._lots_open)
     
     @property
-    def lots_open_with_records_out(self) -> Tuple[L, ...]:
-        return tuple(self._lots_open_with_records_out)
+    def lots_partially_closed(self) -> Tuple[L, ...]:
+        return tuple(self._lots_partially_closed)
 
     @property
     def lots_closed(self) -> Tuple[L, ...]:
@@ -59,12 +59,12 @@ class BasePosition[A, R, L](ABC):
 
     @property
     def first_open_lot(self) -> L:
-        self.check_contains_open_lots()
+        self.ensure_contains_open_lots()
         return self._lots_open[0]
 
     @property
     def last_open_lot(self) -> L:
-        self.check_contains_open_lots()
+        self.ensure_contains_open_lots()
         return self._lots_open[-1]
 
     @property
@@ -73,10 +73,10 @@ class BasePosition[A, R, L](ABC):
 
     @property
     def quantity_closed(self) -> float:
-        return safe_sum(lot.quantity_closed for lot in self._lots_closed + self._lots_open_with_records_out)
+        return safe_sum(lot.quantity_closed for lot in self._lots_closed + self._lots_partially_closed)
 
     @property
-    def _lots_open_with_records_out(self) -> List[L]:
+    def _lots_partially_closed(self) -> List[L]:
         lots: List[L] = []
         if self.first_open_lot.records_out:
             lots.append(self.first_open_lot)
@@ -86,11 +86,11 @@ class BasePosition[A, R, L](ABC):
 
         return lots
 
-    def check_contains_open_lots(self) -> None:
+    def ensure_contains_open_lots(self) -> None:
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
 
-    def increase(self, lot: L) -> None:
+    def append(self, lot: L) -> None:
         if self.base_asset != lot.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
@@ -103,28 +103,28 @@ class BasePosition[A, R, L](ABC):
 
         self._lots_open.append(lot)
 
-    def decrease_in_fifo_order(self, record_out: R) -> None:
-        self._decrease(
+    def reduce_in_fifo_order(self, record_out: R) -> None:
+        self._reduce(
             record_out=record_out,
-            io_order=IoOrder.FIFO,
+            closing_order=ClosingOrder.FIFO,
         )
 
-    def decrease_in_lifo_order(self, record_out: R) -> None:
-        self._decrease(
+    def reduce_in_lifo_order(self, record_out: R) -> None:
+        self._reduce(
             record_out=record_out,
-            io_order=IoOrder.LIFO,
+            closing_order=ClosingOrder.LIFO,
         )
 
-    def _decrease(self, record_out: R, io_order: IoOrder) -> None:
-        self.check_contains_open_lots()
+    def _reduce(self, record_out: R, closing_order: ClosingOrder) -> None:
+        self.ensure_contains_open_lots()
 
-        lot: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
-        record_left: R | None = lot.decrease(record_out)
+        lot: L = self.first_open_lot if closing_order == ClosingOrder.FIFO else self.last_open_lot
+        record_left: R | None = lot.reduce(record_out)
         if lot.is_closed:
             self._lots_closed.append(lot)
-            self._lots_open.popleft() if io_order == IoOrder.FIFO else self._lots_open.pop()
+            self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
             if record_left:
-                self._decrease(
+                self._reduce(
                     record_out=record_left,
-                    io_order=io_order,
+                    closing_order=closing_order,
                 )
