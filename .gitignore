@@ -1,5 +1,6 @@
 venv/
 private/
+draft/
 private_data/
 __pycache__/
 *.pyc
