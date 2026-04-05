@@ -133,7 +133,7 @@ class BasePosition[A, R, L](ABC):
                 f"You're trying to close open lots in the position even though there are none. "
                 f"Open lots: {self.lots_open}. "
                 f"Closed lots: {self.lots_closed}. "
-                f"Record-out: {record_out}."
+                f"Closing record-out: {record_out}."
             )
 
         lot_out: L = self.first_open_lot if io_order == IoOrder.FIFO else self.last_open_lot
