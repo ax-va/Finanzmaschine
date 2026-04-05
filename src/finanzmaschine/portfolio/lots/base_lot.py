@@ -1,13 +1,11 @@
 from abc import ABC
 from datetime import datetime
-from typing import Tuple, List, TypeVar, Dict
+from typing import Tuple, List, TypeVar
 from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero, safe_sum, FLOAT_EPS
-
-record_to_lot_mapping: Dict[UUID, UUID] = {}
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
@@ -33,14 +31,6 @@ class BaseLot[A, R, I](ABC):
 
         if record_in.direction != Direction.IN:
             raise ValueError(f"Direction of the record-in must always be {Direction.IN!r}")
-
-        if record_in.id in record_to_lot_mapping:
-            raise ValueError(
-                f"Record-in with id {record_in.id!r} already mapped to "
-                f"lot with id {record_to_lot_mapping[record_in.id]!r}"
-            )
-        else:
-            record_to_lot_mapping[record_in.id] = self._id
 
         self._records: List[R] = [record_in]
 
@@ -90,14 +80,6 @@ class BaseLot[A, R, I](ABC):
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        if record_out.id in record_to_lot_mapping:
-            raise ValueError(
-                f"Record-out with id {record_out.id!r} already mapped to "
-                f"lot with id {record_to_lot_mapping[record_out.id]!r}"
-            )
-        else:
-            record_to_lot_mapping[record_out.id] = self._id
-
         record_left: R | None = None
         quantity_left: float = self.quantity_open - record_out.quantity
         if quantity_left < 0 and not is_zero(quantity_left, float_eps=FLOAT_EPS):
@@ -111,8 +93,6 @@ class BaseLot[A, R, I](ABC):
                 quantity=abs(quantity_left),
                 split_from_id=record_out.id,
             )
-            record_to_lot_mapping[record_out.id] = self._id
-            record_to_lot_mapping[record_left.id] = self._id
 
         self._records.append(record_out)
 

@@ -2,15 +2,13 @@ from abc import ABC
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
-from typing import Deque, List, Tuple, TypeVar, Dict
+from typing import Deque, List, Tuple, TypeVar
 from uuid import UUID, uuid4
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.base_record import BaseRecord
 from finanzmaschine.utils.float_helper import safe_sum
-
-lot_to_position_mapping: Dict[UUID, UUID] = {}
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
@@ -104,14 +102,6 @@ class BasePosition[A, R, L](ABC):
 
         if lot.records_out:
             raise ValueError("Lots-in must not contain reports-out")
-
-        if lot.id in lot_to_position_mapping:
-            raise ValueError(
-                f"Lot with id {lot.id!r} already mapped to "
-                f"position with id {lot_to_position_mapping[lot.id]!r}"
-            )
-        else:
-            lot_to_position_mapping[lot.id] = self._id
 
         self._lots_open.append(lot)
 
