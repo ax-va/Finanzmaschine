@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.asset import Asset
@@ -13,4 +14,7 @@ L = TypeVar("L", bound=PricedLot)
 
 
 class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
-    pass
+
+    @abstractmethod
+    def _create_lot(self, record_in: P) -> L:
+        pass

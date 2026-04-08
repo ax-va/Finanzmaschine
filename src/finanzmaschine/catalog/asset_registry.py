@@ -1,18 +1,16 @@
 from typing import Dict, List
 
-from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.assets.asset import Asset
 
 
-class AssetRegistry[A: BaseAsset]:
+class AssetRegistry[A: Asset]:
     def __init__(self):
         self._by_id: Dict[str, A] = {}
 
     def register(self, asset: A) -> A:
         if asset.id in self._by_id:
             raise ValueError(f"Duplicate asset {asset.id!r}")
-
         self._by_id[asset.id] = asset
-
         return asset
 
     def get_all(self) -> List[A]:

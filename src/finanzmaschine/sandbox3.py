@@ -4,7 +4,9 @@ import polars as pl
 
 from finanzmaschine.catalog import asset_registry
 from finanzmaschine.config import DATA_DIR_PATH
-from finanzmaschine.portfolio.operation_types.trade_type import TradeType
+from finanzmaschine.portfolio.assets import CryptoEtp
+from finanzmaschine.portfolio.operation_types import TradeType
+from finanzmaschine.portfolio.positions import CryptoEtpPosition
 from finanzmaschine.portfolio.records.base_record import Direction
 from finanzmaschine.portfolio.records.crypto_etp_trade_record import CryptoEtpTradeRecord
 
@@ -12,6 +14,9 @@ df = pl.read_csv(
     DATA_DIR_PATH / "private" / "trades" / "etps" / "toncoin.csv",
     try_parse_dates=True,
 ).sort("datetime")
+
+ton_etp: CryptoEtp = asset_registry.get("CH1297762812")
+position = CryptoEtpPosition(base_asset=ton_etp)
 
 for row in df.iter_rows(named=True):
     base_asset_flow = row["base_asset_flow"]
@@ -43,3 +48,7 @@ for row in df.iter_rows(named=True):
         trade_id=trade_id,
     )
     pprint(record)
+    position.apply(record, "FIFO")
+
+print("Quantity closed:", position.quantity_closed)
+print("Quantity open:", position.quantity_open)

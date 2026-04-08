@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import List
 
 from finanzmaschine.catalog.asset_registry import asset_registry
-from finanzmaschine.portfolio.assets.base_asset import BaseAsset
+from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.utils.path_helper import ensure_path
 
 
-def load_assets[A: BaseAsset](path: Path, asset_type: type[A]) -> List[A]:
+def load_assets[A: Asset](path: Path, asset_type: type[A]) -> List[A]:
 
     path = ensure_path(path)
     if path.is_dir():

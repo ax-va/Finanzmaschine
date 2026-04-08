@@ -1,4 +1,4 @@
-from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 
 
 class Asset(BaseAsset):

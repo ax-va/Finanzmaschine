@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import datetime
 from typing import Tuple, List
 
-from finanzmaschine.portfolio.assets import BaseAsset
+from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
 from finanzmaschine.utils.float_helper import round_to_zero, is_zero, safe_sum, FLOAT_EPS
 

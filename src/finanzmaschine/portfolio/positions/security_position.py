@@ -14,9 +14,12 @@ I = TypeVar("I", bound=NonTradeIncreaseRecord)
 T = TypeVar("T", bound=SecurityTradeRecord)
 L = TypeVar("L", bound=SecurityLot)
 
+RecordIn = NonTradeIncreaseRecord | SecurityTradeRecord
+
 
 class SecurityPosition(
     AcquisitionPosition[S, NonTradeDecreaseRecord, NonTradeIncreaseRecord[S, NonTradeIncreaseType], T, L],
     Generic[S, T, L],
 ):
-    pass
+    def _create_lot(self, record_in: RecordIn) -> SecurityLot:
+        return SecurityLot(base_asset=self.base_asset, record_in=record_in)

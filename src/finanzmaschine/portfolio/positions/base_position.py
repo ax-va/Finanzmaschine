@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import deque
 from datetime import datetime
 from enum import StrEnum
@@ -6,7 +6,7 @@ from typing import Deque, List, Tuple, TypeVar
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
-from finanzmaschine.portfolio.records.base_record import BaseRecord
+from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 from finanzmaschine.utils.float_helper import safe_sum
 
 A = TypeVar("A", bound=BaseAsset)
@@ -20,7 +20,8 @@ class ClosingOrder(StrEnum):
 
 
 class BasePosition[A, R, L](ABC):
-    def __init__(self):
+    def __init__(self, base_asset: A):
+        self._base_asset: A = base_asset
         self._lots_open: Deque[L] = deque()
         self._lots_closed: List[L] = []
 
@@ -38,12 +39,7 @@ class BasePosition[A, R, L](ABC):
 
     @property
     def base_asset(self) -> A:
-        if not self.contains_lots:
-            raise ValueError("Position doesn't contain any lot")
-
-        lot_0: L = self._lots_open[0] if self._lots_open else self._lots_closed[0]
-
-        return lot_0.base_asset
+        return self._base_asset
 
     @property
     def lots_open(self) -> Tuple[L, ...]:
@@ -86,39 +82,51 @@ class BasePosition[A, R, L](ABC):
 
         return lots
 
+    @abstractmethod
+    def _create_lot(self, record_in: R) -> L:
+        pass
+
     def ensure_contains_open_lots(self) -> None:
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
 
-    def append(self, lot: L) -> None:
+    def apply(self, record: R, closing_order: str) -> None:
+        if record.direction == Direction.IN:
+            lot = self._create_lot(record_in=record)
+            self._append(lot)
+        elif record.direction == Direction.OUT:
+            self._reduce(
+                record_out=record,
+                closing_order=ClosingOrder(closing_order.upper()),
+            )
+        else:
+            raise ValueError(f"Direction is neither {Direction.IN} nor {Direction.OUT}: {record.direction}")
+
+    def _append(self, lot: L) -> None:
         if self.base_asset != lot.base_asset:
             raise ValueError(f"The position's asset must be equal to the incoming lot's asset")
 
-        last_dt: datetime = self.last_open_lot.record_in.datetime
-        if last_dt > lot.record_in.datetime:
-            raise ValueError("Open lots in the position must be in ascending order by date and time")
+        if self.contains_open_lots:
+            last_dt: datetime = self.last_open_lot.record_in.datetime
+            if last_dt > lot.record_in.datetime:
+                raise ValueError("Open lots in the position must be in ascending order by date and time")
 
         if lot.records_out:
             raise ValueError("Lots-in must not contain reports-out")
 
         self._lots_open.append(lot)
 
-    def reduce_in_fifo_order(self, record_out: R) -> None:
-        self._reduce(
-            record_out=record_out,
-            closing_order=ClosingOrder.FIFO,
-        )
-
-    def reduce_in_lifo_order(self, record_out: R) -> None:
-        self._reduce(
-            record_out=record_out,
-            closing_order=ClosingOrder.LIFO,
-        )
-
     def _reduce(self, record_out: R, closing_order: ClosingOrder) -> None:
         self.ensure_contains_open_lots()
 
-        lot: L = self.first_open_lot if closing_order == ClosingOrder.FIFO else self.last_open_lot
+        lot: L
+        if closing_order == ClosingOrder.FIFO:
+            lot = self.first_open_lot
+        elif closing_order == ClosingOrder.LIFO:
+            lot = self.last_open_lot
+        else:
+            raise ValueError(f"Closing order is neither {ClosingOrder.FIFO} nor {ClosingOrder.LIFO}")
+
         record_left: R | None = lot.reduce(record_out)
         if lot.is_closed:
             self._lots_closed.append(lot)
