@@ -17,12 +17,35 @@ T = TypeVar("T", bound=TradeRecord)
 class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
-    def _records_out_sold(self) -> List[T]:
-        return [
-            r_out for r_out in self._records_out_realized
-            if isinstance(r_out, TradeRecord) and r_out.operation_type == TradeType.SELL
-        ]
+    def quantity_sold(self) -> float:
+        return safe_sum(r_out.quantity for r_out in self._records_sold)
 
     @property
-    def _quote_assets_sold(self) -> frozenset[A]:
-        return frozenset(r_out.quote_asset for r_out in self._records_out_sold)
+    def quote_assets_sold(self) -> frozenset[A]:
+        return frozenset(r_out.quote_asset for r_out in self._records_sold)
+
+    @property
+    def quote_assets(self) -> frozenset[A]:
+        asset_set = set(self.quote_assets_sold)
+        asset_set.add(self.record_in.quote_asset)
+        return frozenset(asset_set)
+
+    @property
+    def cost_basis_sold(self) -> float:
+        return self.quantity_sold * self.cost_basis_per_unit
+
+    @property
+    def proceeds(self) -> float:
+        self.ensure_one_quote_asset()
+        # workaround for type checker
+        r_out: TradeRecord
+        return safe_sum(r_out.quote_asset_flow for r_out in self._records_sold)
+
+    @property
+    def pnl(self) -> float:
+        """Profit or loss (PnL)"""
+        return self.proceeds - self.cost_basis_sold
+
+    @property
+    def _records_sold(self) -> List[T]:
+        return [r_out for r_out in self._records_realized if isinstance(r_out, TradeRecord)]
