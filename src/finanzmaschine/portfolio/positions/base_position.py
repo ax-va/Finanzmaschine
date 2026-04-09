@@ -54,6 +54,10 @@ class BasePosition[A, R, L](ABC):
         return tuple(self._lots_closed)
 
     @property
+    def lots_with_records_out(self) -> Tuple[L, ...]:
+        return tuple(self._lots_closed + self._lots_partially_closed)
+
+    @property
     def first_open_lot(self) -> L:
         self.ensure_contains_open_lots()
         return self._lots_open[0]
@@ -69,7 +73,7 @@ class BasePosition[A, R, L](ABC):
 
     @property
     def quantity_closed(self) -> float:
-        return safe_sum(lot.quantity_closed for lot in self._lots_closed + self._lots_partially_closed)
+        return safe_sum(lot.quantity_closed for lot in self._lots_with_records_out)
 
     @property
     def _lots_partially_closed(self) -> List[L]:
@@ -81,6 +85,10 @@ class BasePosition[A, R, L](ABC):
             lots.append(self.last_open_lot)
 
         return lots
+
+    @property
+    def _lots_with_records_out(self) -> List[L]:
+        return self._lots_closed + self._lots_partially_closed
 
     @abstractmethod
     def _create_lot(self, record_in: R) -> L:

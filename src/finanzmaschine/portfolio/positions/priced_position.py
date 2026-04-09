@@ -18,3 +18,6 @@ class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
     @abstractmethod
     def _create_lot(self, record_in: P) -> L:
         pass
+
+    def compute_pnl(self):
+        ...
