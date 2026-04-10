@@ -52,5 +52,5 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
         return [r_out for r_out in self._records_out if isinstance(r_out, PricedRecord)]
 
     def ensure_one_quote_asset(self):
-        if len(self.quote_assets) > 0:
-            raise ValueError(f"Lot contains reports-out with more than one quote asset: {self.quote_assets}")
+        if len(self.quote_assets) > 1:
+            raise ValueError(f"More than one quote asset: {self.quote_assets}")
