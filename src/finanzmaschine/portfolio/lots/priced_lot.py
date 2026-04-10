@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, List, Tuple, Set
+from typing import TypeVar, Generic, List, Tuple, FrozenSet
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
@@ -38,11 +38,11 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
         return tuple(r_out for r_out in self._records_realized)
 
     @property
-    def quote_assets_realized(self) -> frozenset[A]:
+    def quote_assets_realized(self) -> FrozenSet[A]:
         return frozenset(r_out.quote_asset for r_out in self._records_realized)
 
     @property
-    def quote_assets(self) -> frozenset[A]:
+    def quote_assets(self) -> FrozenSet[A]:
         asset_set = set(self.quote_assets_realized)
         asset_set.add(self.record_in.quote_asset)
         return frozenset(asset_set)

@@ -1,8 +1,7 @@
-from typing import TypeVar, Generic, List, Set
+from typing import TypeVar, Generic, List, FrozenSet
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.priced_lot import PricedLot
-from finanzmaschine.portfolio.operation_types.trade_type import TradeType
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 from finanzmaschine.portfolio.records.non_trade_increase_record import NonTradeIncreaseRecord
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
@@ -21,11 +20,11 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
         return safe_sum(r_out.quantity for r_out in self._records_sold)
 
     @property
-    def quote_assets_sold(self) -> frozenset[A]:
+    def quote_assets_sold(self) -> FrozenSet[A]:
         return frozenset(r_out.quote_asset for r_out in self._records_sold)
 
     @property
-    def quote_assets(self) -> frozenset[A]:
+    def quote_assets(self) -> FrozenSet[A]:
         asset_set = set(self.quote_assets_sold)
         asset_set.add(self.record_in.quote_asset)
         return frozenset(asset_set)
