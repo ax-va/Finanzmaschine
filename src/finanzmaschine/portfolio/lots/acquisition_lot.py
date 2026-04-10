@@ -42,7 +42,7 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
     def pnl(self) -> float:
-        """Profit or loss (PnL)"""
+        """Profit and Loss (PnL)"""
         return self.proceeds - self.cost_basis_sold
 
     @property
