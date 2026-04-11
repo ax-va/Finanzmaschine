@@ -80,7 +80,7 @@ For Personal Use, the Software is made available under a permissive license, at 
 
 The user may select either license, and the chosen license shall govern their rights and obligations for Personal Use.
 
-## 5. License Grant for Professional Use (Non-Commercial Use Only)
+## 5. License Grant for Professional Use (Non-Commercial Evaluation Only)
 
 The Author grants a personal, limited, non-exclusive, non-transferable license to use the Software strictly for non-commercial purposes, including:
 
