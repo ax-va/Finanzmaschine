@@ -49,10 +49,6 @@ For the purposes of this license:
     - Whether the activity is conducted remotely or independently.
     - Whether the Software is used directly or indirectly within a professional workflow.
 
-  Governing Principle: Nature of Use
-
-  The classification of use as Personal Use or Professional Use shall be determined based on the nature, context, and function of the activity in which the Software is used, and   not solely on the legal status of the user. In case of ambiguity, the determining factor shall be whether the Software performs a functional role in a professional, business,    or organizational activity.
-
 
 - **Sublicensing** means granting any rights to use, modify, or distribute the Software to third parties beyond those expressly granted by this License.
 
@@ -60,7 +56,11 @@ For the purposes of this license:
 - **Author** means the individual or legal person who created and owns the Software, identified by the GitHub account
   https://github.com/ax-va, unless otherwise explicitly stated.
 
-## 2. License Grant for Personal Use
+## 2. Governing Principle: Nature of Use
+
+The classification of use as Personal Use or Professional Use shall be determined based on the nature, context, and function of the activity in which the Software is used, and   not solely on the legal status of the user. In case of ambiguity, the determining factor shall be whether the Software performs a functional role in a professional, business,    or organizational activity.
+
+## 3. License Grant for Personal Use
 
 For Personal Use, the Software is made available under a permissive license, at the user's choice:
 
@@ -72,7 +72,7 @@ For Personal Use, the Software is made available under a permissive license, at 
 
 The user may select either license, and the chosen license shall govern their rights and obligations for Personal Use.
 
-## 3. License Grant for Professional Use (Non-Commercial Use Only)
+## 4. License Grant for Professional Use (Non-Commercial Use Only)
 
 The Author grants a personal, limited, non-exclusive, non-transferable license to use the Software strictly for non-commercial purposes, including:
 
@@ -93,7 +93,7 @@ The Author grants a personal, limited, non-exclusive, non-transferable license t
 The Software may not be relicensed, sublicensed, or distributed under different licensing terms, in whole or in part, without the explicit
 prior written consent of the Author.
 
-## 4. Prohibited Uses under Professional Use
+## 5. Prohibited Uses under Professional Use
 
 Without an explicit commercial license agreement, the following uses are prohibited:
 
@@ -116,7 +116,7 @@ Without an explicit commercial license agreement, the following uses are prohibi
 
     Any attempt to sublicense, relicense, or otherwise grant third parties rights to the Software under different terms.
 
-## 5. No Financial Services / No Investment Advice
+## 6. No Financial Services / No Investment Advice
 
 This Software does not constitute investment advice, portfolio management, or a financial service within the meaning of:
 
@@ -130,7 +130,7 @@ This Software does not constitute investment advice, portfolio management, or a 
 
 The Software is provided exclusively for research and technical evaluation purposes.
 
-## 6. Intellectual Property and Trade Secrets
+## 7. Intellectual Property and Trade Secrets
 
 The Software constitutes intellectual property and protected know-how under:
 
@@ -141,7 +141,7 @@ The Software constitutes intellectual property and protected know-how under:
 
 All rights not expressly granted remain reserved.
 
-## 7. Liability Disclaimer (Haftung)
+## 8. Liability Disclaimer (Haftung)
 
 The Software is provided "as is". 
 
@@ -149,7 +149,7 @@ The Author shall not be liable for damages arising from the use of the Software,
 
 No warranties of any kind, express or implied, are provided.
 
-## 8. Third-Party Software and Dependencies
+## 9. Third-Party Software and Dependencies
 
 The Software may include, depend on, or interoperate with third-party software, libraries, frameworks, tools, or services (**Third-Party Software**).
 
@@ -168,12 +168,12 @@ The Author of this Software:
 Use of Third-Party Software is at the user's own risk and subject to the applicable
 third-party license terms.
 
-## 9. Governing Law and Jurisdiction
+## 10. Governing Law and Jurisdiction
 
 This license shall be governed by the laws of the Federal Republic of Germany.
 Place of jurisdiction shall be the Author's place of residence, insofar as legally permissible.
 
-## 10. Commercial Licensing
+## 11. Commercial Licensing
 
 For commercial licensing, production deployment, or partnership inquiries, please contact the Author via GitHub:
 
