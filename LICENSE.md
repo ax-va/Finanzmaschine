@@ -49,6 +49,10 @@ For the purposes of this license:
     - Whether the activity is conducted remotely or independently.
     - Whether the Software is used directly or indirectly within a professional workflow.
 
+  Governing Principle: Nature of Use
+
+  The classification of use as Personal Use or Professional Use shall be determined based on the nature, context, and function of the activity in which the Software is used, and   not solely on the legal status of the user. In case of ambiguity, the determining factor shall be whether the Software performs a functional role in a professional, business,    or organizational activity.
+
 
 - **Sublicensing** means granting any rights to use, modify, or distribute the Software to third parties beyond those expressly granted by this License.
 
