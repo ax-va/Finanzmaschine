@@ -124,7 +124,19 @@ Without an explicit commercial license agreement, the following uses are prohibi
 
     Any attempt to sublicense, relicense, or otherwise grant third parties rights to the Software under different terms.
 
-## 7. No Financial Services / No Investment Advice
+## 7. No Circumvention
+
+The restrictions applicable to Professional Use shall not be avoided, limited, or circumvented by:
+
+  - acting through intermediaries or third parties
+  - restructuring organizational arrangements
+  - using personal accounts, devices, or infrastructure
+  - separating development, testing, or execution environments
+  - operating through contractors, affiliates, or related entities
+
+Any attempt to circumvent the intent or effect of this License shall be considered Professional Use.
+
+## 8. No Financial Services / No Investment Advice
 
 This Software does not constitute investment advice, portfolio management, or a financial service within the meaning of:
 
@@ -138,7 +150,7 @@ This Software does not constitute investment advice, portfolio management, or a 
 
 The Software is provided exclusively for research and technical evaluation purposes.
 
-## 8. Intellectual Property and Trade Secrets
+## 9. Intellectual Property and Trade Secrets
 
 The Software constitutes intellectual property and protected know-how under:
 
@@ -149,7 +161,7 @@ The Software constitutes intellectual property and protected know-how under:
 
 All rights not expressly granted remain reserved.
 
-## 9. Liability Disclaimer (Haftung)
+## 10. Liability Disclaimer (Haftung)
 
 The Software is provided "as is". 
 
@@ -157,7 +169,7 @@ The Author shall not be liable for damages arising from the use of the Software,
 
 No warranties of any kind, express or implied, are provided.
 
-## 10. Third-Party Software and Dependencies
+## 11. Third-Party Software and Dependencies
 
 The Software may include, depend on, or interoperate with third-party software, libraries, frameworks, tools, or services (**Third-Party Software**).
 
@@ -176,12 +188,12 @@ The Author of this Software:
 Use of Third-Party Software is at the user's own risk and subject to the applicable
 third-party license terms.
 
-## 11. Governing Law and Jurisdiction
+## 12. Governing Law and Jurisdiction
 
 This license shall be governed by the laws of the Federal Republic of Germany.
 Place of jurisdiction shall be the Author's place of residence, insofar as legally permissible.
 
-## 12. Commercial Licensing
+## 13. Commercial Licensing
 
 For commercial licensing, production deployment, or partnership inquiries, please contact the Author via GitHub:
 
