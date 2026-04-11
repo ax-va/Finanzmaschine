@@ -6,19 +6,6 @@ For the purposes of this license:
 
 - **Software** refers to the **Finanzmaschine** source code, including all modules, data structures, and documentation.
 
-
-- **Core Logic** refers to the proprietary execution methodology defined as **Shares to Cash or Assets**, including its concrete implementation of:
-
-  - tranche and lot management,
-
-  - implied asset price calculations via entitlement coefficients,
-
-  - cross-asset transition and protection rules.
-
-
-- **Implied Asset Price** means a derived price of an underlying asset calculated from a share-based or derivative instrument.
-
-
 - **Live Trading** means any interaction with real financial markets involving real capital or positions.
 
 
