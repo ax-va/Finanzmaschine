@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 from collections import deque
 from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Deque, List, Tuple, TypeVar
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
-from finanzmaschine.utils.float_helper import safe_sum
+from finanzmaschine.utils.decimal_helper import safe_sum
 
 A = TypeVar("A", bound=BaseAsset)
 R = TypeVar("R", bound=BaseRecord)
@@ -23,19 +24,19 @@ class BasePosition[A, R, L](ABC):
     def __init__(self, base_asset: A):
         self._base_asset: A = base_asset
         self._lots_open: Deque[L] = deque()
-        self._lots_closed: List[L] = []
+        self._lots_fully_closed: List[L] = []
 
     @property
     def contains_open_lots(self) -> bool:
         return True if self._lots_open else False
 
     @property
-    def contains_closed_lots(self) -> bool:
-        return True if self._lots_closed else False
+    def contains_fully_closed_lots(self) -> bool:
+        return True if self._lots_fully_closed else False
 
     @property
     def contains_lots(self) -> bool:
-        return self.contains_open_lots or self.contains_closed_lots
+        return self.contains_open_lots or self.contains_fully_closed_lots
 
     @property
     def base_asset(self) -> A:
@@ -50,12 +51,12 @@ class BasePosition[A, R, L](ABC):
         return tuple(self._lots_partially_closed)
 
     @property
-    def lots_closed(self) -> Tuple[L, ...]:
-        return tuple(self._lots_closed)
+    def lots_fully_closed(self) -> Tuple[L, ...]:
+        return tuple(self._lots_fully_closed)
 
     @property
     def lots_with_records_out(self) -> Tuple[L, ...]:
-        return tuple(self._lots_closed + self._lots_partially_closed)
+        return tuple(self._lots_with_records_out)
 
     @property
     def first_open_lot(self) -> L:
@@ -68,11 +69,11 @@ class BasePosition[A, R, L](ABC):
         return self._lots_open[-1]
 
     @property
-    def quantity_open(self) -> float:
+    def quantity_open(self) -> Decimal:
         return safe_sum(lot.quantity_open for lot in self._lots_open)
 
     @property
-    def quantity_closed(self) -> float:
+    def quantity_closed(self) -> Decimal:
         return safe_sum(lot.quantity_closed for lot in self._lots_with_records_out)
 
     @property
@@ -88,7 +89,7 @@ class BasePosition[A, R, L](ABC):
 
     @property
     def _lots_with_records_out(self) -> List[L]:
-        return self._lots_closed + self._lots_partially_closed
+        return self._lots_fully_closed + self._lots_partially_closed
 
     @abstractmethod
     def _create_lot(self, record_in: R) -> L:
@@ -137,7 +138,7 @@ class BasePosition[A, R, L](ABC):
 
         record_left: R | None = lot.reduce(record_out)
         if lot.is_closed:
-            self._lots_closed.append(lot)
+            self._lots_fully_closed.append(lot)
             self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
             if record_left:
                 self._reduce(

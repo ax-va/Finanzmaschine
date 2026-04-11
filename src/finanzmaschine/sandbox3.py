@@ -1,3 +1,4 @@
+from decimal import Decimal
 from pprint import pprint
 
 import polars as pl
@@ -13,6 +14,12 @@ from finanzmaschine.portfolio.records.crypto_etp_trade_record import CryptoEtpTr
 df = pl.read_csv(
     DATA_DIR_PATH / "private" / "trades" / "etps" / "toncoin.csv",
     try_parse_dates=True,
+    schema_overrides={
+        "price": pl.String,
+        "fee": pl.String,
+        "base_asset_flow": pl.String,
+        "quote_asset_flow": pl.String,
+    },
 ).sort("datetime")
 
 ton_etp: CryptoEtp = asset_registry.get("CH1297762812")
@@ -20,14 +27,14 @@ position = CryptoEtpPosition(base_asset=ton_etp)
 
 for row in df.iter_rows(named=True):
     base_asset_flow = row["base_asset_flow"]
-    quantity = abs(base_asset_flow)
+    quantity = abs(Decimal(base_asset_flow))
     datetime = row["datetime"]
-    direction = Direction.IN if base_asset_flow > 0 else Direction.OUT
+    direction = Direction.OUT if base_asset_flow.startswith("-") else Direction.IN
     operation_type = TradeType(row["operation_type"])
 
     quote_asset = asset_registry.get(row["quote_asset_id"])
-    price = row["price"]
-    fee = row["fee"]
+    price = Decimal(row["price"])
+    fee = Decimal(row["fee"])
 
     broker = row["broker"]
     order_id = row["order_id"]
@@ -47,8 +54,10 @@ for row in df.iter_rows(named=True):
         exchange=exchange,
         trade_id=trade_id,
     )
-    pprint(record)
+    # pprint(record)
     position.apply(record, "FIFO")
 
 print("Quantity closed:", position.quantity_closed)
 print("Quantity open:", position.quantity_open)
+print("PnL (N+1):", position.pnl)
+print("PnL (N+2):", position.proceeds - position.cost_basis_sold)

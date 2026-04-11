@@ -1,11 +1,22 @@
 from decimal import Decimal, ROUND_HALF_UP
-
-CENT = Decimal("0.01")
-
-
-def round_to_quanta(x: Decimal, quantum: Decimal) -> Decimal:
-    return x.quantize(quantum, rounding=ROUND_HALF_UP)
+from typing import Iterable
 
 
-def round_to_cents(x: Decimal) -> Decimal:
-    return round_to_quanta(x, CENT)
+def round_to_quanta(value: Decimal, precision: str) -> Decimal:
+    return value.quantize(Decimal(precision), rounding=ROUND_HALF_UP)
+
+
+def round_to_cents(value: Decimal) -> Decimal:
+    return round_to_quanta(value, "0.01")
+
+
+def safe_sum(values: Iterable[Decimal]) -> Decimal:
+    return sum(values, Decimal("0"))
+
+
+def is_zero(value: Decimal, precision: str) -> bool:
+    return abs(value) < Decimal(precision)
+
+
+def round_to_zero(value: Decimal, precision: str) -> Decimal:
+    return Decimal("0") if is_zero(value, precision) else value

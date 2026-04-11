@@ -1,6 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass, replace
 from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Self, Any
 
@@ -13,14 +14,14 @@ class Direction(StrEnum):
 
 
 @dataclass(frozen=True)
-class BaseRecord[O: BaseOperationType](ABC):
-    quantity: float
+class BaseRecord[T: BaseOperationType](ABC):
+    quantity: Decimal
     datetime: datetime
     direction: Direction
-    operation_type: O
+    operation_type: T
 
     def __post_init__(self) -> None:
-        if not (self.quantity > 0):
+        if not (self.quantity > Decimal("0")):
             raise ValueError("Quantity must be positive")
 
     def copy(self, **kwargs: Any) -> Self:

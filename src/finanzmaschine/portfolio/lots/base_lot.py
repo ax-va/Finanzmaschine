@@ -1,10 +1,11 @@
 from abc import ABC
 from datetime import datetime
+from decimal import Decimal
 from typing import Tuple, List
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
-from finanzmaschine.utils.float_helper import round_to_zero, is_zero, safe_sum, FLOAT_EPS
+from finanzmaschine.utils.decimal_helper import safe_sum, round_to_zero, is_zero
 
 
 class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
@@ -46,16 +47,16 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         return self._record_in if not self._records_out else self._records_out[-1]
 
     @property
-    def quantity_closed(self) -> float:
+    def quantity_closed(self) -> Decimal:
         return safe_sum(r_out.quantity for r_out in self._records_out)
 
     @property
-    def quantity_open(self) -> float:
-        return round_to_zero((self._record_in.quantity - self.quantity_closed), float_eps=FLOAT_EPS)
+    def quantity_open(self) -> Decimal:
+        return round_to_zero(self._record_in.quantity - self.quantity_closed, self.base_asset.precision)
 
     @property
     def is_open(self) -> bool:
-        return self.quantity_open > 0
+        return self.quantity_open > Decimal("0")
 
     @property
     def is_closed(self) -> bool:
@@ -71,8 +72,8 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        quantity_left: float = self.quantity_open - record_out.quantity
-        if quantity_left < 0 and not is_zero(quantity_left, float_eps=FLOAT_EPS):
+        quantity_left: Decimal = self.quantity_open - record_out.quantity
+        if quantity_left < Decimal("0") and not is_zero(quantity_left, self.base_asset.precision):
             record_closing: R = record_out.copy(
                 quantity=self.quantity_open,
             )

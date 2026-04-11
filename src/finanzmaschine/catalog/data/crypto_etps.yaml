@@ -1,9 +1,11 @@
 CH1297762812:
   name: "21Shares Toncoin Staking ETP"
+  precision: "1e-8"
   underlying_asset:
     id: TON
 
 GB00BLD4ZM24:
   name: "CoinShares Physical Staked Ethereum"
+  precision: "1e-8"
   underlying_asset:
     id: ETH

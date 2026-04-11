@@ -1,10 +1,11 @@
+from decimal import Decimal
 from typing import TypeVar, Generic, List, Tuple, FrozenSet
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 from finanzmaschine.portfolio.records.priced_record import PricedRecord
-from finanzmaschine.utils.float_helper import safe_sum
+from finanzmaschine.utils.decimal_helper import safe_sum, round_to_quanta
 
 A = TypeVar('A', bound=Asset)
 D = TypeVar("D", bound=NonTradeDecreaseRecord)
@@ -14,23 +15,26 @@ P = TypeVar("P", bound=PricedRecord)
 class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
 
     @property
-    def quantity_realized(self) -> float:
-        return safe_sum(r_out.quantity for r_out in self._records_realized)
+    def quantity_realized(self) -> Decimal:
+        return round_to_quanta(
+            safe_sum(r_out.quantity for r_out in self._records_realized),
+            self.base_asset.precision,
+        )
 
     @property
-    def cost_basis(self) -> float:
+    def cost_basis(self) -> Decimal:
         # workaround for typechecker
         record_in: PricedRecord = self._record_in
-        return record_in.gross_value + record_in.fee
+        return round_to_quanta(record_in.gross_value + record_in.fee, record_in.quote_asset.precision)
 
     @property
-    def cost_basis_per_unit(self) -> float:
+    def cost_basis_per_unit(self) -> Decimal:
         # workaround for typechecker
         record_in: PricedRecord = self._record_in
-        return self.cost_basis / record_in.quantity
+        return round_to_quanta(self.cost_basis / record_in.quantity, record_in.quote_asset.precision)
 
     @property
-    def cost_basis_realized(self) -> float:
+    def cost_basis_realized(self) -> Decimal:
         return self.quantity_realized * self.cost_basis_per_unit
 
     @property
