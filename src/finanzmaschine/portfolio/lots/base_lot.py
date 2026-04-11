@@ -5,7 +5,7 @@ from typing import Tuple, List
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.records.base_record import Direction, BaseRecord
-from finanzmaschine.utils.decimal_helper import safe_sum, round_to_zero, is_zero
+from finanzmaschine.utils.decimal_helper import safe_sum, round_to_quantum
 
 
 class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
@@ -52,7 +52,10 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
 
     @property
     def quantity_open(self) -> Decimal:
-        return round_to_zero(self._record_in.quantity - self.quantity_closed, self.base_asset.quantum)
+        return round_to_quantum(
+            self._record_in.quantity - self.quantity_closed,
+            self.base_asset.quantum,
+        )
 
     @property
     def is_open(self) -> bool:
@@ -72,16 +75,16 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        quantity_left: Decimal = self.quantity_open - record_out.quantity
-        if quantity_left < Decimal("0") and not is_zero(quantity_left, self.base_asset.quantum):
+        quantity_remaining: Decimal = self.quantity_open - record_out.quantity
+        if quantity_remaining < Decimal("0"):
             record_closing: R = record_out.copy(
                 quantity=self.quantity_open,
             )
-            record_left: R = record_out.copy(
-                quantity=abs(quantity_left),
+            record_remaining: R = record_out.copy(
+                quantity=abs(quantity_remaining),
             )
             self._records_out.append(record_closing)
-            return record_left
+            return record_remaining
 
         self._records_out.append(record_out)
         return None
