@@ -136,7 +136,18 @@ The restrictions applicable to Professional Use shall not be avoided, limited, o
 
 Any attempt to circumvent the intent or effect of this License shall be considered Professional Use.
 
-## 8. No Financial Services / No Investment Advice
+## 8. Survival of Restrictions
+
+All restrictions applicable to Professional Use, including but not limited to limitations on commercial exploitation, reimplementation, sublicensing, and circumvention, shall survive:
+
+  - termination of this License
+  - expiration of any granted rights
+  - cessation of use of the Software
+  - removal or deletion of the Software
+
+Such restrictions shall remain enforceable to the maximum extent permitted by applicable law.
+
+## 9. No Financial Services / No Investment Advice
 
 This Software does not constitute investment advice, portfolio management, or a financial service within the meaning of:
 
@@ -150,7 +161,7 @@ This Software does not constitute investment advice, portfolio management, or a 
 
 The Software is provided exclusively for research and technical evaluation purposes.
 
-## 9. Intellectual Property and Trade Secrets
+## 10. Intellectual Property and Trade Secrets
 
 The Software constitutes intellectual property and protected know-how under:
 
@@ -161,7 +172,7 @@ The Software constitutes intellectual property and protected know-how under:
 
 All rights not expressly granted remain reserved.
 
-## 10. Liability Disclaimer (Haftung)
+## 11. Liability Disclaimer (Haftung)
 
 The Software is provided "as is". 
 
@@ -169,7 +180,7 @@ The Author shall not be liable for damages arising from the use of the Software,
 
 No warranties of any kind, express or implied, are provided.
 
-## 11. Third-Party Software and Dependencies
+## 12. Third-Party Software and Dependencies
 
 The Software may include, depend on, or interoperate with third-party software, libraries, frameworks, tools, or services (**Third-Party Software**).
 
@@ -188,12 +199,12 @@ The Author of this Software:
 Use of Third-Party Software is at the user's own risk and subject to the applicable
 third-party license terms.
 
-## 12. Governing Law and Jurisdiction
+## 13. Governing Law and Jurisdiction
 
 This license shall be governed by the laws of the Federal Republic of Germany.
 Place of jurisdiction shall be the Author's place of residence, insofar as legally permissible.
 
-## 13. Commercial Licensing
+## 14. Commercial Licensing
 
 For commercial licensing, production deployment, or partnership inquiries, please contact the Author via GitHub:
 
