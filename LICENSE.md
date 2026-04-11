@@ -9,45 +9,45 @@ For the purposes of this license:
 
 - **Personal Use** means use of the Software by a natural person acting in an individual, private capacity, where the Software is used solely for personal purposes and not as part of a professional, commercial, or organizational activity.
 
-Personal Use exists only if all of the following conditions are satisfied:
+  Personal Use exists only if all of the following conditions are satisfied:
 
-  - The Software is used by an individual for their own personal benefit.
-  - The Software is not used in connection with employment, consulting, or professional services.
-  - The Software is not used on behalf of any company, organization, fund, or third party.
-  - The Software is not used to provide services to others.
-  - The Software is not integrated into any business, operational, or institutional infrastructure.
-  - The Software is not used to manage external or client capital.
-  - The Software is not used as part of any activity that generates income for a business or professional entity.
+    - The Software is used by an individual for their own personal benefit.
+    - The Software is not used in connection with employment, consulting, or professional services.
+    - The Software is not used on behalf of any company, organization, fund, or third party.
+    - The Software is not used to provide services to others.
+    - The Software is not integrated into any business, operational, or institutional infrastructure.
+    - The Software is not used to manage external or client capital.
+    - The Software is not used as part of any activity that generates income for a business or professional entity.
 
-Personal Use may include:
+  Personal Use may include:
 
-  - Personal investment or trading using the individual's own funds.
-  - Personal research, experimentation, or education.
-  - Independent development or testing performed outside any professional or organizational context.
+    - Personal investment or trading using the individual's own funds.
+    - Personal research, experimentation, or education.
+    - Independent development or testing performed outside any professional or organizational context.
 
-Personal Use remains valid only while the activity retains a private and non-professional character.
+  Personal Use remains valid only while the activity retains a private and non-professional character.
 
 
 - **Professional Use** means any use of the Software that occurs within a professional, business, institutional, or organizational context, or where the Software performs a role in a professional activity, regardless of the legal status of the user.
 
-Professional Use shall be deemed to exist if any of the following conditions apply:
+  Professional Use shall be deemed to exist if any of the following conditions apply:
 
-  - The Software is used as part of employment, consulting, contracting, or professional services.
-  - The Software is used on behalf of a company, partnership, fund, or organization.
-  - The Software is used to provide services to third parties.
-  - The Software is used to support, enable, or operate a business activity.
-  - The Software is used within infrastructure owned, managed, or controlled by a business entity.
-  - The Software is used to manage external, pooled, or client capital.
-  - The Software is used in preparation for production deployment or commercial operation.
-  - The Software is used in connection with regulated or professional financial activity.
+    - The Software is used as part of employment, consulting, contracting, or professional services.
+    - The Software is used on behalf of a company, partnership, fund, or organization.
+    - The Software is used to provide services to third parties.
+    - The Software is used to support, enable, or operate a business activity.
+    - The Software is used within infrastructure owned, managed, or controlled by a business entity.
+    - The Software is used to manage external, pooled, or client capital.
+    - The Software is used in preparation for production deployment or commercial operation.
+    - The Software is used in connection with regulated or professional financial activity.
 
-Professional Use shall apply regardless of:
+  Professional Use shall apply regardless of:
 
-  - Whether the user is a natural person or a legal entity.
-  - Whether the activity is profitable.
-  - Whether the activity is full-time or part-time.
-  - Whether the activity is conducted remotely or independently.
-  - Whether the Software is used directly or indirectly within a professional workflow.
+    - Whether the user is a natural person or a legal entity.
+    - Whether the activity is profitable.
+    - Whether the activity is full-time or part-time.
+    - Whether the activity is conducted remotely or independently.
+    - Whether the Software is used directly or indirectly within a professional workflow.
 
 
 - **Sublicensing** means granting any rights to use, modify, or distribute the Software to third parties beyond those expressly granted by this License.
