@@ -6,7 +6,7 @@ from finanzmaschine.portfolio.lots.priced_lot import PricedLot
 from finanzmaschine.portfolio.records.non_trade_decrease_record import NonTradeDecreaseRecord
 from finanzmaschine.portfolio.records.non_trade_increase_record import NonTradeIncreaseRecord
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
-from finanzmaschine.utils.decimal_helper import safe_sum, round_to_quanta
+from finanzmaschine.utils.decimal_helper import safe_sum, round_to_quantum
 
 A = TypeVar('A', bound=Asset)
 D = TypeVar("D", bound=NonTradeDecreaseRecord)
@@ -18,9 +18,9 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
     def quantity_sold(self) -> Decimal:
-        return round_to_quanta(
+        return round_to_quantum(
             safe_sum(r_out.quantity for r_out in self._records_sold),
-            self.base_asset.precision,
+            self.base_asset.quantum,
         )
 
     @property
@@ -35,9 +35,9 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
     def cost_basis_sold(self) -> Decimal:
-        return round_to_quanta(
+        return round_to_quantum(
             self.quantity_sold * self.cost_basis_per_unit,
-            self.record_in.quote_asset.precision,
+            self.record_in.quote_asset.quantum,
         )
 
     @property
@@ -45,9 +45,9 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
         self.ensure_one_quote_asset()
         # workaround for type checker
         r_out: TradeRecord
-        return round_to_quanta(
+        return round_to_quantum(
             safe_sum(r_out.quote_asset_flow for r_out in self._records_sold),
-            self.record_in.quote_asset.precision,
+            self.record_in.quote_asset.quantum,
         )
 
 

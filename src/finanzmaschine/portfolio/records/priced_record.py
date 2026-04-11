@@ -5,14 +5,13 @@ from typing import TypeVar, Generic
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.operation_types.priced_operation_type import PricedOperationType
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
-from finanzmaschine.utils.decimal_helper import round_to_quanta
 
 Q = TypeVar("Q", bound=Asset)
-O = TypeVar("O", bound=PricedOperationType)
+T = TypeVar("T", bound=PricedOperationType)
 
 
 @dataclass(frozen=True)
-class PricedRecord(BaseRecord[O], Generic[Q, O]):
+class PricedRecord(BaseRecord[T], Generic[Q, T]):
     quote_asset: Q
     price: Decimal
     fee: Decimal

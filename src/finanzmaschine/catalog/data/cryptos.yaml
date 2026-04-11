@@ -1,19 +1,19 @@
 BTC:
   name: Bitcoin
-  precision: "1e-8"
+  quantum: "1e-8"
 
 ETH:
   name: Ethereum
-  precision: "1e-18"
+  quantum: "1e-18"
 
 NEAR:
   name: "NEAR Protocol"
-  precision: "1e-24"
+  quantum: "1e-24"
 
 SOL:
   name: Solana
-  precision: "1e-9"
+  quantum: "1e-9"
 
 TON:
   name: Toncoin
-  precision: "1e-9"
+  quantum: "1e-9"

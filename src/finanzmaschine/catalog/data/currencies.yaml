@@ -1,7 +1,7 @@
 EUR:
   name: Euro
-  precision: "1e-2"
+  quantum: "1e-2"
 
 USD:
   name: "United States Dollar"
-  precision: "1e-2"
+  quantum: "1e-2"

@@ -9,7 +9,7 @@ class BaseAsset(ABC):
 
     id: str
     name: str
-    precision: str
+    quantum: str
 
     def __eq__(self, other: Any) -> bool:
         if type(self) != type(other):

@@ -52,7 +52,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
 
     @property
     def quantity_open(self) -> Decimal:
-        return round_to_zero(self._record_in.quantity - self.quantity_closed, self.base_asset.precision)
+        return round_to_zero(self._record_in.quantity - self.quantity_closed, self.base_asset.quantum)
 
     @property
     def is_open(self) -> bool:
@@ -73,7 +73,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
             raise ValueError("Records must be in ascending order by date and time")
 
         quantity_left: Decimal = self.quantity_open - record_out.quantity
-        if quantity_left < Decimal("0") and not is_zero(quantity_left, self.base_asset.precision):
+        if quantity_left < Decimal("0") and not is_zero(quantity_left, self.base_asset.quantum):
             record_closing: R = record_out.copy(
                 quantity=self.quantity_open,
             )
