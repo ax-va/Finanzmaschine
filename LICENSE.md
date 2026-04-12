@@ -117,7 +117,7 @@ Without an explicit commercial license agreement, the following uses are prohibi
 
 - **Reimplementation for Commercial Purposes**
 
-    Any reproduction, reimplementation, or substantial recreation of the Software's essential components, architecture, data structures, algorithms, or domain logic — regardless of programming language, platform, or degree of abstraction — shall constitute a prohibited use under this License if performed for commercial purposes. This prohibition applies irrespective of whether the resulting work is presented as an independent creation, and regardless of whether the original source code was directly copied or only used as a reference or inspiration.
+    Any reproduction, reimplementation, or substantial recreation of the Software's essential components, architecture, data structures, algorithms, or domain logic - regardless of programming language, platform, or degree of abstraction - shall constitute a prohibited use under this License if performed for commercial purposes. This prohibition applies irrespective of whether the resulting work is presented as an independent creation, and regardless of whether the original source code was directly copied or only used as a reference or inspiration.
 
 
 - **Relicensing or Sublicensing**
