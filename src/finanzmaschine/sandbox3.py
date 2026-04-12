@@ -8,8 +8,8 @@ from finanzmaschine.config import DATA_DIR_PATH
 from finanzmaschine.portfolio.assets import CryptoEtp
 from finanzmaschine.portfolio.operation_types import TradeType
 from finanzmaschine.portfolio.positions import CryptoEtpPosition
-from finanzmaschine.portfolio.records.base_record import Direction
-from finanzmaschine.portfolio.records.crypto_etp_trade_record import CryptoEtpTradeRecord
+from finanzmaschine.portfolio.records import Direction
+from finanzmaschine.portfolio.records import CryptoEtpTradeRecord
 
 df = pl.read_csv(
     DATA_DIR_PATH / "private" / "trades" / "etps" / "toncoin.csv",

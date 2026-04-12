@@ -5,5 +5,5 @@ from finanzmaschine.portfolio.assets.crypto import Crypto
 
 
 @dataclass(frozen=True)
-class CryptoEtp(Etp[Crypto]):
+class CryptoEtp[C: Crypto](Etp[C]):
     pass

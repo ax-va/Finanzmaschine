@@ -1,0 +1,5 @@
+tsTON:
+  name: "Tonstakers TON"
+  quantum: "1e-9"
+  underlying_asset:
+    id: TON

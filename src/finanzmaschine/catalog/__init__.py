@@ -5,6 +5,7 @@ from finanzmaschine.catalog.asset_registry import asset_registry
 from finanzmaschine.portfolio.assets.crypto import Crypto
 from finanzmaschine.portfolio.assets.crypto_etp import CryptoEtp
 from finanzmaschine.portfolio.assets.currency import Currency
+from finanzmaschine.portfolio.assets.liquid_staking_token import LiquidStakingToken
 
 DIR_PATH = Path(__file__).parent
 
@@ -17,6 +18,9 @@ def register_assets():
         asset_registry.register(asset)
 
     for asset in load_assets(data_dir_path / "cryptos.yaml", asset_type=Crypto):
+        asset_registry.register(asset)
+
+    for asset in load_assets(data_dir_path / "liquid_staking_tokens.yaml", asset_type=LiquidStakingToken):
         asset_registry.register(asset)
 
     for asset in load_assets(data_dir_path / "crypto_etps.yaml", asset_type=CryptoEtp):
