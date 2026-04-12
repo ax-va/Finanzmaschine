@@ -117,7 +117,7 @@ Without an explicit commercial license agreement, the following uses are prohibi
 
 - **Reimplementation for Commercial Purposes**
 
-    Any reproduction or reimplementation of the Software or its essential components for commercial use, regardless of programming language or platform.
+    Any reproduction, reimplementation, or substantial recreation of the Software's essential components, architecture, data structures, algorithms, or domain logic — regardless of programming language, platform, or degree of abstraction — shall constitute a prohibited use under this License if performed for commercial purposes. This prohibition applies irrespective of whether the resulting work is presented as an independent creation, and regardless of whether the original source code was directly copied or only used as a reference or inspiration.
 
 
 - **Relicensing or Sublicensing**
@@ -138,14 +138,7 @@ Any attempt to circumvent the intent or effect of this License shall be consider
 
 ## 8. Survival of Restrictions
 
-All restrictions applicable to Professional Use, including but not limited to limitations on commercial exploitation, reimplementation, sublicensing, and circumvention, shall survive:
-
-  - termination of this License
-  - expiration of any granted rights
-  - cessation of use of the Software
-  - removal or deletion of the Software
-
-Such restrictions shall remain enforceable to the maximum extent permitted by applicable law.
+The restrictions set forth in Sections 5, 6, and 7 of this License shall remain in full force and effect notwithstanding any termination, expiration, or cessation of this License or of the User's rights thereunder. In particular, the prohibition on commercial exploitation and reimplementation shall continue to apply to any knowledge, concepts, architectural patterns, or technical approaches derived from the Software during the period of use, for a period of five (5) years following the cessation of use. This survival clause shall be enforceable to the maximum extent permitted under applicable German law, including §§ 17–24 UrhG and the Geschäftsgeheimnisgesetz (GeschGehG).
 
 ## 9. No Financial Services / No Investment Advice
 
