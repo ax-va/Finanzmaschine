@@ -1,17 +1,13 @@
 from dataclasses import dataclass
-from typing import TypeVar
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.operation_types.non_trade_increase_type import NonTradeIncreaseType
 from finanzmaschine.portfolio.records.base_record import Direction
 from finanzmaschine.portfolio.records.priced_record import PricedRecord
 
-Q = TypeVar("Q", bound=Asset)
-O = TypeVar("O", bound=NonTradeIncreaseType)
-
 
 @dataclass(frozen=True)
-class NonTradeIncreaseRecord(PricedRecord[Q, O]):
+class NonTradeIncreaseRecord[Q: Asset, T: NonTradeIncreaseType](PricedRecord[Q, T]):
 
     def __post_init__(self):
         super().__post_init__()

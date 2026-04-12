@@ -1,14 +1,11 @@
 from dataclasses import dataclass
-from typing import TypeVar
 
 from finanzmaschine.portfolio.operation_types.non_trade_decrease_type import NonTradeDecreaseType
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
-O = TypeVar("O", bound="NonTradeDecreaseType")
-
 
 @dataclass(frozen=True)
-class NonTradeDecreaseRecord(BaseRecord[O]):
+class NonTradeDecreaseRecord[T: NonTradeDecreaseType](BaseRecord[T]):
 
     def __post_init__(self):
         super().__post_init__()

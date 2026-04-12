@@ -1,17 +1,13 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TypeVar, Generic
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.operation_types.priced_operation_type import PricedOperationType
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
-Q = TypeVar("Q", bound=Asset)
-T = TypeVar("T", bound=PricedOperationType)
-
 
 @dataclass(frozen=True)
-class PricedRecord(BaseRecord[T], Generic[Q, T]):
+class PricedRecord[Q: Asset, T: PricedOperationType](BaseRecord[T]):
     quote_asset: Q
     price: Decimal
     fee: Decimal
