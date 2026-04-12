@@ -1,4 +1,4 @@
-# ⚖️ Proprietary Source-Available License (Non-Commercial Research, EU / Germany)
+# ⚖️ Proprietary Source-Available License (Non-Commercial Evaluation, EU / Germany)
 
 ## 1. Definitions
 
