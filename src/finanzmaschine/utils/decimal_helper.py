@@ -3,7 +3,7 @@ from typing import Iterable
 
 
 def round_to_quantum(value: Decimal, quantum: str) -> Decimal:
-    return value.quantize(Decimal(quantum), rounding=ROUND_HALF_UP)
+    return value.quantize(Decimal(quantum), rounding=ROUND_HALF_UP).normalize()
 
 
 def round_to_cents(value: Decimal) -> Decimal:
