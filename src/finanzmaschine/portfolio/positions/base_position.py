@@ -136,12 +136,12 @@ class BasePosition[A, R, L](ABC):
         else:
             raise ValueError(f"Closing order is neither {ClosingOrder.FIFO} nor {ClosingOrder.LIFO}")
 
-        record_left: R | None = lot.reduce(record_out)
+        record_remaining: R | None = lot.reduce(record_out)
         if lot.is_closed:
             self._lots_fully_closed.append(lot)
             self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
-            if record_left:
+            if record_remaining:
                 self._reduce(
-                    record_out=record_left,
+                    record_out=record_remaining,
                     closing_order=closing_order,
                 )
