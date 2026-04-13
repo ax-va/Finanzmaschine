@@ -10,9 +10,9 @@ from finanzmaschine.utils.decimal_helper import safe_sum, round_to_quantum
 
 class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     """
-    Abstract base class to manage lot records.
+    Abstract base class to manage internal lot records.
 
-    The first record in the lot must be a record-in, which opens the lot.
+    The first record in a lot must be a record-in, which opens the lot.
     All other records must be records-out,
     which reduce the quantity of the base asset until the lot will be closed.
 
