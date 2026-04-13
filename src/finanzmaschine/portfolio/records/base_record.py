@@ -3,7 +3,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Self, Any
+from typing import Self, Any, Tuple
 
 from finanzmaschine.portfolio.operation_types.base_operation_type import BaseOperationType
 
@@ -26,3 +26,9 @@ class BaseRecord[T: BaseOperationType](ABC):
 
     def copy(self, **kwargs: Any) -> Self:
         return replace(self,**kwargs)
+
+    def split(self, quantity: Decimal) -> Tuple[Self, Self]:
+        return (
+            self.copy(quantity=quantity),
+            self.copy(quantity=self.quantity - quantity),
+        )

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Tuple, Self, override
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.operation_types.priced_operation_type import PricedOperationType
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
+from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 
 @dataclass(frozen=True)
@@ -33,3 +35,14 @@ class PricedRecord[Q: Asset, T: PricedOperationType](BaseRecord[T]):
             return self.gross_value - self.fee
         else:
             raise ValueError("Direction is not specified")
+
+    @override
+    def split(self, quantity: Decimal) -> Tuple[Self, Self]:
+        fee: Decimal = round_to_quantum(
+            quantity / self.quantity * self.fee,
+            self.quote_asset.quantum,
+        )
+        return (
+            self.copy(quantity=quantity, fee=fee),
+            self.copy(quantity=self.quantity - quantity, fee=self.fee - fee),
+        )

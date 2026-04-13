@@ -75,14 +75,9 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
 
-        quantity_remaining: Decimal = self.quantity_open - record_out.quantity
-        if quantity_remaining < Decimal("0"):
-            record_closing: R = record_out.copy(
-                quantity=self.quantity_open,
-            )
-            record_remaining: R = record_out.copy(
-                quantity=abs(quantity_remaining),
-            )
+        quantity_open = self.quantity_open
+        if self.quantity_open < record_out.quantity:
+            record_closing, record_remaining = record_out.split(quantity_open)
             self._records_out.append(record_closing)
             return record_remaining
 
