@@ -15,6 +15,10 @@ class Direction(StrEnum):
 
 @dataclass(frozen=True)
 class BaseRecord[T: BaseOperationType](ABC):
+    """
+    Base class for all internal lot records.
+    Not to be confused with a broker transaction.
+    """
     quantity: Decimal
     datetime: datetime
     direction: Direction
