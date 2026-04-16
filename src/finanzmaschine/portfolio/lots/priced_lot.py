@@ -31,14 +31,20 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
     def cost_basis_per_unit(self) -> Decimal:
         # workaround for typechecker
         record_in: PricedRecord = self._record_in
-        return round_to_quantum(
-            self.cost_basis / record_in.quantity,
-            record_in.quote_asset.quantum,
-        )
+        # Don't round to avoid the rounding error
+        return self.cost_basis / record_in.quantity
 
     @property
     def cost_basis_realized(self) -> Decimal:
-        return self.quantity_realized * self.cost_basis_per_unit
+        if self.is_closed:
+            return self.cost_basis
+        else:
+            # workaround for typechecker
+            record_in: PricedRecord = self._record_in
+            return round_to_quantum(
+                self.quantity_realized * self.cost_basis_per_unit,
+                record_in.quote_asset.quantum,
+            )
 
     @property
     def records_realized(self) -> Tuple[P, ...]:
