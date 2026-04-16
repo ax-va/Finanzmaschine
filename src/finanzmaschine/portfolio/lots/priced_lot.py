@@ -25,7 +25,10 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
     def cost_basis(self) -> Decimal:
         # workaround for typechecker
         record_in: PricedRecord = self._record_in
-        return round_to_quantum(record_in.gross_value + record_in.fee, record_in.quote_asset.quantum)
+        return round_to_quantum(
+            record_in.gross_value + record_in.fee,
+            record_in.quote_asset.quantum,
+        )
 
     @property
     def cost_basis_per_unit(self) -> Decimal:
