@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TypeVar, Generic, List, FrozenSet
+from typing import TypeVar, Generic, List, FrozenSet, Tuple
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.priced_lot import PricedLot
@@ -24,6 +24,10 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
         )
 
     @property
+    def records_sold(self) -> Tuple[T, ...]:
+        return tuple(self._records_sold)
+
+    @property
     def quote_assets_sold(self) -> FrozenSet[A]:
         return frozenset(r_out.quote_asset for r_out in self._records_sold)
 
@@ -35,8 +39,12 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
     def cost_basis_sold(self) -> Decimal:
+        if self.is_closed:
+            return self.cost_basis
+        # workaround for typechecker
+        record_in: TradeRecord = self._record_in
         return round_to_quantum(
-            self.quantity_sold * self.cost_basis_per_unit,
+            self.quantity_sold / record_in.quantity * self.cost_basis,
             self.record_in.quote_asset.quantum,
         )
 
@@ -45,11 +53,7 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
         self.ensure_one_quote_asset()
         # workaround for type checker
         r_out: TradeRecord
-        return round_to_quantum(
-            safe_sum(r_out.quote_asset_flow for r_out in self._records_sold),
-            self.record_in.quote_asset.quantum,
-        )
-
+        return safe_sum(r_out.gross_value - r_out.fee for r_out in self._records_sold)
 
     @property
     def pnl(self) -> Decimal:
