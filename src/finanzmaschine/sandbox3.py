@@ -57,7 +57,16 @@ for row in df.iter_rows(named=True):
     # pprint(record)
     position.apply(record, "FIFO")
 
+# TODO: Add lots_with_records_realized and lots_with_records_sold
+for lot in position.lots_with_records_out:
+    print("Proceeds:", lot.proceeds)
+    print("Cost basis sold:", lot.cost_basis_sold)
+    print("PnL:", lot.pnl)
+    for record_out in lot.records_sold:
+        pprint(record_out)
+
 print("Quantity closed:", position.quantity_closed)
 print("Quantity open:", position.quantity_open)
 print("PnL (N+1):", position.pnl)
-print("PnL (N+2):", position.proceeds - position.cost_basis_sold)
+print("Proceeds:", position.proceeds)
+print("Cost basis sold:", position.cost_basis_sold)
