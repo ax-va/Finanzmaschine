@@ -1,4 +1,4 @@
-quantity_open_before,quantity_to_close,quantity_open_after,quantity_closed_after,quantity_remaining,fee_to_close,fee_closed,fee_remaining,proceeds,cost_basis_sold,pnl
+quantity_open_before,quantity_to_close,quantity_open_after,quantity_closed,quantity_remaining,fee_to_close,fee_closed,fee_remaining,proceeds,cost_basis_sold,pnl
 26,373,0,26,347,16.03,1.12,14.91,160.86,246.02,-85.16
 10,347,0,10,337,14.91,0.43,14.48,61.87,94.22,-32.35
 27,337,0,27,310,14.48,1.16,13.32,167.05,243.76,-76.71
