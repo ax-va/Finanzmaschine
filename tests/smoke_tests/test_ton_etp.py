@@ -82,7 +82,7 @@ def test_ton_etp_fifo_closing(data_dir):
         lot_pnl = Decimal("0")
 
         for record in lot.records_sold:
-            assert record.quantity ==  Decimal(df_fifo.row(i, named=True)["quantity_closed"])
+            assert record.quantity == Decimal(df_fifo.row(i, named=True)["quantity_closed"])
             assert record.fee == Decimal(df_fifo.row(i, named=True)["fee_closed"])
 
             record_proceeds = round_to_quantum(
