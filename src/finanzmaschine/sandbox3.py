@@ -54,11 +54,11 @@ for row in df.iter_rows(named=True):
         exchange=exchange,
         trade_id=trade_id,
     )
-    # pprint(record)
     position.apply(record, "FIFO")
+    # print("Quantity open:", position.quantity_open)
+    # print("Quantity closed:", position.quantity_closed)
 
-# TODO: Add lots_with_records_realized and lots_with_records_sold
-for lot in position.lots_with_records_out:
+for lot in position.lots_with_records_sold:
     print("Proceeds:", lot.proceeds)
     print("Cost basis sold:", lot.cost_basis_sold)
     print("PnL:", lot.pnl)

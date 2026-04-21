@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, List, Tuple
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.priced_lot import PricedLot
@@ -18,3 +18,11 @@ class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
     @abstractmethod
     def _create_lot(self, record_in: P) -> L:
         pass
+
+    @property
+    def lots_with_records_realized(self) -> Tuple[L, ...]:
+        return tuple(lot for lot in self._lots_with_records_out )
+
+    @property
+    def _lots_with_records_realized(self) -> List[L]:
+        return [lot for lot in self._lots_with_records_out if isinstance(lot, PricedLot)]
