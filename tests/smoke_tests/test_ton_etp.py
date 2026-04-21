@@ -11,7 +11,7 @@ from finanzmaschine.portfolio.records import CryptoEtpTradeRecord
 from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 
-def test_ton_etp_fifo_closing(data_dir):
+def test_close_ton_etp_fifo(data_dir):
 
     df_fifo = pl.read_csv(data_dir / "etps/toncoin_fifo_closing.csv",
         try_parse_dates=True,
