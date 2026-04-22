@@ -67,9 +67,9 @@ def test_close_position(
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == Decimal(golden_values.row(i, named=True)["pnl"])
 
-            lot_proceeds += Decimal(golden_values.row(i, named=True)["proceeds"])
-            lot_cost_basis_sold += Decimal(golden_values.row(i, named=True)["cost_basis_sold"])
-            lot_pnl += Decimal(golden_values.row(i, named=True)["pnl"])
+            lot_proceeds += record_proceeds
+            lot_cost_basis_sold += record_cost_basis_sold
+            lot_pnl += record_pnl
 
             i += 1
 
