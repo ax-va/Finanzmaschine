@@ -21,15 +21,17 @@ def golden_values(request) -> pl.DataFrame:
 
 
 @pytest.mark.parametrize(
-    "position,golden_values,proceeds,cost_basis_sold,pnl",
+    "position,golden_values,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
     [
-        ("ton_etp_position_fifo", "df_ton_etp_fifo", Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
+        ("ton_etp_position_fifo", "df_ton_etp_fifo", Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
     ],
     indirect=["position", "golden_values"],
 )
 def test_close_position(
         position: P,
         golden_values: pl.DataFrame,
+        quantity_open: Decimal,
+        quantity_closed: Decimal,
         proceeds: Decimal,
         cost_basis_sold: Decimal,
         pnl: Decimal,
@@ -81,6 +83,8 @@ def test_close_position(
         position_cost_basis_sold += lot_cost_basis_sold
         position_pnl += lot_pnl
 
+    assert position.quantity_open == quantity_open
+    assert position.quantity_closed == quantity_closed
     assert position.proceeds == proceeds
     assert position.cost_basis_sold == cost_basis_sold
     assert position.pnl == pnl
