@@ -30,6 +30,7 @@ def df_ton_etp_fifo(data_dir) -> pl.DataFrame:
     )
     return df
 
+
 @pytest.fixture(scope="session")
 def df_ton_etp_trade(data_dir) -> pl.DataFrame:
     df = pl.read_csv(data_dir / "etps/ton_etp_trade.csv",
@@ -42,6 +43,12 @@ def df_ton_etp_trade(data_dir) -> pl.DataFrame:
         },
     ).sort("datetime")
     return df
+
+
+@pytest.fixture(scope="session")
+def df_ton_etp_sold(df_ton_etp_trade) -> pl.DataFrame:
+    return df_ton_etp_trade.filter(pl.col("operation_type") == TradeType.SELL)
+
 
 @pytest.fixture(scope="session")
 def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:

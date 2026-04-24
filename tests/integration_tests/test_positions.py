@@ -1,4 +1,3 @@
-import re
 from decimal import Decimal
 from typing import TypeVar
 
@@ -21,16 +20,22 @@ def golden_values(request) -> pl.DataFrame:
     return request.getfixturevalue(request.param)
 
 
+@pytest.fixture(scope="function")
+def transactions_sell(request) -> pl.DataFrame:
+    return request.getfixturevalue(request.param)
+
+
 @pytest.mark.parametrize(
-    "position,golden_values,num_lots,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
+    "position,golden_values,transactions_sell,num_lots,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
     [
-        ("ton_etp_position_fifo", "df_ton_etp_fifo", 14, Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
+        ("ton_etp_position_fifo", "df_ton_etp_fifo", "df_ton_etp_sold", 14, Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
     ],
-    indirect=["position", "golden_values"],
+    indirect=["position", "golden_values", "transactions_sell"],
 )
 def test_close_position(
         position: P,
         golden_values: pl.DataFrame,
+        transactions_sell: pl.DataFrame,
         num_lots: int,
         quantity_open: Decimal,
         quantity_closed: Decimal,
@@ -44,6 +49,9 @@ def test_close_position(
     position_proceeds = Decimal("0")
     position_cost_basis_sold = Decimal("0")
     position_pnl = Decimal("0")
+
+    i_transaction_sell = 0
+    quantity_to_close = abs(Decimal(transactions_sell.row(i_transaction_sell, named=True)["base_asset_flow"]))
 
     i_record = 0
     for lot in position.lots_with_records_sold:
@@ -71,6 +79,15 @@ def test_close_position(
 
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == Decimal(golden_values.row(i_record, named=True)["pnl"])
+
+            assert quantity_to_close == Decimal(golden_values.row(i_record, named=True)["quantity_to_close"])
+            quantity_remaining = quantity_to_close - record.quantity
+            assert quantity_remaining == Decimal(golden_values.row(i_record, named=True)["quantity_remaining"])
+            if quantity_remaining == Decimal("0") and i_transaction_sell < len(transactions_sell) - 1:
+                i_transaction_sell += 1
+                quantity_to_close = abs(Decimal(transactions_sell.row(i_transaction_sell, named=True)["base_asset_flow"]))
+            else:
+                quantity_to_close = quantity_remaining
 
             lot_quantity_closed += record.quantity
             lot_proceeds += record_proceeds
