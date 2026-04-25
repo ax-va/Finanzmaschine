@@ -68,6 +68,8 @@ def test_close_position(
             assert int(re.search(r"\d+", sell_id).group()) == sell_idx + 1
 
             assert quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
+            assert record.quantity == Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
+
             quantity_remaining = quantity_to_close - record.quantity
             assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
             if quantity_remaining == Decimal("0") and sell_idx < len(transactions_sell) - 1:
@@ -76,7 +78,6 @@ def test_close_position(
             else:
                 quantity_to_close = quantity_remaining
 
-            assert record.quantity == Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
             assert record.fee == Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
 
             record_proceeds = round_to_quantum(
