@@ -6,7 +6,6 @@ import polars as pl
 import pytest
 
 from finanzmaschine.portfolio.positions.acquisition_position import AcquisitionPosition
-from finanzmaschine.portfolio.positions.base_position import ClosingOrder
 from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 P = TypeVar("P", bound="AcquisitionPosition")
