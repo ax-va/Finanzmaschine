@@ -62,6 +62,20 @@ def test_close_position(
         lot_pnl = Decimal("0")
 
         for record in lot.records_sold:
+            lot_id = golden_values.row(record_idx, named=True)["lot_id"]
+            assert int(re.search(r"\d+", lot_id).group()) == lot_idx + 1
+            sell_id = golden_values.row(record_idx, named=True)["sell_id"]
+            assert int(re.search(r"\d+", sell_id).group()) == sell_idx + 1
+
+            assert quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
+            quantity_remaining = quantity_to_close - record.quantity
+            assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
+            if quantity_remaining == Decimal("0") and sell_idx < len(transactions_sell) - 1:
+                sell_idx += 1
+                quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
+            else:
+                quantity_to_close = quantity_remaining
+
             assert record.quantity == Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
             assert record.fee == Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
 
@@ -79,20 +93,6 @@ def test_close_position(
 
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == Decimal(golden_values.row(record_idx, named=True)["pnl"])
-
-            lot_id = golden_values.row(record_idx, named=True)["lot_id"]
-            assert int(re.search(r"\d+", lot_id).group()) == lot_idx + 1
-            sell_id = golden_values.row(record_idx, named=True)["sell_id"]
-            assert int(re.search(r"\d+", sell_id).group()) == sell_idx + 1
-
-            assert quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
-            quantity_remaining = quantity_to_close - record.quantity
-            assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
-            if quantity_remaining == Decimal("0") and sell_idx < len(transactions_sell) - 1:
-                sell_idx += 1
-                quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
-            else:
-                quantity_to_close = quantity_remaining
 
             lot_quantity_closed += record.quantity
             lot_proceeds += record_proceeds
