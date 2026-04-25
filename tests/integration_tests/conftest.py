@@ -7,7 +7,6 @@ from finanzmaschine.catalog import asset_registry
 from finanzmaschine.portfolio.assets import CryptoEtp
 from finanzmaschine.portfolio.operation_types import TradeType
 from finanzmaschine.portfolio.positions import CryptoEtpPosition
-from finanzmaschine.portfolio.positions.base_position import ClosingOrder
 from finanzmaschine.portfolio.records import Direction, CryptoEtpTradeRecord
 
 
@@ -55,7 +54,7 @@ def df_ton_etp_sold(df_ton_etp_trade) -> pl.DataFrame:
 def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
     base_asset: CryptoEtp = asset_registry.get("CH1297762812")
     position = CryptoEtpPosition(base_asset=base_asset)
-    position.closing_order = ClosingOrder.FIFO
+    position.set_closing_order("FIFO")
 
     for row in df_ton_etp_trade.iter_rows(named=True):
         base_asset_flow = row["base_asset_flow"]

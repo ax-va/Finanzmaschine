@@ -106,6 +106,9 @@ class BasePosition[A, R, L](ABC):
     def _create_lot(self, record_in: R) -> L:
         pass
 
+    def set_closing_order(self, value: str) -> None:
+        self._closing_order = ClosingOrder(value.upper())
+
     def ensure_contains_open_lots(self) -> None:
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
