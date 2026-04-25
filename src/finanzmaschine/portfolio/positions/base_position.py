@@ -25,6 +25,17 @@ class BasePosition[A, R, L](ABC):
         self._base_asset: A = base_asset
         self._lots_open: Deque[L] = deque()
         self._lots_fully_closed: List[L] = []
+        self._closing_order: ClosingOrder | None = None
+
+    @property
+    def closing_order(self) -> ClosingOrder:
+        if self._closing_order is None:
+            raise ValueError("Closing order not specified")
+        return self._closing_order
+
+    @closing_order.setter
+    def closing_order(self, closing_order: ClosingOrder) -> None:
+        self._closing_order = closing_order
 
     @property
     def contains_open_lots(self) -> bool:
@@ -99,14 +110,14 @@ class BasePosition[A, R, L](ABC):
         if not self.contains_open_lots:
             raise ValueError("There are no open lots in the position")
 
-    def apply(self, record: R, closing_order: str) -> None:
+    def apply(self, record: R) -> None:
         if record.direction == Direction.IN:
             lot = self._create_lot(record_in=record)
             self._append(lot)
         elif record.direction == Direction.OUT:
             self._reduce(
                 record_out=record,
-                closing_order=ClosingOrder(closing_order.upper()),
+                closing_order=self.closing_order,
             )
         else:
             raise ValueError(f"Direction is neither {Direction.IN} nor {Direction.OUT}: {record.direction}")
@@ -141,7 +152,4 @@ class BasePosition[A, R, L](ABC):
             self._lots_fully_closed.append(lot)
             self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
             if record_remaining:
-                self._reduce(
-                    record_out=record_remaining,
-                    closing_order=closing_order,
-                )
+                self._reduce(record_remaining, closing_order)

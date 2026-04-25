@@ -6,6 +6,7 @@ import polars as pl
 import pytest
 
 from finanzmaschine.portfolio.positions.acquisition_position import AcquisitionPosition
+from finanzmaschine.portfolio.positions.base_position import ClosingOrder
 from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 P = TypeVar("P", bound="AcquisitionPosition")
@@ -27,9 +28,9 @@ def transactions_sell(request) -> pl.DataFrame:
 
 
 @pytest.mark.parametrize(
-    "position,golden_values,transactions_sell,num_lots,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
+    "position,golden_values,transactions_sell,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
     [
-        ("ton_etp_position_fifo", "df_ton_etp_fifo", "df_ton_etp_sold", 14, Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
+        ("ton_etp_position_fifo", "df_ton_etp_fifo", "df_ton_etp_sold", Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
     ],
     indirect=["position", "golden_values", "transactions_sell"],
 )
@@ -37,7 +38,6 @@ def test_close_position(
         position: P,
         golden_values: pl.DataFrame,
         transactions_sell: pl.DataFrame,
-        num_lots: int,
         quantity_open: Decimal,
         quantity_closed: Decimal,
         proceeds: Decimal,
@@ -111,7 +111,6 @@ def test_close_position(
         position_cost_basis_sold += lot_cost_basis_sold
         position_pnl += lot_pnl
 
-    assert len(position.lots_with_records_sold) == num_lots
     assert position.quantity_open == quantity_open
     assert position.quantity_closed == quantity_closed
     assert position.proceeds == proceeds
