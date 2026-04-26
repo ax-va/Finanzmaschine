@@ -157,14 +157,14 @@ class BasePosition[A, R, L](ABC):
             raise ValueError(f"Closing order is neither {ClosingOrder.FIFO} nor {ClosingOrder.LIFO}")
 
         split: Tuple[R, R] | None = lot.reduce(record_out)
-        if not split:
-            self._closing_orders[record_out] = closing_order
-
         if lot.is_closed:
             self._lots_fully_closed.append(lot)
             self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
-            if split:
-                record_closing: R = split[0]
-                self._closing_orders[record_closing] = closing_order
-                record_remaining: R = split[1]
-                self._reduce(record_remaining, closing_order)
+
+        if not split:
+            self._closing_orders[record_out] = closing_order
+        else:
+            record_closing: R = split[0]
+            self._closing_orders[record_closing] = closing_order
+            record_remaining: R = split[1]
+            self._reduce(record_remaining, closing_order)
