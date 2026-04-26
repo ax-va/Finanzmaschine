@@ -6,6 +6,7 @@ import polars as pl
 import pytest
 
 from finanzmaschine.portfolio.positions.acquisition_position import AcquisitionPosition
+from finanzmaschine.portfolio.positions.base_position import ClosingOrder
 from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 P = TypeVar("P", bound="AcquisitionPosition")
@@ -62,6 +63,10 @@ def test_close_position(
         lot_pnl = Decimal("0")
 
         for record in lot.records_sold:
+
+            closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
+            assert position.closing_orders[record] == closing_order
+
             lot_id = golden_values.row(record_idx, named=True)["lot_id"]
             assert int(re.search(r"\d+", lot_id).group()) == lot_idx + 1
             sell_id = golden_values.row(record_idx, named=True)["sell_id"]

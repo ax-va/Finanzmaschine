@@ -3,7 +3,8 @@ from collections import deque
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Deque, List, Tuple, TypeVar
+from types import MappingProxyType
+from typing import Deque, List, Tuple, TypeVar, Dict
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
@@ -26,6 +27,7 @@ class BasePosition[A, R, L](ABC):
         self._lots_open: Deque[L] = deque()
         self._lots_fully_closed: List[L] = []
         self._closing_order: ClosingOrder | None = None
+        self._closing_orders: Dict[R, ClosingOrder] = {}
 
     @property
     def closing_order(self) -> ClosingOrder:
@@ -36,6 +38,10 @@ class BasePosition[A, R, L](ABC):
     @closing_order.setter
     def closing_order(self, closing_order: ClosingOrder) -> None:
         self._closing_order = closing_order
+
+    @property
+    def closing_orders(self) -> MappingProxyType[R, ClosingOrder]:
+        return MappingProxyType(self._closing_orders)
 
     @property
     def contains_open_lots(self) -> bool:
@@ -150,9 +156,15 @@ class BasePosition[A, R, L](ABC):
         else:
             raise ValueError(f"Closing order is neither {ClosingOrder.FIFO} nor {ClosingOrder.LIFO}")
 
-        record_remaining: R | None = lot.reduce(record_out)
+        split: Tuple[R, R] | None = lot.reduce(record_out)
+        if not split:
+            self._closing_orders[record_out] = closing_order
+
         if lot.is_closed:
             self._lots_fully_closed.append(lot)
             self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
-            if record_remaining:
+            if split:
+                record_closing: R = split[0]
+                self._closing_orders[record_closing] = closing_order
+                record_remaining: R = split[1]
                 self._reduce(record_remaining, closing_order)

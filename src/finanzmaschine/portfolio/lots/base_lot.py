@@ -65,7 +65,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     def is_closed(self) -> bool:
         return not self.is_open
 
-    def reduce(self, record_out: R) -> R | None:
+    def reduce(self, record_out: R) -> Tuple[R, R] | None:
         if self.is_closed:
             raise ValueError("Lot already closed")
 
@@ -79,7 +79,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         if self.quantity_open < record_out.quantity:
             record_closing, record_remaining = record_out.split(quantity_open)
             self._records_out.append(record_closing)
-            return record_remaining
+            return record_closing, record_remaining
 
         self._records_out.append(record_out)
         return None
