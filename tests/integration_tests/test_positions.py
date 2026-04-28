@@ -64,18 +64,23 @@ def test_close_position(
 
         for record in lot.records_sold:
 
+            # Check closing_order
             closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
             assert position.closing_orders[record] == closing_order
 
+            # Check datetime_open
             datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
             assert lot.record_in.datetime == datetime_open
 
+            # Check datetime_sold
             datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
             assert transactions_sell.row(sell_idx, named=True)["datetime"] == datetime_sold
 
+            # Check quantity_to_close
             assert quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
             assert record.quantity == Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
 
+            # Check quantity_remaining
             quantity_remaining = quantity_to_close - record.quantity
             assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
             quantity_to_close = quantity_remaining
@@ -84,20 +89,24 @@ def test_close_position(
                 if sell_idx < len(transactions_sell):
                     quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
 
+            # Check fee_closed
             assert record.fee == Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
 
+            # Check proceeds
             record_proceeds = round_to_quantum(
                 record.quantity * record.price - record.fee,
                 lot.record_in.quote_asset.quantum,
             )
             assert record_proceeds == Decimal(golden_values.row(record_idx, named=True)["proceeds"])
 
+            # Check cost_basis_sold
             record_cost_basis_sold = round_to_quantum(
                 record.quantity / lot.record_in.quantity * lot.cost_basis,
                 lot.record_in.quote_asset.quantum,
             )
             assert record_cost_basis_sold == Decimal(golden_values.row(record_idx, named=True)["cost_basis_sold"])
 
+            # Check pnl
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == Decimal(golden_values.row(record_idx, named=True)["pnl"])
 
@@ -108,6 +117,7 @@ def test_close_position(
 
             record_idx += 1
 
+        # Check lot attributes
         assert lot.quantity_closed == lot_quantity_closed
         assert lot.proceeds == lot_proceeds
         assert lot.cost_basis_sold == lot_cost_basis_sold
@@ -117,6 +127,7 @@ def test_close_position(
         position_cost_basis_sold += lot_cost_basis_sold
         position_pnl += lot_pnl
 
+    # Check position attributes
     assert position.quantity_open == quantity_open
     assert position.quantity_closed == quantity_closed
     assert position.proceeds == proceeds
