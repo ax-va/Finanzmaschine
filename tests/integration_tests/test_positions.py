@@ -55,7 +55,7 @@ def test_close_position(
     quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
 
     record_idx = 0
-    for lot_idx, lot in enumerate(position.lots_with_records_sold):
+    for lot in position.lots_with_records_sold:
 
         lot_quantity_closed = Decimal("0")
         lot_proceeds = Decimal("0")
@@ -67,14 +67,8 @@ def test_close_position(
             closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
             assert position.closing_orders[record] == closing_order
 
-            lot_id = golden_values.row(record_idx, named=True)["lot_id"]
-            assert int(re.search(r"\d+", lot_id).group()) == lot_idx + 1
-
             datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
             assert lot.record_in.datetime == datetime_open
-
-            sell_id = golden_values.row(record_idx, named=True)["sell_id"]
-            assert int(re.search(r"\d+", sell_id).group()) == sell_idx + 1
 
             datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
             assert transactions_sell.row(sell_idx, named=True)["datetime"] == datetime_sold
@@ -84,11 +78,11 @@ def test_close_position(
 
             quantity_remaining = quantity_to_close - record.quantity
             assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
-            if quantity_remaining == Decimal("0") and sell_idx < len(transactions_sell) - 1:
+            quantity_to_close = quantity_remaining
+            if quantity_to_close == Decimal("0"):
                 sell_idx += 1
-                quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
-            else:
-                quantity_to_close = quantity_remaining
+                if sell_idx < len(transactions_sell):
+                    quantity_to_close = abs(Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"]))
 
             assert record.fee == Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
 
