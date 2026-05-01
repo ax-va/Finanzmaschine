@@ -28,7 +28,7 @@ def transactions_sell(request) -> pl.DataFrame:
 
 
 @pytest.mark.parametrize(
-    "position,golden_values,transactions_sell,quantity_open,quantity_closed,proceeds,cost_basis_sold,pnl",
+    "position,golden_values,transactions_sell,quantity_open_total,quantity_closed_total,proceeds_total,cost_basis_sold_total,pnl_total",
     [
         ("ton_etp_position_fifo", "df_ton_etp_fifo", "df_ton_etp_sold", Decimal("109.459107"), Decimal("811"), Decimal("5065.52"), Decimal("5621.84"), Decimal("-556.32")),
     ],
@@ -38,11 +38,11 @@ def test_close_position(
         position: P,
         golden_values: pl.DataFrame,
         transactions_sell: pl.DataFrame,
-        quantity_open: Decimal,
-        quantity_closed: Decimal,
-        proceeds: Decimal,
-        cost_basis_sold: Decimal,
-        pnl: Decimal,
+        quantity_open_total: Decimal,
+        quantity_closed_total: Decimal,
+        proceeds_total: Decimal,
+        cost_basis_sold_total: Decimal,
+        pnl_total: Decimal,
 ):
     # workaround for typechecker
     position: AcquisitionPosition
@@ -53,8 +53,8 @@ def test_close_position(
 
     sell_idx = 0
     base_asset_flow = Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"])
-    quantity_to_close = abs(base_asset_flow)
-    fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
+    record_quantity_to_close = abs(base_asset_flow)
+    record_fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
 
     record_idx = 0
     for lot in position.lots_with_records_sold:
@@ -63,6 +63,8 @@ def test_close_position(
         lot_proceeds = Decimal("0")
         lot_cost_basis_sold = Decimal("0")
         lot_pnl = Decimal("0")
+
+        record_quantity_open_before = lot.record_in.quantity
 
         for record in lot.records_sold:
 
@@ -78,25 +80,33 @@ def test_close_position(
             datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
             assert transactions_sell.row(sell_idx, named=True)["datetime"] == datetime_sold
 
+            # Test quantity_open_before
+            assert record_quantity_open_before == Decimal(golden_values.row(record_idx, named=True)["quantity_open_before"])
+
             # Test quantity_to_close
-            assert quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
+            assert record_quantity_to_close == Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
 
             # Test quantity_closed
-            assert record.quantity == Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
+            record_quantity_closed = Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
+            assert record.quantity == record_quantity_closed
+            record_quantity_open_after = record_quantity_open_before - record_quantity_closed
+
+            # Test quantity_open_after
+            assert record_quantity_open_after == Decimal(golden_values.row(record_idx, named=True)["quantity_open_after"])
 
             # Test quantity_remaining
-            quantity_remaining = quantity_to_close - record.quantity
-            assert quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
+            record_quantity_remaining = record_quantity_to_close - record.quantity
+            assert record_quantity_remaining == Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
 
             # Test fee_to_closed
-            assert fee_to_close == Decimal(golden_values.row(record_idx, named=True)["fee_to_close"])
+            assert record_fee_to_close == Decimal(golden_values.row(record_idx, named=True)["fee_to_close"])
 
             # Test fee_closed
             assert record.fee == Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
 
             # Test fee_remaining
-            fee_remaining = fee_to_close - record.fee
-            assert fee_remaining == Decimal(golden_values.row(record_idx, named=True)["fee_remaining"])
+            record_fee_remaining = record_fee_to_close - record.fee
+            assert record_fee_remaining == Decimal(golden_values.row(record_idx, named=True)["fee_remaining"])
 
             # Test proceeds
             record_proceeds = round_to_quantum(
@@ -116,14 +126,16 @@ def test_close_position(
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == Decimal(golden_values.row(record_idx, named=True)["pnl"])
 
-            quantity_to_close = quantity_remaining
-            fee_to_close = fee_remaining
-            if quantity_to_close == Decimal("0"):
+            record_quantity_to_close = record_quantity_remaining
+            record_fee_to_close = record_fee_remaining
+            if record_quantity_to_close == Decimal("0"):
                 sell_idx += 1
                 if sell_idx < len(transactions_sell):
                     base_asset_flow = Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"])
-                    quantity_to_close = abs(base_asset_flow)
-                    fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
+                    record_quantity_to_close = abs(base_asset_flow)
+                    record_fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
+
+            record_quantity_open_before = record_quantity_open_after
 
             lot_quantity_closed += record.quantity
             lot_proceeds += record_proceeds
@@ -143,11 +155,11 @@ def test_close_position(
         position_pnl += lot_pnl
 
     # Test position attributes
-    assert position.quantity_open == quantity_open
-    assert position.quantity_closed == quantity_closed
-    assert position.proceeds == proceeds
-    assert position.cost_basis_sold == cost_basis_sold
-    assert position.pnl == pnl
+    assert position.quantity_open == quantity_open_total
+    assert position.quantity_closed == quantity_closed_total
+    assert position.proceeds == proceeds_total
+    assert position.cost_basis_sold == cost_basis_sold_total
+    assert position.pnl == pnl_total
 
     assert position.proceeds == position_proceeds
     assert position.cost_basis_sold == position_cost_basis_sold
