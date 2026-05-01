@@ -31,11 +31,11 @@ def transactions_sell(request) -> pl.DataFrame:
     "position,"
     "golden_values,"
     "transactions_sell,"
-    "expected_total_quantity_open,"
-    "expected_total_quantity_closed,"
-    "expected_total_proceeds,"
-    "expected_total_cost_basis_sold,"
-    "expected_total_pnl",
+    "expected_position_quantity_open,"
+    "expected_position_quantity_closed,"
+    "expected_position_proceeds,"
+    "expected_position_cost_basis_sold,"
+    "expected_position_pnl",
     [
         (
             "ton_etp_position_fifo",
@@ -54,11 +54,11 @@ def test_close_position(
         position: P,
         golden_values: pl.DataFrame,
         transactions_sell: pl.DataFrame,
-        expected_total_quantity_open: Decimal,
-        expected_total_quantity_closed: Decimal,
-        expected_total_proceeds: Decimal,
-        expected_total_cost_basis_sold: Decimal,
-        expected_total_pnl: Decimal,
+        expected_position_quantity_open: Decimal,
+        expected_position_quantity_closed: Decimal,
+        expected_position_proceeds: Decimal,
+        expected_position_cost_basis_sold: Decimal,
+        expected_position_pnl: Decimal,
 ):
     # workaround for typechecker
     position: AcquisitionPosition
@@ -183,11 +183,11 @@ def test_close_position(
         position_pnl += lot_pnl
 
     # Test position attributes
-    assert position.quantity_open == expected_total_quantity_open
-    assert position.quantity_closed == expected_total_quantity_closed
-    assert position.proceeds == expected_total_proceeds
-    assert position.cost_basis_sold == expected_total_cost_basis_sold
-    assert position.pnl == expected_total_pnl
+    assert position.quantity_open == expected_position_quantity_open
+    assert position.quantity_closed == expected_position_quantity_closed
+    assert position.proceeds == expected_position_proceeds
+    assert position.cost_basis_sold == expected_position_cost_basis_sold
+    assert position.pnl == expected_position_pnl
 
     assert position.proceeds == position_proceeds
     assert position.cost_basis_sold == position_cost_basis_sold
