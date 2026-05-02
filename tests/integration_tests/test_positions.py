@@ -85,12 +85,12 @@ def test_close_position(
         for record in lot.records_sold:
 
             # Test closing_order
-            expected_report_closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
-            assert position.closing_orders[record] == expected_report_closing_order
+            expected_record_closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
+            assert position.closing_orders[record] == expected_record_closing_order
 
             # Test datetime_open
-            expected_report_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
-            assert lot.record_in.datetime == expected_report_datetime_open
+            expected_record_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
+            assert lot.record_in.datetime == expected_record_datetime_open
 
             # Test datetime_sold
             expected_record_datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
