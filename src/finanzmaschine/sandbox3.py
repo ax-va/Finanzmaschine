@@ -25,7 +25,7 @@ df = pl.read_csv(
 
 ton_etp: CryptoEtp = asset_registry.get("CH1297762812")
 position = CryptoEtpPosition(base_asset=ton_etp)
-position.closing_order = ClosingOrder.FIFO
+position.closing_order = ClosingOrder.LIFO
 
 for row in df.iter_rows(named=True):
     base_asset_flow = row["base_asset_flow"]

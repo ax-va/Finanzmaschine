@@ -50,10 +50,12 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
 
     @property
     def proceeds(self) -> Decimal:
-        self.ensure_one_quote_asset()
         # workaround for type checker
         r_out: TradeRecord
-        return safe_sum(r_out.gross_value - r_out.fee for r_out in self._records_sold)
+        return round_to_quantum(
+            safe_sum(r_out.gross_value - r_out.fee for r_out in self._records_sold),
+            self.single_quote_asset.quantum,
+        )
 
     @property
     def pnl(self) -> Decimal:

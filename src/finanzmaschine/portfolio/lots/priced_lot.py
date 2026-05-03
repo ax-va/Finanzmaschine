@@ -63,9 +63,11 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
         return frozenset(asset_set)
 
     @property
-    def _records_realized(self) -> List[P]:
-        return [r_out for r_out in self._records_out if isinstance(r_out, PricedRecord)]
-
-    def ensure_one_quote_asset(self):
+    def single_quote_asset(self) -> A:
         if len(self.quote_assets) > 1:
             raise ValueError(f"More than one quote asset: {self.quote_assets}")
+        return next(iter(self.quote_assets))
+
+    @property
+    def _records_realized(self) -> List[P]:
+        return [r_out for r_out in self._records_out if isinstance(r_out, PricedRecord)]

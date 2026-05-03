@@ -32,6 +32,27 @@ def df_ton_etp_fifo(data_dir) -> pl.DataFrame:
 
 
 @pytest.fixture(scope="session")
+def df_ton_etp_lifo(data_dir) -> pl.DataFrame:
+    df = pl.read_csv(data_dir / "etps/ton_etp_lifo.csv",
+        try_parse_dates=True,
+        schema_overrides={
+          "quantity_open_before": pl.String,
+          "quantity_to_close": pl.String,
+          "quantity_open_after": pl.String,
+          "quantity_closed": pl.String,
+          "quantity_remaining": pl.String,
+          "fee_to_close": pl.String,
+          "fee_closed": pl.String,
+          "fee_remaining": pl.String,
+          "proceeds": pl.String,
+          "cost_basis_sold": pl.String,
+          "pnl": pl.String,
+        },
+    )
+    return df
+
+
+@pytest.fixture(scope="session")
 def df_ton_etp_trade(data_dir) -> pl.DataFrame:
     df = pl.read_csv(data_dir / "etps/ton_etp_trade.csv",
         try_parse_dates=True,
@@ -50,11 +71,10 @@ def df_ton_etp_sold(df_ton_etp_trade) -> pl.DataFrame:
     return df_ton_etp_trade.filter(pl.col("operation_type") == TradeType.SELL)
 
 
-@pytest.fixture(scope="session")
-def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
+def create_ton_etp_position(df_ton_etp_trade, closing_order: str) -> CryptoEtpPosition:
     base_asset: CryptoEtp = asset_registry.get("CH1297762812")
     position = CryptoEtpPosition(base_asset=base_asset)
-    position.set_closing_order("FIFO")
+    position.set_closing_order(closing_order)
 
     for row in df_ton_etp_trade.iter_rows(named=True):
         base_asset_flow = row["base_asset_flow"]
@@ -88,3 +108,13 @@ def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
         position.apply(record)
 
     return position
+
+
+@pytest.fixture(scope="session")
+def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
+    return create_ton_etp_position(df_ton_etp_trade, "FIFO")
+
+
+@pytest.fixture(scope="session")
+def ton_etp_position_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
+    return create_ton_etp_position(df_ton_etp_trade, "LIFO")

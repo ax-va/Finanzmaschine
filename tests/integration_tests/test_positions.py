@@ -46,6 +46,16 @@ def transactions_sell(request) -> pl.DataFrame:
             Decimal("5621.84"),
             Decimal("-556.32"),
         ),
+        (
+            "ton_etp_position_lifo",
+            "df_ton_etp_lifo",
+            "df_ton_etp_sold",
+            Decimal("109.459107"),
+            Decimal("811"),
+            Decimal("5065.52"),
+            Decimal("5241.67"),
+            Decimal("-176.15"),
+        ),
     ],
     indirect=["position", "golden_values", "transactions_sell"],
 )
@@ -88,13 +98,13 @@ def test_close_position(
             expected_record_closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
             assert position.closing_orders[record] == expected_record_closing_order
 
-            # Test datetime_open
-            expected_record_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
-            assert lot.record_in.datetime == expected_record_datetime_open
-
             # Test datetime_sold
             expected_record_datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
             assert transactions_sell.row(sell_idx, named=True)["datetime"] == expected_record_datetime_sold
+
+            # Test datetime_open
+            expected_record_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
+            assert lot.record_in.datetime == expected_record_datetime_open
 
             # Test quantity_open_before
             expected_record_quantity_open_before = Decimal(golden_values.row(record_idx, named=True)["quantity_open_before"])
