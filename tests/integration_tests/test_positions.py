@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 from typing import TypeVar
 
@@ -77,14 +78,15 @@ def test_close_position(
     position_cost_basis_sold = Decimal("0")
     position_pnl = Decimal("0")
 
-    sell_idx = 0
-    base_asset_flow = Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"])
+    sell_index = 0
+    base_asset_flow = Decimal(transactions_sell.row(sell_index, named=True)["base_asset_flow"])
     record_quantity_to_close = abs(base_asset_flow)
-    record_fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
+    record_fee_to_close = Decimal(transactions_sell.row(sell_index, named=True)["fee"])
 
     record_idx = 0
     for lot in position.lots_with_records_sold:
 
+        lot_index: int = position.lot_indices[lot]
         lot_quantity_closed = Decimal("0")
         lot_proceeds = Decimal("0")
         lot_cost_basis_sold = Decimal("0")
@@ -98,9 +100,17 @@ def test_close_position(
             expected_record_closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
             assert position.closing_orders[record] == expected_record_closing_order
 
+            # Test sell_id
+            expected_sell_id = golden_values.row(record_idx, named=True)["sell_id"]
+            assert int(re.search(r"\d+", expected_sell_id).group()) == sell_index + 1
+
             # Test datetime_sold
             expected_record_datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
-            assert transactions_sell.row(sell_idx, named=True)["datetime"] == expected_record_datetime_sold
+            assert transactions_sell.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
+
+            # Test lot_id
+            expected_lot_id = golden_values.row(record_idx, named=True)["lot_id"]
+            assert int(re.search(r"\d+", expected_lot_id).group()) == lot_index + 1
 
             # Test datetime_open
             expected_record_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
@@ -166,11 +176,11 @@ def test_close_position(
             record_quantity_to_close = record_quantity_remaining
             record_fee_to_close = record_fee_remaining
             if record_quantity_to_close == Decimal("0"):
-                sell_idx += 1
-                if sell_idx < len(transactions_sell):
-                    base_asset_flow = Decimal(transactions_sell.row(sell_idx, named=True)["base_asset_flow"])
+                sell_index += 1
+                if sell_index < len(transactions_sell):
+                    base_asset_flow = Decimal(transactions_sell.row(sell_index, named=True)["base_asset_flow"])
                     record_quantity_to_close = abs(base_asset_flow)
-                    record_fee_to_close = Decimal(transactions_sell.row(sell_idx, named=True)["fee"])
+                    record_fee_to_close = Decimal(transactions_sell.row(sell_index, named=True)["fee"])
 
             record_quantity_open_before = record_quantity_open_after
 

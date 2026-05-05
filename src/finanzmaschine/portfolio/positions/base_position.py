@@ -28,6 +28,7 @@ class BasePosition[A, R, L](ABC):
         self._lots_fully_closed: List[L] = []
         self._closing_order: ClosingOrder | None = None
         self._closing_orders: Dict[R, ClosingOrder] = {}
+        self._lot_indices: Dict[L, int] = {}
 
     @property
     def closing_order(self) -> ClosingOrder:
@@ -42,6 +43,10 @@ class BasePosition[A, R, L](ABC):
     @property
     def closing_orders(self) -> MappingProxyType[R, ClosingOrder]:
         return MappingProxyType(self._closing_orders)
+
+    @property
+    def lot_indices(self) -> MappingProxyType[L, int]:
+        return MappingProxyType(self._lot_indices)
 
     @property
     def contains_open_lots(self) -> bool:
@@ -143,6 +148,7 @@ class BasePosition[A, R, L](ABC):
         if lot.records_out:
             raise ValueError("Lots-in must not contain reports-out")
 
+        self._lot_indices[lot] = len(self._lot_indices)
         self._lots_open.append(lot)
 
     def _reduce(self, record_out: R, closing_order: ClosingOrder) -> None:
