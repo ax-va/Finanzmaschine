@@ -83,7 +83,7 @@ def test_close_position(
     record_quantity_to_close = abs(base_asset_flow)
     record_fee_to_close = Decimal(transactions_sell.row(sell_index, named=True)["fee"])
 
-    record_idx = 0
+    record_index = 0
     for lot in position.lots_with_records_sold:
 
         lot_index: int = position.lot_indices[lot]
@@ -97,62 +97,64 @@ def test_close_position(
         for record in lot.records_sold:
 
             # Test closing_order
-            expected_record_closing_order = ClosingOrder(golden_values.row(record_idx, named=True)["closing_order"])
+            expected_record_closing_order = ClosingOrder(golden_values.row(record_index, named=True)["closing_order"])
             assert position.closing_orders[record] == expected_record_closing_order
 
             # Test sell_id
-            expected_sell_id = golden_values.row(record_idx, named=True)["sell_id"]
-            assert int(re.search(r"\d+", expected_sell_id).group()) == sell_index + 1
+            expected_sell_id = golden_values.row(record_index, named=True)["sell_id"]
+            assert sell_index + 1 == int(re.search(r"\d+", expected_sell_id).group())
+            expected_operation_type = transactions_sell.row(sell_index, named=True)["operation_type"]
+            assert expected_operation_type in expected_sell_id
 
             # Test datetime_sold
-            expected_record_datetime_sold = golden_values.row(record_idx, named=True)["datetime_sold"]
+            expected_record_datetime_sold = golden_values.row(record_index, named=True)["datetime_sold"]
             assert transactions_sell.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
 
             # Test lot_id
-            expected_lot_id = golden_values.row(record_idx, named=True)["lot_id"]
-            assert int(re.search(r"\d+", expected_lot_id).group()) == lot_index + 1
+            expected_lot_id = golden_values.row(record_index, named=True)["lot_id"]
+            assert position.get_lot_id(lot) == expected_lot_id
 
             # Test datetime_open
-            expected_record_datetime_open = golden_values.row(record_idx, named=True)["datetime_open"]
+            expected_record_datetime_open = golden_values.row(record_index, named=True)["datetime_open"]
             assert lot.record_in.datetime == expected_record_datetime_open
 
             # Test quantity_open_before
-            expected_record_quantity_open_before = Decimal(golden_values.row(record_idx, named=True)["quantity_open_before"])
+            expected_record_quantity_open_before = Decimal(golden_values.row(record_index, named=True)["quantity_open_before"])
             assert record_quantity_open_before == expected_record_quantity_open_before
 
             # Test quantity_to_close
-            expected_record_quantity_to_close = Decimal(golden_values.row(record_idx, named=True)["quantity_to_close"])
+            expected_record_quantity_to_close = Decimal(golden_values.row(record_index, named=True)["quantity_to_close"])
             assert record_quantity_to_close == expected_record_quantity_to_close
 
             # Test quantity_closed
-            expected_record_quantity_closed = Decimal(golden_values.row(record_idx, named=True)["quantity_closed"])
+            expected_record_quantity_closed = Decimal(golden_values.row(record_index, named=True)["quantity_closed"])
             assert record.quantity == expected_record_quantity_closed
             record_quantity_open_after = record_quantity_open_before - expected_record_quantity_closed
 
             # Test quantity_open_after
-            expected_record_quantity_open_after = Decimal(golden_values.row(record_idx, named=True)["quantity_open_after"])
+            expected_record_quantity_open_after = Decimal(golden_values.row(record_index, named=True)["quantity_open_after"])
             assert record_quantity_open_after == expected_record_quantity_open_after
 
             # Test quantity_remaining
-            expected_record_quantity_remaining = Decimal(golden_values.row(record_idx, named=True)["quantity_remaining"])
+            expected_record_quantity_remaining = Decimal(golden_values.row(record_index, named=True)["quantity_remaining"])
             record_quantity_remaining = record_quantity_to_close - record.quantity
             assert record_quantity_remaining == expected_record_quantity_remaining
 
             # Test fee_to_closed
-            expected_record_fee_to_close = Decimal(golden_values.row(record_idx, named=True)["fee_to_close"])
+            expected_record_fee_to_close = Decimal(golden_values.row(record_index, named=True)["fee_to_close"])
             assert record_fee_to_close == expected_record_fee_to_close
 
             # Test fee_closed
-            expected_record_fee_closed = Decimal(golden_values.row(record_idx, named=True)["fee_closed"])
+            expected_record_fee_closed = Decimal(golden_values.row(record_index, named=True)["fee_closed"])
             assert record.fee == expected_record_fee_closed
 
             # Test fee_remaining
-            expected_record_fee_remaining = Decimal(golden_values.row(record_idx, named=True)["fee_remaining"])
+            expected_record_fee_remaining = Decimal(golden_values.row(record_index, named=True)["fee_remaining"])
             record_fee_remaining = record_fee_to_close - record.fee
             assert record_fee_remaining == expected_record_fee_remaining
 
             # Test proceeds
-            expected_record_proceeds = Decimal(golden_values.row(record_idx, named=True)["proceeds"])
+            expected_record_proceeds = Decimal(golden_values.row(record_index, named=True)["proceeds"])
             record_proceeds = round_to_quantum(
                 record.quantity * record.price - record.fee,
                 lot.record_in.quote_asset.quantum,
@@ -160,7 +162,7 @@ def test_close_position(
             assert record_proceeds == expected_record_proceeds
 
             # Test cost_basis_sold
-            expected_record_cost_basis_sold = Decimal(golden_values.row(record_idx, named=True)["cost_basis_sold"])
+            expected_record_cost_basis_sold = Decimal(golden_values.row(record_index, named=True)["cost_basis_sold"])
             record_cost_basis_sold = round_to_quantum(
                 record.quantity / lot.record_in.quantity * lot.cost_basis,
                 lot.record_in.quote_asset.quantum,
@@ -168,7 +170,7 @@ def test_close_position(
             assert record_cost_basis_sold == expected_record_cost_basis_sold
 
             # Test pnl
-            expected_record_pnl = Decimal(golden_values.row(record_idx, named=True)["pnl"])
+            expected_record_pnl = Decimal(golden_values.row(record_index, named=True)["pnl"])
             record_pnl = record_proceeds - record_cost_basis_sold
             assert record_pnl == expected_record_pnl
 
@@ -189,7 +191,7 @@ def test_close_position(
             lot_cost_basis_sold += record_cost_basis_sold
             lot_pnl += record_pnl
 
-            record_idx += 1
+            record_index += 1
 
         # Test lot attributes
         assert lot.quantity_closed == lot_quantity_closed

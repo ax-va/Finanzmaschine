@@ -117,6 +117,13 @@ class BasePosition[A, R, L](ABC):
     def _create_lot(self, record_in: R) -> L:
         pass
 
+    def get_lot_id(self, lot: L) -> str:
+        num_lots = len(self._lot_indices)
+        num_zeros = len(str(num_lots))
+        lot_index = self._lot_indices[lot]
+        lot_id = f"LOT_{lot_index + 1:0{num_zeros}d}"
+        return lot_id
+
     def set_closing_order(self, value: str) -> None:
         self._closing_order = ClosingOrder(value.upper())
 
