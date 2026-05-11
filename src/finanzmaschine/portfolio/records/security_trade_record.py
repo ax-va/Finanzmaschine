@@ -5,7 +5,7 @@ from finanzmaschine.catalog.exchange_enum import Exchange
 from finanzmaschine.portfolio.records.trade_record import TradeRecord
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class SecurityTradeRecord(TradeRecord):
     broker: Broker
     order_id: str

@@ -24,10 +24,9 @@ class ClosingOrder(StrEnum):
 class BasePosition[A, R, L](ABC):
     def __init__(self, base_asset: A):
         self._base_asset: A = base_asset
-        self._lots_open: Deque[L] = deque()
-        self._lots_fully_closed: List[L] = []
         self._closing_order: ClosingOrder | None = None
         self._closing_orders: Dict[R, ClosingOrder] = {}
+        self._record_out_lots: Dict[R, L] = {}
         self._lot_indices: Dict[L, int] = {}
 
     @property
@@ -45,77 +44,67 @@ class BasePosition[A, R, L](ABC):
         return MappingProxyType(self._closing_orders)
 
     @property
+    def record_out_lots(self) -> MappingProxyType[R, L]:
+        return MappingProxyType(self._record_out_lots)
+
+    @property
     def lot_indices(self) -> MappingProxyType[L, int]:
         return MappingProxyType(self._lot_indices)
 
     @property
-    def contains_open_lots(self) -> bool:
-        return True if self._lots_open else False
+    def lots(self) -> Tuple[L, ...]:
+        return tuple(lot for lot in self._lot_indices)
 
     @property
-    def contains_fully_closed_lots(self) -> bool:
-        return True if self._lots_fully_closed else False
+    def lots_open(self) -> Tuple[L, ...]:
+        return tuple(lot for lot in self._lot_indices if lot.is_open)
+
+    @property
+    def lots_fully_closed(self) -> Tuple[L, ...]:
+        return tuple(lot for lot in self._lots_with_records_out if lot.is_closed)
 
     @property
     def contains_lots(self) -> bool:
-        return self.contains_open_lots or self.contains_fully_closed_lots
+        return True if self._lot_indices else False
+
+    @property
+    def contains_open_lots(self) -> bool:
+        return True if self.lots_open else False
 
     @property
     def base_asset(self) -> A:
         return self._base_asset
 
     @property
-    def lots_open(self) -> Tuple[L, ...]:
-        return tuple(self._lots_open)
-    
-    @property
-    def lots_partially_closed(self) -> Tuple[L, ...]:
-        return tuple(self._lots_partially_closed)
-
-    @property
-    def lots_fully_closed(self) -> Tuple[L, ...]:
-        return tuple(self._lots_fully_closed)
-
-    @property
-    def lots_with_records_out(self) -> Tuple[L, ...]:
-        return tuple(self._lots_with_records_out)
-
-    @property
     def first_open_lot(self) -> L:
-        self.ensure_contains_open_lots()
-        return self._lots_open[0]
+        lots_open = self.lots_open
+        if not lots_open:
+            raise ValueError("There are no open lots in the position")
+        return lots_open[0]
 
     @property
     def last_open_lot(self) -> L:
-        self.ensure_contains_open_lots()
-        return self._lots_open[-1]
+        lots_open = self.lots_open
+        if not lots_open:
+            raise ValueError("There are no open lots in the position")
+        return lots_open[-1]
 
     @property
     def quantity_open(self) -> Decimal:
-        return safe_sum(lot.quantity_open for lot in self._lots_open)
+        return safe_sum(lot.quantity_open for lot in self.lots_open)
 
     @property
     def quantity_closed(self) -> Decimal:
-        return safe_sum(lot.quantity_closed for lot in self._lots_with_records_out)
-
-    @property
-    def _lots_partially_closed(self) -> List[L]:
-        lots: List[L] = []
-        if self.first_open_lot.records_out:
-            lots.append(self.first_open_lot)
-
-        if self.first_open_lot is not self.last_open_lot and self.last_open_lot.records_out:
-            lots.append(self.last_open_lot)
-
-        return lots
-
-    @property
-    def _lots_with_records_out(self) -> List[L]:
-        return self._lots_fully_closed + self._lots_partially_closed
+        return safe_sum(r_out.quantity for r_out in self._closing_orders)
+        # return safe_sum(lot.quantity_closed for lot in self.lots_with_records_out)
 
     @abstractmethod
     def _create_lot(self, record_in: R) -> L:
         pass
+
+    @property
+    def _lots_with_records_out(self) -> List[L]:
+        return [lot for lot in self._lot_indices if lot.records_out]
 
     def get_lot_id(self, lot: L) -> str:
         num_lots = len(self._lot_indices)
@@ -126,10 +115,6 @@ class BasePosition[A, R, L](ABC):
 
     def set_closing_order(self, value: str) -> None:
         self._closing_order = ClosingOrder(value.upper())
-
-    def ensure_contains_open_lots(self) -> None:
-        if not self.contains_open_lots:
-            raise ValueError("There are no open lots in the position")
 
     def apply(self, record: R) -> None:
         if record.direction == Direction.IN:
@@ -156,10 +141,8 @@ class BasePosition[A, R, L](ABC):
             raise ValueError("Lots-in must not contain reports-out")
 
         self._lot_indices[lot] = len(self._lot_indices)
-        self._lots_open.append(lot)
 
     def _reduce(self, record_out: R, closing_order: ClosingOrder) -> None:
-        self.ensure_contains_open_lots()
 
         lot: L
         if closing_order == ClosingOrder.FIFO:
@@ -170,14 +153,13 @@ class BasePosition[A, R, L](ABC):
             raise ValueError(f"Closing order is neither {ClosingOrder.FIFO} nor {ClosingOrder.LIFO}")
 
         split: Tuple[R, R] | None = lot.reduce(record_out)
-        if lot.is_closed:
-            self._lots_fully_closed.append(lot)
-            self._lots_open.popleft() if closing_order == ClosingOrder.FIFO else self._lots_open.pop()
 
         if not split:
             self._closing_orders[record_out] = closing_order
+            self._record_out_lots[record_out] = lot
         else:
             record_closing: R = split[0]
             self._closing_orders[record_closing] = closing_order
+            self._record_out_lots[record_closing] = lot
             record_remaining: R = split[1]
             self._reduce(record_remaining, closing_order)

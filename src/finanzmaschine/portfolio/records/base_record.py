@@ -13,7 +13,7 @@ class Direction(StrEnum):
     OUT = "OUT"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class BaseRecord[T: BaseOperationType](ABC):
     """
     Base class for all internal lot records.
@@ -23,6 +23,9 @@ class BaseRecord[T: BaseOperationType](ABC):
     datetime: datetime
     direction: Direction
     operation_type: T
+
+    def __hash__(self) -> int:
+        return id(self)
 
     def __post_init__(self) -> None:
         if not (self.quantity > Decimal("0")):

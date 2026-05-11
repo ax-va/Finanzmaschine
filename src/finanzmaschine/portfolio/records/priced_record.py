@@ -8,7 +8,7 @@ from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 from finanzmaschine.utils.decimal_helper import round_to_quantum
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class PricedRecord[Q: Asset, T: PricedOperationType](BaseRecord[T]):
     quote_asset: Q
     price: Decimal

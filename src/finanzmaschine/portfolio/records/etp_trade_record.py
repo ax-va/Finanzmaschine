@@ -4,7 +4,7 @@ from decimal import Decimal
 from finanzmaschine.portfolio.records.security_trade_record import SecurityTradeRecord
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class EtpTradeRecord(SecurityTradeRecord):
     entitlement: Decimal | None = None
 

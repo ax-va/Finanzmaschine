@@ -21,7 +21,7 @@ class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
 
     @property
     def lots_with_records_realized(self) -> Tuple[L, ...]:
-        return tuple(lot for lot in self._lots_with_records_out )
+        return tuple(lot for lot in self._lots_with_records_realized)
 
     @property
     def _lots_with_records_realized(self) -> List[L]:

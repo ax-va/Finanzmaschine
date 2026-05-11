@@ -6,7 +6,7 @@ from finanzmaschine.portfolio.records.base_record import Direction
 from finanzmaschine.portfolio.records.priced_record import PricedRecord
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class NonTradeIncreaseRecord[Q: Asset, T: NonTradeIncreaseType](PricedRecord[Q, T]):
 
     def __post_init__(self):

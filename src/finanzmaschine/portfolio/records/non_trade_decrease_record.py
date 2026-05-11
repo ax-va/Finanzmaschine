@@ -4,7 +4,7 @@ from finanzmaschine.portfolio.operation_types.non_trade_decrease_type import Non
 from finanzmaschine.portfolio.records.base_record import BaseRecord, Direction
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class NonTradeDecreaseRecord[T: NonTradeDecreaseType](BaseRecord[T]):
 
     def __post_init__(self):
