@@ -90,13 +90,13 @@ def test_close_position(
         } for lot in position.lots
     }
 
-    for record_index, (record, lot) in enumerate(position.record_out_lots.items()):
+    for record_index, (record, lot) in enumerate(position.lot_by_record_sold.items()):
 
         record_quantity_open_before = lot_values[lot]["record_quantity_open_before"]
 
         # Test closing_order
         expected_record_closing_order = ClosingOrder(golden_values.row(record_index, named=True)["closing_order"])
-        assert position.closing_orders[record] == expected_record_closing_order
+        assert position.closing_order_by_record_out[record] == expected_record_closing_order
 
         # Test sell_id
         expected_sell_id = golden_values.row(record_index, named=True)["sell_id"]
