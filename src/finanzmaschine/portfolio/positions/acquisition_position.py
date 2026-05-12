@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from decimal import Decimal
 from types import MappingProxyType
-from typing import TypeVar, Generic, List, Tuple, Dict
+from typing import TypeVar, Generic, Dict, Tuple
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.acquisition_lot import AcquisitionLot
@@ -38,6 +38,7 @@ class AcquisitionPosition(PricedPosition[A, D, I | T, L], Generic[A, D, I, T, L]
 
     @property
     def pnl(self) -> Decimal:
+        # workaround for type checker
         lot: AcquisitionLot
         return safe_sum(lot.pnl for lot in self._lots_with_records_sold)
 
@@ -50,5 +51,5 @@ class AcquisitionPosition(PricedPosition[A, D, I | T, L], Generic[A, D, I, T, L]
         return {record: lot for record, lot in self._lot_by_record_realized.items() if isinstance(lot, AcquisitionLot)}
 
     @property
-    def _lots_with_records_sold(self) -> List[L]:
-        return [lot for lot in self._lots_with_records_realized if isinstance(lot, AcquisitionLot)]
+    def _lots_with_records_sold(self) -> Tuple[L, ...]:
+        return tuple(dict.fromkeys(self._lot_by_record_sold.values()))

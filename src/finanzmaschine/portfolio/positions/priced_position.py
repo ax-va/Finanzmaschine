@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from types import MappingProxyType
-from typing import TypeVar, Generic, List, Tuple, Dict
+from typing import TypeVar, Generic, Dict
 
 from finanzmaschine.portfolio.assets.asset import Asset
 from finanzmaschine.portfolio.lots.priced_lot import PricedLot
@@ -26,7 +26,3 @@ class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
     @property
     def _lot_by_record_realized(self) -> Dict[P, L]:
         return {record: lot for record, lot in self._lot_by_record_out.items() if isinstance(lot, PricedLot)}
-
-    @property
-    def _lots_with_records_realized(self) -> List[L]:
-        return [lot for lot in self._lots_with_records_out if isinstance(lot, PricedLot)]

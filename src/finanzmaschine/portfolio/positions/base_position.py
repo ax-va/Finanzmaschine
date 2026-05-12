@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Deque, List, Tuple, TypeVar, Dict
+from typing import Tuple, TypeVar, Dict
 
 from finanzmaschine.portfolio.assets.base_asset import BaseAsset
 from finanzmaschine.portfolio.lots.base_lot import BaseLot
@@ -106,8 +106,8 @@ class BasePosition[A, R, L](ABC):
         pass
 
     @property
-    def _lots_with_records_out(self) -> List[L]:
-        return [lot for lot in self._index_by_lot if lot.records_out]
+    def _lots_with_records_out(self) -> Tuple[L, ...]:
+        return tuple(dict.fromkeys(self._lot_by_record_out.values()))
 
     def get_lot_id(self, lot: L) -> str:
         num_lots = len(self._index_by_lot)
