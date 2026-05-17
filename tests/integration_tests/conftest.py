@@ -122,5 +122,15 @@ def ton_etp_position_fifo_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
 
 
 @pytest.fixture(scope="session")
+def ton_etp_position_fifo_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
+    return create_ton_etp_position(df_ton_etp_trade, ["FIFO", "LIFO"])
+
+
+@pytest.fixture(scope="session")
+def ton_etp_position_lifo_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
+    return create_ton_etp_position(df_ton_etp_trade, ["LIFO", "FIFO"])
+
+
+@pytest.fixture(scope="session")
 def ton_etp_position_lifo_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
     return create_ton_etp_position(df_ton_etp_trade, ["LIFO", "LIFO"])
