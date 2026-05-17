@@ -18,19 +18,19 @@ def position(request) -> P:
 
 
 @pytest.fixture(scope="function")
-def golden_values(request) -> pl.DataFrame:
+def df_golden_values(request) -> pl.DataFrame:
     return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
-def transactions_sell(request) -> pl.DataFrame:
+def df_transactions_sell(request) -> pl.DataFrame:
     return request.getfixturevalue(request.param)
 
 
 @pytest.mark.parametrize(
     "position,"
-    "golden_values,"
-    "transactions_sell,"
+    "df_golden_values,"
+    "df_transactions_sell,"
     "expected_position_quantity_open,"
     "expected_position_quantity_closed,"
     "expected_position_proceeds,"
@@ -38,8 +38,8 @@ def transactions_sell(request) -> pl.DataFrame:
     "expected_position_pnl",
     [
         (
-            "ton_etp_position_fifo",
-            "df_ton_etp_fifo",
+            "ton_etp_position_fifo_fifo",
+            "df_expected_ton_etp_fifo_fifo",
             "df_ton_etp_sold",
             Decimal("109.459107"),
             Decimal("811"),
@@ -48,8 +48,8 @@ def transactions_sell(request) -> pl.DataFrame:
             Decimal("-556.32"),
         ),
         (
-            "ton_etp_position_lifo",
-            "df_ton_etp_lifo",
+            "ton_etp_position_lifo_lifo",
+            "df_expected_ton_etp_lifo_lifo",
             "df_ton_etp_sold",
             Decimal("109.459107"),
             Decimal("811"),
@@ -58,12 +58,12 @@ def transactions_sell(request) -> pl.DataFrame:
             Decimal("-176.15"),
         ),
     ],
-    indirect=["position", "golden_values", "transactions_sell"],
+    indirect=["position", "df_golden_values", "df_transactions_sell"],
 )
 def test_close_position(
     position: P,
-    golden_values: pl.DataFrame,
-    transactions_sell: pl.DataFrame,
+    df_golden_values: pl.DataFrame,
+    df_transactions_sell: pl.DataFrame,
     expected_position_quantity_open: Decimal,
     expected_position_quantity_closed: Decimal,
     expected_position_proceeds: Decimal,
@@ -75,9 +75,9 @@ def test_close_position(
 
     # Set initial sell-values
     sell_index = 0
-    base_asset_flow = Decimal(transactions_sell.row(sell_index, named=True)["base_asset_flow"])
+    base_asset_flow = Decimal(df_transactions_sell.row(sell_index, named=True)["base_asset_flow"])
     record_quantity_to_close = abs(base_asset_flow)
-    record_fee_to_close = Decimal(transactions_sell.row(sell_index, named=True)["fee"])
+    record_fee_to_close = Decimal(df_transactions_sell.row(sell_index, named=True)["fee"])
 
     # Set initial lot values
     lot_values = {
@@ -95,64 +95,64 @@ def test_close_position(
         record_quantity_open_before = lot_values[lot]["record_quantity_open_before"]
 
         # Test closing_order
-        expected_record_closing_order = ClosingOrder(golden_values.row(record_index, named=True)["closing_order"])
+        expected_record_closing_order = ClosingOrder(df_golden_values.row(record_index, named=True)["closing_order"])
         assert position.closing_order_by_record_out[record] == expected_record_closing_order
 
         # Test sell_id
-        expected_sell_id = golden_values.row(record_index, named=True)["sell_id"]
+        expected_sell_id = df_golden_values.row(record_index, named=True)["sell_id"]
         assert sell_index + 1 == int(re.search(r"\d+", expected_sell_id).group())
-        expected_operation_type = transactions_sell.row(sell_index, named=True)["operation_type"]
+        expected_operation_type = df_transactions_sell.row(sell_index, named=True)["operation_type"]
         assert expected_operation_type in expected_sell_id
 
         # Test datetime_sold
-        expected_record_datetime_sold = golden_values.row(record_index, named=True)["datetime_sold"]
-        assert transactions_sell.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
+        expected_record_datetime_sold = df_golden_values.row(record_index, named=True)["datetime_sold"]
+        assert df_transactions_sell.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
 
         # Test lot_id
-        expected_lot_id = golden_values.row(record_index, named=True)["lot_id"]
+        expected_lot_id = df_golden_values.row(record_index, named=True)["lot_id"]
         assert position.get_lot_id(lot) == expected_lot_id
 
         # Test datetime_open
-        expected_record_datetime_open = golden_values.row(record_index, named=True)["datetime_open"]
+        expected_record_datetime_open = df_golden_values.row(record_index, named=True)["datetime_open"]
         assert lot.record_in.datetime == expected_record_datetime_open
 
         # Test quantity_open_before
-        expected_record_quantity_open_before = Decimal(golden_values.row(record_index, named=True)["quantity_open_before"])
+        expected_record_quantity_open_before = Decimal(df_golden_values.row(record_index, named=True)["quantity_open_before"])
         assert record_quantity_open_before == expected_record_quantity_open_before
 
         # Test quantity_to_close
-        expected_record_quantity_to_close = Decimal(golden_values.row(record_index, named=True)["quantity_to_close"])
+        expected_record_quantity_to_close = Decimal(df_golden_values.row(record_index, named=True)["quantity_to_close"])
         assert record_quantity_to_close == expected_record_quantity_to_close
 
         # Test quantity_closed
-        expected_record_quantity_closed = Decimal(golden_values.row(record_index, named=True)["quantity_closed"])
+        expected_record_quantity_closed = Decimal(df_golden_values.row(record_index, named=True)["quantity_closed"])
         assert record.quantity == expected_record_quantity_closed
         record_quantity_open_after = record_quantity_open_before - expected_record_quantity_closed
 
         # Test quantity_open_after
-        expected_record_quantity_open_after = Decimal(golden_values.row(record_index, named=True)["quantity_open_after"])
+        expected_record_quantity_open_after = Decimal(df_golden_values.row(record_index, named=True)["quantity_open_after"])
         assert record_quantity_open_after == expected_record_quantity_open_after
 
         # Test quantity_remaining
-        expected_record_quantity_remaining = Decimal(golden_values.row(record_index, named=True)["quantity_remaining"])
+        expected_record_quantity_remaining = Decimal(df_golden_values.row(record_index, named=True)["quantity_remaining"])
         record_quantity_remaining = record_quantity_to_close - record.quantity
         assert record_quantity_remaining == expected_record_quantity_remaining
 
         # Test fee_to_closed
-        expected_record_fee_to_close = Decimal(golden_values.row(record_index, named=True)["fee_to_close"])
+        expected_record_fee_to_close = Decimal(df_golden_values.row(record_index, named=True)["fee_to_close"])
         assert record_fee_to_close == expected_record_fee_to_close
 
         # Test fee_closed
-        expected_record_fee_closed = Decimal(golden_values.row(record_index, named=True)["fee_closed"])
+        expected_record_fee_closed = Decimal(df_golden_values.row(record_index, named=True)["fee_closed"])
         assert record.fee == expected_record_fee_closed
 
         # Test fee_remaining
-        expected_record_fee_remaining = Decimal(golden_values.row(record_index, named=True)["fee_remaining"])
+        expected_record_fee_remaining = Decimal(df_golden_values.row(record_index, named=True)["fee_remaining"])
         record_fee_remaining = record_fee_to_close - record.fee
         assert record_fee_remaining == expected_record_fee_remaining
 
         # Test proceeds
-        expected_record_proceeds = Decimal(golden_values.row(record_index, named=True)["proceeds"])
+        expected_record_proceeds = Decimal(df_golden_values.row(record_index, named=True)["proceeds"])
         record_proceeds = round_to_quantum(
             record.quantity * record.price - record.fee,
             lot.record_in.quote_asset.quantum,
@@ -160,7 +160,7 @@ def test_close_position(
         assert record_proceeds == expected_record_proceeds
 
         # Test cost_basis_sold
-        expected_record_cost_basis_sold = Decimal(golden_values.row(record_index, named=True)["cost_basis_sold"])
+        expected_record_cost_basis_sold = Decimal(df_golden_values.row(record_index, named=True)["cost_basis_sold"])
         record_cost_basis_sold = round_to_quantum(
             record.quantity / lot.record_in.quantity * lot.cost_basis,
             lot.record_in.quote_asset.quantum,
@@ -168,7 +168,7 @@ def test_close_position(
         assert record_cost_basis_sold == expected_record_cost_basis_sold
 
         # Test pnl
-        expected_record_pnl = Decimal(golden_values.row(record_index, named=True)["pnl"])
+        expected_record_pnl = Decimal(df_golden_values.row(record_index, named=True)["pnl"])
         record_pnl = record_proceeds - record_cost_basis_sold
         assert record_pnl == expected_record_pnl
 
@@ -177,10 +177,10 @@ def test_close_position(
         record_fee_to_close = record_fee_remaining
         if record_quantity_to_close == Decimal("0"):
             sell_index += 1
-            if sell_index < len(transactions_sell):
-                base_asset_flow = Decimal(transactions_sell.row(sell_index, named=True)["base_asset_flow"])
+            if sell_index < len(df_transactions_sell):
+                base_asset_flow = Decimal(df_transactions_sell.row(sell_index, named=True)["base_asset_flow"])
                 record_quantity_to_close = abs(base_asset_flow)
-                record_fee_to_close = Decimal(transactions_sell.row(sell_index, named=True)["fee"])
+                record_fee_to_close = Decimal(df_transactions_sell.row(sell_index, named=True)["fee"])
 
         lot_values[lot]["record_quantity_open_before"] = record_quantity_open_after
         lot_values[lot]["lot_quantity_closed"] += record.quantity

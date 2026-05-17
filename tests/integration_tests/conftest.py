@@ -11,8 +11,8 @@ from finanzmaschine.portfolio.records import Direction, CryptoEtpTradeRecord
 
 
 @pytest.fixture(scope="session")
-def df_ton_etp_fifo(data_dir) -> pl.DataFrame:
-    df = pl.read_csv(data_dir / "etps/ton_etp_fifo.csv",
+def df_expected_ton_etp_fifo_fifo(data_dir) -> pl.DataFrame:
+    df = pl.read_csv(data_dir / "etps/expected_ton_etp_fifo_fifo.csv",
         try_parse_dates=True,
         schema_overrides={
           "quantity_open_before": pl.String,
@@ -32,8 +32,8 @@ def df_ton_etp_fifo(data_dir) -> pl.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def df_ton_etp_lifo(data_dir) -> pl.DataFrame:
-    df = pl.read_csv(data_dir / "etps/ton_etp_lifo.csv",
+def df_expected_ton_etp_lifo_lifo(data_dir) -> pl.DataFrame:
+    df = pl.read_csv(data_dir / "etps/expected_ton_etp_lifo_lifo.csv",
         try_parse_dates=True,
         schema_overrides={
           "quantity_open_before": pl.String,
@@ -111,10 +111,10 @@ def create_ton_etp_position(df_ton_etp_trade, closing_order: str) -> CryptoEtpPo
 
 
 @pytest.fixture(scope="session")
-def ton_etp_position_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
+def ton_etp_position_fifo_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
     return create_ton_etp_position(df_ton_etp_trade, "FIFO")
 
 
 @pytest.fixture(scope="session")
-def ton_etp_position_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
+def ton_etp_position_lifo_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
     return create_ton_etp_position(df_ton_etp_trade, "LIFO")
