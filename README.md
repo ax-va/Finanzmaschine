@@ -1,5 +1,3 @@
-# Finanzmaschine
-
 <p align="center">
   <img src="banner.jpeg" alt="Finanzmaschine Banner">
 </p>
