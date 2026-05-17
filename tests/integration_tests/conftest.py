@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import List
 
 import polars as pl
 import pytest
@@ -71,10 +72,11 @@ def df_ton_etp_sold(df_ton_etp_trade) -> pl.DataFrame:
     return df_ton_etp_trade.filter(pl.col("operation_type") == TradeType.SELL)
 
 
-def create_ton_etp_position(df_ton_etp_trade, closing_order: str) -> CryptoEtpPosition:
+def create_ton_etp_position(df_ton_etp_trade, closing_orders: List[str]) -> CryptoEtpPosition:
     base_asset: CryptoEtp = asset_registry.get("CH1297762812")
     position = CryptoEtpPosition(base_asset=base_asset)
-    position.set_closing_order(closing_order)
+    closing_order_index = 0
+    position.set_closing_order(closing_orders[closing_order_index])
 
     for row in df_ton_etp_trade.iter_rows(named=True):
         base_asset_flow = row["base_asset_flow"]
@@ -107,14 +109,18 @@ def create_ton_etp_position(df_ton_etp_trade, closing_order: str) -> CryptoEtpPo
         )
         position.apply(record)
 
+        if row["operation_type"] == TradeType.SELL and closing_order_index < len(closing_orders) - 1:
+            closing_order_index += 1
+            position.set_closing_order(closing_orders[closing_order_index])
+
     return position
 
 
 @pytest.fixture(scope="session")
 def ton_etp_position_fifo_fifo(df_ton_etp_trade) -> CryptoEtpPosition:
-    return create_ton_etp_position(df_ton_etp_trade, "FIFO")
+    return create_ton_etp_position(df_ton_etp_trade, ["FIFO", "FIFO"])
 
 
 @pytest.fixture(scope="session")
 def ton_etp_position_lifo_lifo(df_ton_etp_trade) -> CryptoEtpPosition:
-    return create_ton_etp_position(df_ton_etp_trade, "LIFO")
+    return create_ton_etp_position(df_ton_etp_trade, ["LIFO", "LIFO"])
