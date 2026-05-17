@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pathlib import Path
 from typing import List
 
 import polars as pl
@@ -11,9 +12,9 @@ from finanzmaschine.portfolio.positions import CryptoEtpPosition
 from finanzmaschine.portfolio.records import Direction, CryptoEtpTradeRecord
 
 
-@pytest.fixture(scope="session")
-def df_expected_ton_etp_fifo_fifo(data_dir) -> pl.DataFrame:
-    df = pl.read_csv(data_dir / "etps/expected_ton_etp_fifo_fifo.csv",
+def get_df_expected_ton_etp(file_path: Path) -> pl.DataFrame:
+    df = pl.read_csv(
+        source=file_path,
         try_parse_dates=True,
         schema_overrides={
           "quantity_open_before": pl.String,
@@ -33,24 +34,23 @@ def df_expected_ton_etp_fifo_fifo(data_dir) -> pl.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def df_expected_ton_etp_lifo_lifo(data_dir) -> pl.DataFrame:
-    df = pl.read_csv(data_dir / "etps/expected_ton_etp_lifo_lifo.csv",
-        try_parse_dates=True,
-        schema_overrides={
-          "quantity_open_before": pl.String,
-          "quantity_to_close": pl.String,
-          "quantity_open_after": pl.String,
-          "quantity_closed": pl.String,
-          "quantity_remaining": pl.String,
-          "fee_to_close": pl.String,
-          "fee_closed": pl.String,
-          "fee_remaining": pl.String,
-          "proceeds": pl.String,
-          "cost_basis_sold": pl.String,
-          "pnl": pl.String,
-        },
-    )
-    return df
+def df_expected_ton_etp_fifo_fifo(data_dir: Path) -> pl.DataFrame:
+    return get_df_expected_ton_etp(data_dir / "etps/expected_ton_etp_fifo_fifo.csv")
+
+
+@pytest.fixture(scope="session")
+def df_expected_ton_etp_fifo_lifo(data_dir: Path) -> pl.DataFrame:
+    return get_df_expected_ton_etp(data_dir / "etps/expected_ton_etp_fifo_lifo.csv")
+
+
+@pytest.fixture(scope="session")
+def df_expected_ton_etp_lifo_fifo(data_dir: Path) -> pl.DataFrame:
+    return get_df_expected_ton_etp(data_dir / "etps/expected_ton_etp_lifo_fifo.csv")
+
+
+@pytest.fixture(scope="session")
+def df_expected_ton_etp_lifo_lifo(data_dir: Path) -> pl.DataFrame:
+    return get_df_expected_ton_etp(data_dir / "etps/expected_ton_etp_lifo_lifo.csv")
 
 
 @pytest.fixture(scope="session")
