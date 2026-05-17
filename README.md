@@ -1,4 +1,4 @@
-# Finanzmaschine © 2026 ax-va. All rights reserved.
+# Finanzmaschine
 
 <p align="center">
   <img src="banner.jpeg" alt="Finanzmaschine Banner">
@@ -9,3 +9,5 @@
 - Professional Use: Evaluation only
 
 - Commercial Use: Requires license
+
+© 2026 ax-va. All rights reserved.
