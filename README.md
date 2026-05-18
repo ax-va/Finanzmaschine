@@ -6,6 +6,6 @@
 
 - Professional Use: Evaluation only
 
-- Commercial Use: Requires license
+- Commercial Use: Requires license, please contact me linkedin.com/in/ax-va
 
 © Finanzmaschine 2026 ax-va. All rights reserved.
