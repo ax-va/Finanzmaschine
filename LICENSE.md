@@ -199,8 +199,12 @@ Place of jurisdiction shall be the Author's place of residence, insofar as legal
 
 ## 14. Commercial Licensing
 
-For commercial licensing, production deployment, or partnership inquiries, please contact the Author via GitHub:
+For commercial licensing, production deployment, or partnership inquiries, please contact the Author via GitHub
 
-https://github.com/ax-va
+github.com/ax-va
+
+or via LinkedIn
+
+linkedin.com/in/ax-va
 
 Finanzmaschine © 2026 ax-va. All rights reserved.
