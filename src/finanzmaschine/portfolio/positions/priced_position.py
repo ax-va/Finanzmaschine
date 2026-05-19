@@ -20,6 +20,7 @@ class PricedPosition(BasePosition[A, D | P, L], Generic[A, D, P, L]):
     def _create_lot(self, record_in: P) -> L:
         pass
 
+    @property
     def lot_by_record_realized(self) -> MappingProxyType[P, L]:
         return MappingProxyType(self._lot_by_record_out)
 

@@ -4,4 +4,5 @@ draft/
 private_data/
 __pycache__/
 *.pyc
+*sandbox*
 .idea/
