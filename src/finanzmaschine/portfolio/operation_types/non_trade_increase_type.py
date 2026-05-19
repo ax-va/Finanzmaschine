@@ -2,4 +2,4 @@ from finanzmaschine.portfolio.operation_types.priced_operation_type import Price
 
 
 class NonTradeIncreaseType(PricedOperationType):
-    TRANSFER_OUT = "TRANSFER_OUT"
+    TRANSFER_IN = "TRANSFER_IN"
