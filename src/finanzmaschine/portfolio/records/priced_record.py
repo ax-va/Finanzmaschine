@@ -49,7 +49,7 @@ class PricedRecord[Q: Asset, T: PricedOperationType](BaseRecord[T]):
         fee_remaining = Fee(
             tuple(
                 FeeComponent(
-                    amount=round_to_quantum(c.amount - c_closing.amount, c.asset.quantum),
+                    amount=c.amount - c_closing.amount,
                     asset=c.asset,
                 ) for c, c_closing in zip(self.fee.components, fee_closing.components)
             )
