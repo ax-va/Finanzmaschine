@@ -7,6 +7,8 @@ import pytest
 
 from finanzmaschine.catalog import asset_registry
 from finanzmaschine.portfolio.assets import CryptoEtp
+from finanzmaschine.portfolio.fees.fee import Fee
+from finanzmaschine.portfolio.fees.fee_component import FeeComponent
 from finanzmaschine.portfolio.operation_types import TradeType
 from finanzmaschine.portfolio.positions import CryptoEtpPosition
 from finanzmaschine.portfolio.records import Direction, CryptoEtpTradeRecord
@@ -101,7 +103,7 @@ def create_ton_etp_position(df_ton_etp_trade, closing_orders: List[str]) -> Cryp
             operation_type=operation_type,
             quote_asset=quote_asset,
             price=price,
-            fee=fee,
+            fee=Fee(components=(FeeComponent(amount=fee, asset=quote_asset),)),
             broker=broker,
             order_id=order_id,
             exchange=exchange,

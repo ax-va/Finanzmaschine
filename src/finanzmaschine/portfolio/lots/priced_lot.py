@@ -26,7 +26,7 @@ class PricedLot(BaseLot[A, D | P, P], Generic[A, D, P]):
         # workaround for typechecker
         record_in: PricedRecord = self._record_in
         return round_to_quantum(
-            record_in.gross_value + record_in.fee,
+            record_in.gross_value + record_in.fee.get_total(record_in.quote_asset),
             record_in.quote_asset.quantum,
         )
 

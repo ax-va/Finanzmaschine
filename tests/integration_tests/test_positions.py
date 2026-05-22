@@ -164,17 +164,17 @@ def test_close_position(
 
         # Test fee_closed
         expected_record_fee_closed = Decimal(df_golden_values.row(record_index, named=True)["fee_closed"])
-        assert record.fee == expected_record_fee_closed
+        assert record.fee.get_total(lot.single_quote_asset) == expected_record_fee_closed
 
         # Test fee_remaining
         expected_record_fee_remaining = Decimal(df_golden_values.row(record_index, named=True)["fee_remaining"])
-        record_fee_remaining = record_fee_to_close - record.fee
+        record_fee_remaining = record_fee_to_close - record.fee.get_total(lot.single_quote_asset)
         assert record_fee_remaining == expected_record_fee_remaining
 
         # Test proceeds
         expected_record_proceeds = Decimal(df_golden_values.row(record_index, named=True)["proceeds"])
         record_proceeds = round_to_quantum(
-            record.quantity * record.price - record.fee,
+            record.quantity * record.price - record.fee.get_total(lot.single_quote_asset),
             lot.record_in.quote_asset.quantum,
         )
         assert record_proceeds == expected_record_proceeds

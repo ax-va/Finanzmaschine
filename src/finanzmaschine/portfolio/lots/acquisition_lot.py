@@ -53,7 +53,7 @@ class AcquisitionLot(PricedLot[A, D | T, I | T], Generic[A, D, T, I]):
         # workaround for type checker
         r_out: TradeRecord
         return round_to_quantum(
-            safe_sum(r_out.gross_value - r_out.fee for r_out in self._records_sold),
+            safe_sum(r_out.gross_value - r_out.fee.get_total(self.single_quote_asset) for r_out in self._records_sold),
             self.single_quote_asset.quantum,
         )
 
