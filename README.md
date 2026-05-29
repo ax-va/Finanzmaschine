@@ -10,4 +10,4 @@ Finanzmaschine is a Python library designed to provide transparent and verifiabl
 
 - Commercial Use: Requires license
 
-Finanzmaschine © 2026 ax-va. All rights reserved.
+Finanzmaschine © 2026 ax-va. All rights ax-va reserved.
