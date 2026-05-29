@@ -1,6 +1,6 @@
 venv/
 private/
-draft/
+py/finanzmaschine-core/draft/
 private_data/
 __pycache__/
 *.pyc
