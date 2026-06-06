@@ -24,14 +24,14 @@ def df_golden_values(request) -> pl.DataFrame:
 
 
 @pytest.fixture(scope="function")
-def df_selling(request) -> pl.DataFrame:
+def df_sold(request) -> pl.DataFrame:
     return request.getfixturevalue(request.param)
 
 
 @pytest.mark.parametrize(
     "position,"
     "df_golden_values,"
-    "df_selling,"
+    "df_sold,"
     "expected_position_quantity_open,"
     "expected_position_quantity_closed,"
     "expected_position_proceeds_sold,"
@@ -79,12 +79,12 @@ def df_selling(request) -> pl.DataFrame:
             Decimal("-176.15"),
         ),
     ],
-    indirect=["position", "df_golden_values", "df_selling"],
+    indirect=["position", "df_golden_values", "df_sold"],
 )
 def test_close_position_by_selling(
     position: P,
     df_golden_values: pl.DataFrame,
-    df_selling: pl.DataFrame,
+    df_sold: pl.DataFrame,
     expected_position_quantity_open: Decimal,
     expected_position_quantity_closed: Decimal,
     expected_position_proceeds_sold: Decimal,
@@ -96,9 +96,9 @@ def test_close_position_by_selling(
 
     # Set initial sell-values
     sell_index = 0
-    base_asset_flow = Decimal(df_selling.row(sell_index, named=True)["base_asset_flow"])
+    base_asset_flow = Decimal(df_sold.row(sell_index, named=True)["base_asset_flow"])
     record_quantity_to_close = abs(base_asset_flow)
-    record_fee_to_close = Decimal(df_selling.row(sell_index, named=True)["fee"])
+    record_fee_to_close = Decimal(df_sold.row(sell_index, named=True)["fee"])
 
     # Set initial lot values
     lot_values = {
@@ -122,14 +122,14 @@ def test_close_position_by_selling(
         # Test sell_id
         expected_sell_id = df_golden_values.row(index, named=True)["sell_id"]
         assert sell_index + 1 == int(re.search(r"\d+", expected_sell_id).group())
-        operation_type_str = df_selling.row(sell_index, named=True)["operation_type"]
-        operation_variant_str = df_selling.row(sell_index, named=True)["operation_variant"]
+        operation_type_str = df_sold.row(sell_index, named=True)["operation_type"]
+        operation_variant_str = df_sold.row(sell_index, named=True)["operation_variant"]
         operation_named_tuple = parse_operation(operation_type_str, operation_variant_str)
         assert operation_named_tuple.variant in expected_sell_id
 
         # Test datetime_sold
         expected_record_datetime_sold = df_golden_values.row(index, named=True)["datetime_sold"]
-        assert df_selling.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
+        assert df_sold.row(sell_index, named=True)["datetime"] == expected_record_datetime_sold
 
         # Test lot_id
         expected_lot_id = df_golden_values.row(index, named=True)["lot_id"]
@@ -200,10 +200,10 @@ def test_close_position_by_selling(
         record_fee_to_close = record_fee_remaining
         if record_quantity_to_close == Decimal("0"):
             sell_index += 1
-            if sell_index < len(df_selling):
-                base_asset_flow = Decimal(df_selling.row(sell_index, named=True)["base_asset_flow"])
+            if sell_index < len(df_sold):
+                base_asset_flow = Decimal(df_sold.row(sell_index, named=True)["base_asset_flow"])
                 record_quantity_to_close = abs(base_asset_flow)
-                record_fee_to_close = Decimal(df_selling.row(sell_index, named=True)["fee"])
+                record_fee_to_close = Decimal(df_sold.row(sell_index, named=True)["fee"])
 
         lot_values[lot]["record_quantity_open_before"] = record_quantity_open_after
         lot_values[lot]["lot_quantity_closed"] += record.quantity
