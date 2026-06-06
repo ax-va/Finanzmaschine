@@ -3,7 +3,7 @@ name = "finanzmaschine-core"
 version = "0.1.0"
 description = "Finanzmaschine Core"
 authors = ["ax-va"]
-license = {file="../../LICENSE.md"}
+license = "../../LICENSE.md"
 readme = "README.md"
 packages = [{ include = "finanzmaschine", from = "src" }]
 keywords = ["finance", "crypto", "trading", "investments", "performance-analysis"]

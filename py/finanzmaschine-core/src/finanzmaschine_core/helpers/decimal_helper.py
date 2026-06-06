@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from typing import Iterable
 
 
@@ -20,3 +20,12 @@ def is_zero(value: Decimal, quantum: str) -> bool:
 
 def round_to_zero(value: Decimal, quantum: str) -> Decimal:
     return Decimal("0") if is_zero(value, quantum) else value
+
+
+def validate_precision(value: Decimal, quantum: str) -> None:
+    try:
+        quantized = value.quantize(Decimal(quantum))
+    except InvalidOperation:
+        raise ValueError(f"Value {value} exceeds precision of {quantum}")
+    if value != quantized:
+        raise ValueError(f"Value {value} does not equal to {quantum}")

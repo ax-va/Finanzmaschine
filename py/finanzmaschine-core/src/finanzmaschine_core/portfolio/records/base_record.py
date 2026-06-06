@@ -2,27 +2,20 @@ from abc import ABC
 from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import Decimal
-from enum import StrEnum
 from typing import Self, Any, Tuple
 
-from finanzmaschine_core.portfolio.operation_types.base_operation_type import BaseOperationType
+from finanzmaschine_core.portfolio.operations.base_operation_enum import BaseOperationEnum
 
 
-class Direction(StrEnum):
-    IN = "IN"
-    OUT = "OUT"
-
-
-@dataclass(frozen=True, eq=False)
-class BaseRecord[T: BaseOperationType](ABC):
+@dataclass(frozen=True, eq=False, kw_only=True)
+class BaseRecord[OP: BaseOperationEnum](ABC):
     """
     Base class for all internal lot records.
     Not to be confused with a broker transaction.
     """
     quantity: Decimal
     datetime: datetime
-    direction: Direction
-    operation_type: T
+    operation: OP
 
     def __hash__(self) -> int:
         return id(self)

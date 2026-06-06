@@ -1,10 +1,20 @@
 from dataclasses import dataclass
+from decimal import Decimal
+from typing import Tuple, Self, override
 
 from finanzmaschine_core.portfolio.assets.asset import Asset
-from finanzmaschine_core.portfolio.operation_types.trade_type import TradeType
-from finanzmaschine_core.portfolio.records.priced_record import PricedRecord
+from finanzmaschine_core.portfolio.operations.trade_enum import TradeEnum
+from finanzmaschine_core.portfolio.records.base_record import BaseRecord
+from finanzmaschine_core.portfolio.records.mixins.price_fee_mixin import PriceFeeMixin
 
 
-@dataclass(frozen=True, eq=False)
-class TradeRecord[Q: Asset, T: TradeType](PricedRecord[Q, T]):
-    pass
+@dataclass(frozen=True, eq=False, kw_only=True)
+class TradeRecord[Q: Asset](BaseRecord[TradeEnum], PriceFeeMixin[Q]):
+
+    def __post_init__(self) -> None:
+        BaseRecord.__post_init__(self)
+        PriceFeeMixin.__post_init__(self)
+
+    @override
+    def split(self, quantity: Decimal) -> Tuple[Self, Self]:
+        return PriceFeeMixin.split(self, quantity)

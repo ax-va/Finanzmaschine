@@ -4,11 +4,12 @@ from decimal import Decimal
 from typing import Tuple, List
 
 from finanzmaschine_core.portfolio.assets.base_asset import BaseAsset
-from finanzmaschine_core.portfolio.records.base_record import Direction, BaseRecord
-from finanzmaschine_core.helpers.decimal_helper import safe_sum, round_to_quantum
+from finanzmaschine_core.portfolio.operations.direction_enum import DirectionEnum
+from finanzmaschine_core.portfolio.records.base_record import BaseRecord
+from finanzmaschine_core.helpers.decimal_helper import safe_sum, round_to_quantum, validate_precision
 
 
-class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
+class BaseLot[A: BaseAsset, RI: BaseRecord, RO: BaseRecord](ABC):
     """
     Abstract base class to manage internal lot records.
 
@@ -21,29 +22,31 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     quantity_open = quantity_in - quantity_closed.
     """
 
-    def __init__(self, base_asset: A, record_in: I):
+    def __init__(self, base_asset: A, record_in: RI):
+
+        validate_precision(record_in.quantity, base_asset.quantum)
+
+        if record_in.operation.direction != DirectionEnum.IN:
+            raise ValueError(f"Direction of the record-in must always be {DirectionEnum.IN!r}")
+
         self._base_asset: A = base_asset
-
-        if record_in.direction != Direction.IN:
-            raise ValueError(f"Direction of the record-in must always be {Direction.IN!r}")
-
-        self._record_in: I = record_in
-        self._records_out: List[R] = []
+        self._record_in: RI = record_in
+        self._records_out: List[RO] = []
 
     @property
     def base_asset(self) -> A:
         return self._base_asset
 
     @property
-    def record_in(self) -> I:
+    def record_in(self) -> RI:
         return self._record_in
 
     @property
-    def records_out(self) -> Tuple[R, ...]:
+    def records_out(self) -> Tuple[RO, ...]:
         return tuple(self._records_out)
 
     @property
-    def last_record(self) -> R | I:
+    def last_record(self) -> RI | RO:
         return self._record_in if not self._records_out else self._records_out[-1]
 
     @property
@@ -52,10 +55,7 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
 
     @property
     def quantity_open(self) -> Decimal:
-        return round_to_quantum(
-            self._record_in.quantity - self.quantity_closed,
-            self.base_asset.quantum,
-        )
+        return self._record_in.quantity - self.quantity_closed
 
     @property
     def is_open(self) -> bool:
@@ -65,12 +65,14 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
     def is_closed(self) -> bool:
         return not self.is_open
 
-    def reduce(self, record_out: R) -> Tuple[R, R] | None:
+    def reduce(self, record_out: RO) -> Tuple[RO, RO] | None:
         if self.is_closed:
             raise ValueError("Lot already closed")
 
-        if record_out.direction != Direction.OUT:
-            raise ValueError(f"Direction of records-out must always be {Direction.OUT!r}")
+        validate_precision(record_out.quantity, self._base_asset.quantum)
+
+        if record_out.operation.direction != DirectionEnum.OUT:
+            raise ValueError(f"Record-out direction must always be {DirectionEnum.OUT!r}")
 
         if not self.has_valid_datetime(record_out):
             raise ValueError("Records must be in ascending order by date and time")
@@ -84,6 +86,6 @@ class BaseLot[A: BaseAsset, R: BaseRecord, I: BaseRecord](ABC):
         self._records_out.append(record_out)
         return None
 
-    def has_valid_datetime(self, record_out: R) -> bool:
+    def has_valid_datetime(self, record_out: RO) -> bool:
         last_dt: datetime = self.last_record.datetime
         return last_dt <= record_out.datetime

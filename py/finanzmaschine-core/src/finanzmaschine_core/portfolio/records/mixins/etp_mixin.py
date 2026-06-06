@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from finanzmaschine_core.portfolio.records.security_trade_record import SecurityTradeRecord
 
-
-@dataclass(frozen=True, eq=False)
-class EtpTradeRecord(SecurityTradeRecord):
-    entitlement: Decimal | None = None
+@dataclass(frozen=True, eq=False, kw_only=True)
+class EtpMixin:
+    entitlement: Decimal | None
 
     def __post_init__(self) -> None:
         if self.entitlement is not None and not (self.entitlement > 0):
