@@ -1,8 +1,9 @@
-from finanzmaschine_core.portfolio.operations.base_operation_enum import BaseOperationEnum
+from enum import StrEnum
+
 from finanzmaschine_core.portfolio.operations.direction_enum import DirectionEnum
 
 
-class TradeEnum(BaseOperationEnum):
+class TradeEnum(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
 

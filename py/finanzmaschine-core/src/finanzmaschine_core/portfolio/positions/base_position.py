@@ -118,17 +118,17 @@ class BasePosition[A: BaseAsset, RI: BaseRecord, RO: BaseRecord, L: BaseLot](ABC
         self._closing_order = ClosingOrder(value.upper())
 
     def apply(self, record: RI | RO) -> None:
-        if record.operation.direction == DirectionEnum.IN:
+        if record.operation.variant.direction == DirectionEnum.IN:
             lot = self._create_lot(record_in=record)
             self._append(lot)
-        elif record.operation.direction == DirectionEnum.OUT:
+        elif record.operation.variant.direction == DirectionEnum.OUT:
             self._reduce(
                 record_out=record,
                 closing_order=self.closing_order,
             )
         else:
             raise ValueError(
-                f"Direction is neither {DirectionEnum.IN!r} nor {DirectionEnum.OUT!r}: {record.operation.direction}"
+                f"Direction is neither {DirectionEnum.IN!r} nor {DirectionEnum.OUT!r}: {record.operation.variant.direction}"
             )
 
     def _append(self, lot: L) -> None:

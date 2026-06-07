@@ -26,7 +26,7 @@ class BaseLot[A: BaseAsset, RI: BaseRecord, RO: BaseRecord](ABC):
 
         validate_precision(record_in.quantity, base_asset.quantum)
 
-        if record_in.operation.direction != DirectionEnum.IN:
+        if record_in.operation.variant.direction != DirectionEnum.IN:
             raise ValueError(f"Direction of the record-in must always be {DirectionEnum.IN!r}")
 
         self._base_asset: A = base_asset
@@ -71,7 +71,7 @@ class BaseLot[A: BaseAsset, RI: BaseRecord, RO: BaseRecord](ABC):
 
         validate_precision(record_out.quantity, self._base_asset.quantum)
 
-        if record_out.operation.direction != DirectionEnum.OUT:
+        if record_out.operation.variant.direction != DirectionEnum.OUT:
             raise ValueError(f"Record-out direction must always be {DirectionEnum.OUT!r}")
 
         if not self.has_valid_datetime(record_out):

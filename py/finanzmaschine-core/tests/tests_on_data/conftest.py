@@ -8,7 +8,7 @@ import pytest
 from finanzmaschine_core.catalog import asset_registry
 from finanzmaschine_core.portfolio.assets import CryptoEtp
 from finanzmaschine_core.portfolio.operations import TradeEnum
-from finanzmaschine_core.portfolio.operations.operation_parser import parse_operation, OperationNamedTuple
+from finanzmaschine_core.portfolio.operations.operation_parser import parse_operation, Operation
 from finanzmaschine_core.portfolio.positions import CryptoEtpPosition
 from finanzmaschine_core.portfolio.records import CryptoEtpBrokerTradeRecord
 
@@ -92,7 +92,7 @@ def create_ton_etp_position(
     for row in df_ton_etp_flow.iter_rows(named=True):
         operation_group_id = row["operation_group_id"]
         datetime = row["datetime"]
-        operation_named_tuple: OperationNamedTuple = parse_operation(row["operation_type"], row["operation_variant"])
+        operation: Operation = parse_operation(row["operation_type"], row["operation_variant"])
         base_asset_flow = row["base_asset_flow"]
         quantity = abs(Decimal(base_asset_flow))
         entitlement = Decimal(row["entitlement"]) if row["entitlement"] else None
@@ -115,7 +115,7 @@ def create_ton_etp_position(
         record = CryptoEtpBrokerTradeRecord(
             quantity=quantity,
             datetime=datetime,
-            operation=operation_named_tuple.variant,
+            operation=operation,
             quote_asset=quote_asset,
             price=price,
             price_source=price_source,
@@ -129,7 +129,7 @@ def create_ton_etp_position(
         )
         position.apply(record)
 
-        if operation_named_tuple.variant == TradeEnum.SELL and closing_order_index < len(closing_orders) - 1:
+        if operation.variant == TradeEnum.SELL and closing_order_index < len(closing_orders) - 1:
             closing_order_index += 1
             position.set_closing_order(closing_orders[closing_order_index])
 

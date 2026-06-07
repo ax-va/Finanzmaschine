@@ -29,7 +29,7 @@ class PriceFeeMixin[Q: Asset](PriceMixin[Q], FeeMixin):
         return {
             DirectionEnum.IN: self.quote_asset_flow_out,
             DirectionEnum.OUT: self.quote_asset_flow_in,
-        }[self.operation.direction]
+        }[self.operation.variant.direction]
 
     def split(self, quantity: Decimal) -> Tuple[Self, Self]:
         ratio: Decimal = quantity / self.quantity

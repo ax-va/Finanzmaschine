@@ -9,9 +9,12 @@ from finanzmaschine_core.portfolio.records.mixins.price_fee_mixin import PriceFe
 
 
 @dataclass(frozen=True, eq=False, kw_only=True)
-class TradeRecord[Q: Asset](BaseRecord[TradeEnum], PriceFeeMixin[Q]):
+class TradeRecord[Q: Asset](BaseRecord, PriceFeeMixin[Q]):
 
     def __post_init__(self) -> None:
+        if not isinstance(self.operation.variant, TradeEnum):
+            raise ValueError("Operation variant in `TradeRecord` must be of the `TradeEnum` type")
+
         BaseRecord.__post_init__(self)
         PriceFeeMixin.__post_init__(self)
 

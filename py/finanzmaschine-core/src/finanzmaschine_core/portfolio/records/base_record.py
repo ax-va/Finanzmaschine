@@ -4,18 +4,18 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Self, Any, Tuple
 
-from finanzmaschine_core.portfolio.operations.base_operation_enum import BaseOperationEnum
+from finanzmaschine_core.portfolio.operations.operation_parser import Operation
 
 
 @dataclass(frozen=True, eq=False, kw_only=True)
-class BaseRecord[OP: BaseOperationEnum](ABC):
+class BaseRecord(ABC):
     """
     Base class for all internal lot records.
     Not to be confused with a broker transaction.
     """
     quantity: Decimal
     datetime: datetime
-    operation: OP
+    operation: Operation
 
     def __hash__(self) -> int:
         return id(self)

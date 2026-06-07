@@ -7,8 +7,11 @@ from finanzmaschine_core.portfolio.records.mixins.price_mixin import PriceMixin
 
 
 @dataclass(frozen=True, eq=False, kw_only=True)
-class IncomeRecord[Q: Asset](BaseRecord[IncomeEnum], PriceMixin[Q]):
+class IncomeRecord[Q: Asset](BaseRecord, PriceMixin[Q]):
 
     def __post_init__(self) -> None:
+        if not isinstance(self.operation.variant, IncomeEnum):
+            raise ValueError("Operation variant in `IncomeRecord` must be of the `IncomeEnum` type")
+
         BaseRecord.__post_init__(self)
         PriceMixin.__post_init__(self)
