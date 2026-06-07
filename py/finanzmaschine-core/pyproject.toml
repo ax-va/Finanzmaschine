@@ -6,7 +6,7 @@ authors = ["ax-va"]
 license = "../../LICENSE.md"
 readme = "README.md"
 packages = [{ include = "finanzmaschine", from = "src" }]
-keywords = ["finance", "crypto", "trading", "investments", "performance-analysis"]
+keywords = ["finance", "crypto", "trading", "investments", "performance-analysis", "securities", "tax-reporting", "investment-management", "portfolio-accounting"]
 
 [tool.poetry.urls]
 homepage = "https://github.com/ax-va/Finanzmaschine"
