@@ -8,7 +8,7 @@ import pytest
 from finanzmaschine_core.catalog import asset_registry
 from finanzmaschine_core.portfolio.assets import CryptoEtp
 from finanzmaschine_core.portfolio.operations import TradeEnum
-from finanzmaschine_core.portfolio.operations.operation_parser import parse_operation, Operation
+from finanzmaschine_core.portfolio.operations.operation import parse_operation, Operation
 from finanzmaschine_core.portfolio.positions import CryptoEtpPosition
 from finanzmaschine_core.portfolio.records import CryptoEtpBrokerTradeRecord
 

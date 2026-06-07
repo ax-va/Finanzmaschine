@@ -5,7 +5,7 @@ from typing import TypeVar
 import polars as pl
 import pytest
 
-from finanzmaschine_core.portfolio.operations.operation_parser import parse_operation
+from finanzmaschine_core.portfolio.operations.operation import parse_operation
 from finanzmaschine_core.portfolio.positions.base_position import ClosingOrder
 from finanzmaschine_core.helpers.decimal_helper import round_to_quantum
 from finanzmaschine_core.portfolio.positions.priced_position import PricedPosition

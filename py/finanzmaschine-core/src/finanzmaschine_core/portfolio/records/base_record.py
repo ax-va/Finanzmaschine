@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Self, Any, Tuple
 
-from finanzmaschine_core.portfolio.operations.operation_parser import Operation
+from finanzmaschine_core.portfolio.operations.operation import Operation
 
 
 @dataclass(frozen=True, eq=False, kw_only=True)
