@@ -5,6 +5,7 @@ from finanzmaschine_core.portfolio.assets.asset import Asset
 from finanzmaschine_core.portfolio.lots.base_lot import BaseLot
 from finanzmaschine_core.portfolio.records.income_record import IncomeRecord
 from finanzmaschine_core.helpers.decimal_helper import safe_sum, round_to_quantum
+from finanzmaschine_core.portfolio.records.mixins.price_fee_mixin import PriceFeeMixin
 from finanzmaschine_core.portfolio.records.trade_record import TradeRecord
 
 RecordIn = TradeRecord | IncomeRecord
@@ -20,7 +21,7 @@ class PricedLot[A: Asset](BaseLot[A, RecordIn, RecordOut]):
         record_in: RecordIn = self._record_in
         return round_to_quantum(
             value=abs(record_in.quote_asset_flow_out)
-            if hasattr(record_in, "fee")
+            if isinstance(record_in, PriceFeeMixin)
             else record_in.gross_value,
             quantum=record_in.quote_asset.quantum,
         )
@@ -87,10 +88,10 @@ class PricedLot[A: Asset](BaseLot[A, RecordIn, RecordOut]):
     def proceeds_realized(self) -> Decimal:
         return round_to_quantum(
             value=safe_sum(
-                r_out.quote_asset_flow_in
-                if hasattr(r_out, "fee")
-                else r_out.gross_value
-                for r_out in self._records_realized
+                record_realized.quote_asset_flow_in
+                if isinstance(record_realized, PriceFeeMixin)
+                else record_realized.gross_value
+                for record_realized in self._records_realized
             ),
             quantum=self.single_quote_asset_realized.quantum
         )
@@ -99,10 +100,10 @@ class PricedLot[A: Asset](BaseLot[A, RecordIn, RecordOut]):
     def proceeds_sold(self) -> Decimal:
         return round_to_quantum(
             value=safe_sum(
-                r_out.quote_asset_flow_in
-                if hasattr(r_out, "fee")
-                else r_out.gross_value
-                for r_out in self._records_sold
+                record_sold.quote_asset_flow_in
+                if isinstance(record_sold, PriceFeeMixin)
+                else record_sold.gross_value
+                for record_sold in self._records_sold
             ),
             quantum=self.single_quote_asset_sold.quantum
         )
@@ -125,7 +126,7 @@ class PricedLot[A: Asset](BaseLot[A, RecordIn, RecordOut]):
                 f"Different quote assets for sold proceeds and cost basis, respectively: "
                 f"{self.single_quote_asset_sold} and {self.record_in.quote_asset}"
             )
-        return self.proceeds_realized - self.cost_basis_realized
+        return self.proceeds_sold - self.cost_basis_sold
 
     @property
     def _quote_assets_realized(self) -> Set[A]:
