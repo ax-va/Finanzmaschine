@@ -10,7 +10,7 @@ keywords = ["finance", "crypto", "trading", "investments", "performance-analysis
 
 [tool.poetry.urls]
 homepage = "https://github.com/ax-va/Finanzmaschine"
-repository = "https://github.com/ax-va/Finanzmaschine"
+repository = "https://github.com/ax-va/Finanzmaschine/tree/main/py/finanzmaschine-core"
 
 [tool.poetry.dependencies]
 python = "^3.12"
