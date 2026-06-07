@@ -81,7 +81,7 @@ def df_sold(request) -> pl.DataFrame:
     ],
     indirect=["position", "df_golden_values", "df_sold"],
 )
-def test_close_position_by_selling(
+def test_sell_position(
     position: P,
     df_golden_values: pl.DataFrame,
     df_sold: pl.DataFrame,
