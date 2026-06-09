@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from decimal import Decimal
 from types import MappingProxyType
 from typing import Dict, Tuple
@@ -71,6 +70,5 @@ class PricedPosition[A: Asset, L: PricedLot](BasePosition[A, RecordIn, RecordOut
     def _lots_with_records_sold(self) -> Tuple[L, ...]:
         return tuple(dict.fromkeys(self._lot_by_record_sold.values()))
 
-    @abstractmethod
-    def _create_lot(self, record_in: RecordIn) -> L:
-        pass
+    def _create_lot(self, record_in: RecordIn) -> PricedLot:
+        return PricedLot(base_asset=self.base_asset, record_in=record_in)
