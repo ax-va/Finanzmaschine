@@ -1,8 +1,8 @@
+__pycache__/
+.idea/
+*.pyc
 venv/
 private/
-py/finanzmaschine-core/draft/
-private_data/
-__pycache__/
-*.pyc
+*draft*
 *sandbox*
-.idea/
+*temp*
