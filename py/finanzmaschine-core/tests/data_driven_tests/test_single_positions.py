@@ -152,14 +152,14 @@ def test_sell_position(
         assert record.quantity == expected_record_quantity_closed
         record_quantity_open_after = record_quantity_open_before - expected_record_quantity_closed
 
-        # Test quantity_open_after
-        expected_record_quantity_open_after = Decimal(df_golden_values.row(index, named=True)["quantity_open_after"])
-        assert record_quantity_open_after == expected_record_quantity_open_after
-
         # Test quantity_remaining
         expected_record_quantity_remaining = Decimal(df_golden_values.row(index, named=True)["quantity_remaining"])
         record_quantity_remaining = record_quantity_to_close - record.quantity
         assert record_quantity_remaining == expected_record_quantity_remaining
+
+        # Test quantity_open_after
+        expected_record_quantity_open_after = Decimal(df_golden_values.row(index, named=True)["quantity_open_after"])
+        assert record_quantity_open_after == expected_record_quantity_open_after
 
         # Test fee_to_closed
         expected_record_fee_to_close = Decimal(df_golden_values.row(index, named=True)["fee_to_close"])
