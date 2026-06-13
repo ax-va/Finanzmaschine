@@ -32,6 +32,7 @@ def df_sold(request) -> pl.DataFrame:
     "position,"
     "df_golden_values,"
     "df_sold,"
+    "expected_position_quantity_in,"
     "expected_position_quantity_open,"
     "expected_position_quantity_closed,"
     "expected_position_proceeds_sold,"
@@ -42,6 +43,7 @@ def df_sold(request) -> pl.DataFrame:
             "ton_etp_position_fifo_fifo",
             "df_expected_ton_etp_fifo_fifo",
             "df_ton_etp_sold",
+            Decimal("920.459107"),
             Decimal("109.459107"),
             Decimal("811"),
             Decimal("5065.52"),
@@ -52,6 +54,7 @@ def df_sold(request) -> pl.DataFrame:
             "ton_etp_position_fifo_lifo",
             "df_expected_ton_etp_fifo_lifo",
             "df_ton_etp_sold",
+            Decimal("920.459107"),
             Decimal("109.459107"),
             Decimal("811"),
             Decimal("5065.52"),
@@ -62,6 +65,7 @@ def df_sold(request) -> pl.DataFrame:
             "ton_etp_position_lifo_fifo",
             "df_expected_ton_etp_lifo_fifo",
             "df_ton_etp_sold",
+            Decimal("920.459107"),
             Decimal("109.459107"),
             Decimal("811"),
             Decimal("5065.52"),
@@ -72,6 +76,7 @@ def df_sold(request) -> pl.DataFrame:
             "ton_etp_position_lifo_lifo",
             "df_expected_ton_etp_lifo_lifo",
             "df_ton_etp_sold",
+            Decimal("920.459107"),
             Decimal("109.459107"),
             Decimal("811"),
             Decimal("5065.52"),
@@ -85,6 +90,7 @@ def test_sell_position(
     position: P,
     df_golden_values: pl.DataFrame,
     df_sold: pl.DataFrame,
+    expected_position_quantity_in: Decimal,
     expected_position_quantity_open: Decimal,
     expected_position_quantity_closed: Decimal,
     expected_position_proceeds_sold: Decimal,
@@ -103,17 +109,17 @@ def test_sell_position(
     # Set initial lot values
     lot_values = {
         lot: {
+            "lot_quantity_open": lot.record_in.quantity,
             "lot_quantity_closed": Decimal("0"),
             "lot_proceeds_sold": Decimal("0"),
             "lot_cost_basis_sold": Decimal("0"),
             "lot_pnl_sold": Decimal("0"),
-            "record_quantity_open_before": lot.record_in.quantity,
         } for lot in position.lots
     }
 
     for index, (record, lot) in enumerate(position.lot_by_record_sold.items()):
 
-        record_quantity_open_before = lot_values[lot]["record_quantity_open_before"]
+        record_quantity_open_before = lot_values[lot]["lot_quantity_open"]
 
         # Test closing_order
         expected_record_closing_order = ClosingOrder(df_golden_values.row(index, named=True)["closing_order"])
@@ -205,7 +211,7 @@ def test_sell_position(
                 record_quantity_to_close = abs(base_asset_flow)
                 record_fee_to_close = Decimal(df_sold.row(sell_index, named=True)["fee"])
 
-        lot_values[lot]["record_quantity_open_before"] = record_quantity_open_after
+        lot_values[lot]["lot_quantity_open"] = record_quantity_open_after
         lot_values[lot]["lot_quantity_closed"] += record.quantity
         lot_values[lot]["lot_proceeds_sold"] += record_proceeds_sold
         lot_values[lot]["lot_cost_basis_sold"] += record_cost_basis_sold
@@ -214,6 +220,7 @@ def test_sell_position(
     # Test position attributes
     assert position.quantity_open == expected_position_quantity_open
     assert position.quantity_closed == expected_position_quantity_closed
+    assert position.quantity_open + position.quantity_closed == expected_position_quantity_in
     assert position.proceeds_sold == expected_position_proceeds_sold
     assert position.cost_basis_sold == expected_position_cost_basis_sold
     assert position.pnl_sold == expected_position_pnl_sold
@@ -226,7 +233,7 @@ def test_sell_position(
     for lot in position.lots:
 
         # Test lot attributes
-        assert lot.quantity_open == lot_values[lot]["record_quantity_open_before"]
+        assert lot.quantity_open == lot_values[lot]["lot_quantity_open"]
         assert lot.quantity_closed == lot_values[lot]["lot_quantity_closed"]
         assert lot.proceeds_sold == lot_values[lot]["lot_proceeds_sold"]
         assert lot.cost_basis_sold == lot_values[lot]["lot_cost_basis_sold"]
