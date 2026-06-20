@@ -70,12 +70,8 @@ class BaseLot[A: BaseAsset, RI: BaseRecord, RO: BaseRecord](ABC):
             raise ValueError("Lot already closed")
 
         validate_precision(record_out.quantity, self._base_asset.quantum)
-
-        if record_out.operation.variant.direction != DirectionEnum.OUT:
-            raise ValueError(f"Record-out direction must always be {DirectionEnum.OUT!r}")
-
-        if not self.has_valid_datetime(record_out):
-            raise ValueError("Records must be in ascending order by date and time")
+        record_out.validate_direction_out()
+        self.validate_datetime(record_out)
 
         quantity_open = self.quantity_open
         if self.quantity_open < record_out.quantity:
@@ -89,3 +85,7 @@ class BaseLot[A: BaseAsset, RI: BaseRecord, RO: BaseRecord](ABC):
     def has_valid_datetime(self, record_out: RO) -> bool:
         last_dt: datetime = self.last_record.datetime
         return last_dt <= record_out.datetime
+
+    def validate_datetime(self, record_out: RO) -> None:
+        if not self.has_valid_datetime(record_out):
+            raise ValueError("Records must be in ascending order by date and time")

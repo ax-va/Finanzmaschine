@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Self, Any, Tuple
 
+from finanzmaschine_core.portfolio.operations import DirectionEnum
 from finanzmaschine_core.portfolio.operations.operation import Operation
 
 
@@ -32,3 +33,9 @@ class BaseRecord(ABC):
             self.copy(quantity=quantity),
             self.copy(quantity=self.quantity - quantity),
         )
+
+    def validate_direction_out(self) -> None:
+        if self.operation.variant.direction != DirectionEnum.OUT:
+            raise ValueError(
+                f"Direction {DirectionEnum.OUT!r} is expected, but got {self.operation.variant.direction!r}"
+            )

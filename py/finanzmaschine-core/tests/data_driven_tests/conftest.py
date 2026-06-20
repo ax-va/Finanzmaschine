@@ -90,7 +90,7 @@ def create_ton_etp_position(
     position.set_closing_order(closing_orders[closing_order_index])
 
     for row in df_ton_etp_flow.iter_rows(named=True):
-        operation_group_id = row["operation_group_id"]
+        group_id = row["group_id"]
         datetime = row["datetime"]
         operation: Operation = parse_operation(row["operation_type"], row["operation_variant"])
         base_asset_flow = row["base_asset_flow"]
@@ -103,7 +103,7 @@ def create_ton_etp_position(
         fee = Decimal(row["fee"])
 
         metadata_row = df_ton_etp_broker_trade_metadata.filter(
-            pl.col("operation_group_id") == operation_group_id
+            pl.col("group_id") == group_id
         ).row(0, named=True)
 
         broker = metadata_row["broker"]
