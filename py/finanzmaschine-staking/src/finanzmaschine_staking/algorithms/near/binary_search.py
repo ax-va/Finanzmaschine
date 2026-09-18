@@ -22,6 +22,8 @@ def are_balances_equal(
 
 def find_next_balance_change(
     staking_client: StakingClient,
+    account_id: str,
+    pool_id: str,
     left_snapshot: BalanceSnapshot,
     right_block_height: int,
 ) -> BalanceSnapshot | None:
@@ -32,6 +34,8 @@ def find_next_balance_change(
 
     Args:
         staking_client: NEAR staking client.
+        account_id: Account whose staking balance is being searched.
+        pool_id: Staking pool associated with the account.
         left_snapshot: Left snapshot that sets the left block height.
         right_block_height: Right block height.
 
@@ -51,9 +55,6 @@ def find_next_balance_change(
         raise ValueError(
             "`right_block_height` must be greater than `left_snapshot.block_height`"
         )
-
-    account_id = left_snapshot.account_id
-    pool_id = left_snapshot.pool_id
 
     right_snapshot = staking_client.get_snapshot(
         account_id=account_id,
@@ -131,6 +132,8 @@ def find_next_balance_change(
 
 def find_balance_changes(
     staking_client: StakingClient,
+    account_id: str,
+    pool_id: str,
     left_snapshot: BalanceSnapshot,
     right_block_height: int,
 ) -> list[BalanceSnapshot]:
@@ -139,6 +142,8 @@ def find_balance_changes(
 
     Args:
         staking_client: NEAR staking client.
+        account_id: Account whose staking balance is being searched.
+        pool_id: Staking pool associated with the account.
         left_snapshot: Left snapshot that sets the left block height.
         right_block_height: Right block height.
 
@@ -153,6 +158,8 @@ def find_balance_changes(
     while True:
         next_snapshot = find_next_balance_change(
             staking_client=staking_client,
+            account_id=account_id,
+            pool_id=pool_id,
             left_snapshot=left_snapshot,
             right_block_height=right_block_height,
         )
@@ -266,6 +273,8 @@ def find_balance_changes_in_chunks(
         if current_left_snapshot is not None:
             snapshots = find_balance_changes(
                 staking_client=staking_client,
+                account_id=account_id,
+                pool_id=pool_id,
                 left_snapshot=current_left_snapshot,
                 right_block_height=chunk_right_block_height,
             )

@@ -48,8 +48,6 @@ class StakingClient:
         )
 
         return BalanceSnapshot(
-            account_id=account_id,
-            pool_id=pool_id,
             block_height=block_height,
             staked_balance_yocto_str=staked_balance,
             unstaked_balance_yocto_str=unstaked_balance,

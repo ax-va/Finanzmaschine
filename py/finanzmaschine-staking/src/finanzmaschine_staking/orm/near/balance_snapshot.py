@@ -3,12 +3,7 @@ from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class BalanceSnapshot(SQLModel, table=True):
-    __tablename__ = "near_staking_balance_snapshots"
-
-    account_id: str = Field(primary_key=True)
-    pool_id: str = Field(primary_key=True)
-
+class BalanceSnapshot(SQLModel):
     block_height: int = Field(
         primary_key=True,
         foreign_key='near_block_heights.block_height',
