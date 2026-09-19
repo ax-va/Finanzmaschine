@@ -2,11 +2,11 @@ from pathlib import Path
 
 import polars as pl
 
-from finanzmaschine_staking.dataframes.near.balance_snapshots import (
-    SCHEMA,
+from finanzmaschine_staking.dataframes.near.snapshot_storage import (
     BLOCK_HEIGHT,
     STAKED_BALANCE_YOCTO_STR,
     UNSTAKED_BALANCE_YOCTO_STR,
+    SnapshotStorage,
 )
 
 ACCOUNT_KEY = "ACCOUNT_KEY"
@@ -26,10 +26,10 @@ def create_snapshots(
     # Validate schema
     if not all(
         df.schema.get(column) == dtype
-        for column, dtype in SCHEMA.items()
+        for column, dtype in SnapshotStorage.SCHEMA.items()
     ):
         raise ValueError(
-            f"Expected schema to contain {SCHEMA}, got {df.schema}"
+            f"Expected schema to contain {SnapshotStorage.SCHEMA}, got {df.schema}"
         )
 
     return pl.DataFrame(

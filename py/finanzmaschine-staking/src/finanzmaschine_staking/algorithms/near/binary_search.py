@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from finanzmaschine_staking.dataframes.near.balance_snapshots import clear_snapshots, add_snapshot, save_snapshots
+from finanzmaschine_staking.dataframes.near.snapshot_storage import SnapshotStorage
 from finanzmaschine_staking.orm.near.balance_snapshot import BalanceSnapshot
 from finanzmaschine_staking.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
 from finanzmaschine_staking.sync_clients.near.staking_client import StakingClient
@@ -175,6 +175,7 @@ def find_balance_changes(
 
 def find_balance_changes_in_chunks(
     staking_client: StakingClient,
+    snapshot_storage: SnapshotStorage,
     account_id: str,
     pool_id: str,
     left_block_height: int,
@@ -201,6 +202,8 @@ def find_balance_changes_in_chunks(
     Args:
         staking_client:
             Client used to retrieve staking balance snapshots.
+        snapshot_storage:
+            Temporal storage for found balance snapshots.
         account_id:
             Account whose staking balance is being searched.
         pool_id:
@@ -279,7 +282,7 @@ def find_balance_changes_in_chunks(
                 right_block_height=chunk_right_block_height,
             )
 
-            clear_snapshots()
+            snapshot_storage.clear()
 
             if (
                 last_known_snapshot is not None
@@ -287,17 +290,17 @@ def find_balance_changes_in_chunks(
                     current_left_snapshot, last_known_snapshot
                 )
             ):
-                add_snapshot(current_left_snapshot)
+                snapshot_storage.add(current_left_snapshot)
 
             for snapshot in snapshots:
-                add_snapshot(snapshot)
+                snapshot_storage.add(snapshot)
 
             if snapshots:
                 last_known_snapshot = snapshots[-1]
             else:
                 last_known_snapshot = current_left_snapshot
 
-            save_snapshots(target_dir)
+            snapshot_storage.save(target_dir)
 
         chunk_left_block_height = chunk_right_block_height
 
