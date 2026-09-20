@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import polars as pl
+import yaml
 
 from finanzmaschine_staking.dataframes.near.snapshot_storage import (
     BLOCK_HEIGHT,
@@ -8,13 +9,19 @@ from finanzmaschine_staking.dataframes.near.snapshot_storage import (
     UNSTAKED_BALANCE_YOCTO_STR,
     SnapshotStorage,
 )
+from finanzmaschine_staking.orm.near.snapshot_metadata import SnapshotMetadata
 
-ACCOUNT_KEY = "ACCOUNT_KEY"
-POOL_ID = "POOL_ID"
+ACCOUNT_KEY = "account_key"
+POOL_ID = "pool_id"
 
 
-def load_snapshots(parquet_path: str | Path) -> pl.DataFrame:
-    return pl.read_parquet(parquet_path)
+def load_snapshots(file_path: str | Path) -> pl.DataFrame:
+    return pl.read_parquet(file_path)
+
+
+def load_metadata(file_path: str | Path) -> SnapshotMetadata:
+    with Path(file_path).open() as f:
+        return SnapshotMetadata.model_validate(yaml.safe_load(f))
 
 
 def create_snapshots(

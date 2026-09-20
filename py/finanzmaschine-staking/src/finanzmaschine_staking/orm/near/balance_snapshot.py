@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel
 class BalanceSnapshot(SQLModel):
     block_height: int = Field(
         primary_key=True,
-        foreign_key='near_block_heights.block_height',
+        foreign_key='near_blocks.block_height',
         sa_type=BigInteger,
     )
 

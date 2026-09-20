@@ -100,25 +100,17 @@ class RpcClient:
                 }
         }
 
-        response = self._client.post(
+        data = self._post(
             self.ARCHIVAL_MAINNET_URL,
-            json=payload,
+            payload=payload,
         )
-
-        response.raise_for_status()
-        data = response.json()
-
-        if "error" in data:
-            raise RuntimeError(
-                f"NEAR RPC error: {data['error']}"
-            )
 
         result = data["result"]["result"]
 
         return bytes(result)
 
     @retry(
-        max_retries=5,
+        max_retries=10,
         min_retry_delay_sec=3.0,
         exceptions=(
             httpx.HTTPStatusError,
@@ -127,17 +119,54 @@ class RpcClient:
     )
     @rate_limit(min_interval_sec=3.0)
     def get_final_block_height(self) -> int:
+
+        block = self._get_block(
+            url=self.MAINNET_URL,
+            params={
+                "finality": "final",
+            }
+        )
+
+        return block["header"]["height"]
+
+    @retry(
+        max_retries=10,
+        min_retry_delay_sec=3.0,
+        exceptions=(
+            httpx.HTTPStatusError,
+            httpx.ReadTimeout,
+        ),
+    )
+    @rate_limit(min_interval_sec=3.0)
+    @handle_block_height_not_found
+    def get_block_timestamp_nanosec(self, block_height: int) -> int:
+        block = self._get_block(
+            url=self.ARCHIVAL_MAINNET_URL,
+            params={
+                "block_id": block_height,
+            }
+        )
+
+        return int(block["header"]["timestamp_nanosec"])
+
+    def _get_block(self, url: str, params: dict) -> dict:
         payload = {
             "jsonrpc": "2.0",
             "id": "staking",
             "method": "block",
-            "params": {
-                "finality": "final",
-                }
+            "params": params,
         }
 
+        data = self._post(
+            url=url,
+            payload=payload,
+        )
+
+        return data["result"]
+
+    def _post(self, url: str, payload: dict) -> dict:
         response = self._client.post(
-            self.MAINNET_URL,
+            url=url,
             json=payload,
         )
 
@@ -149,4 +178,4 @@ class RpcClient:
                 f"NEAR RPC error: {data['error']}"
             )
 
-        return data["result"]["header"]["height"]
+        return data
