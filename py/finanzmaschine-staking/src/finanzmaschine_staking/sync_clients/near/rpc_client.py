@@ -8,6 +8,10 @@ import httpx
 from finanzmaschine_staking.sync_clients.decorators import retry, rate_limit
 from finanzmaschine_staking.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
 
+MAX_RETRIES = 10
+MIN_RETRY_DELAY_SEC = 3.0
+MIN_INTERVAL_SEC = 3.0
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,14 +54,16 @@ class RpcClient:
         self._client = client
 
     @retry(
-        max_retries=10,
-        min_retry_delay_sec=3.0,
+        max_retries=MAX_RETRIES,
+        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
         ),
     )
-    @rate_limit(min_interval_sec=3.0)
+    @rate_limit(
+        min_interval_sec=MIN_INTERVAL_SEC,
+    )
     @handle_block_height_not_found
     def call_view_function(
         self,
@@ -110,14 +116,16 @@ class RpcClient:
         return bytes(result)
 
     @retry(
-        max_retries=10,
-        min_retry_delay_sec=3.0,
+        max_retries=MAX_RETRIES,
+        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
         ),
     )
-    @rate_limit(min_interval_sec=3.0)
+    @rate_limit(
+        min_interval_sec=MIN_INTERVAL_SEC,
+    )
     def get_final_block_height(self) -> int:
 
         block = self._get_block(
@@ -130,14 +138,16 @@ class RpcClient:
         return block["header"]["height"]
 
     @retry(
-        max_retries=10,
-        min_retry_delay_sec=3.0,
+        max_retries=MAX_RETRIES,
+        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
         ),
     )
-    @rate_limit(min_interval_sec=3.0)
+    @rate_limit(
+        min_interval_sec=MIN_INTERVAL_SEC,
+    )
     @handle_block_height_not_found
     def get_block_timestamp_nanosec(self, block_height: int) -> int:
         block = self._get_block(
