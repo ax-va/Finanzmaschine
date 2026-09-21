@@ -17,8 +17,12 @@ class Block(SQLModel, table=True):
     )
 
     @property
-    def timestamp(self) -> datetime:
-        return datetime.fromtimestamp(
-            self.timestamp_nanosec / 1e9,
-            tz=timezone.utc,
+    def datetime_utc(self) -> datetime:
+        seconds, nanoseconds = divmod(
+            self.timestamp_nanosec, 1_000_000_000
         )
+
+        return datetime.fromtimestamp(
+            seconds,
+            tz=timezone.utc,
+        ).replace(microsecond=nanoseconds // 1_000)
