@@ -27,6 +27,10 @@ class SnapshotStorage:
     def __init__(self):
         self._snapshots = pl.DataFrame(schema=self.SCHEMA)
 
+    @property
+    def snapshots(self) -> pl.DataFrame:
+        return self._snapshots
+
     def add(
         self,
         snapshot: BalanceSnapshot,
