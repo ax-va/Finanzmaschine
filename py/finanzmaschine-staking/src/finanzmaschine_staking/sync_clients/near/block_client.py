@@ -14,9 +14,9 @@ class BlockClient:
 
     @lru_cache(maxsize=4096)
     def get_block(self, block_height: int) -> Block:
-        timestamp_nanosec = self._rpc_client.get_block_timestamp_nanosec(block_height)
+        timestamp_nanoseconds = self._rpc_client.get_block_timestamp_nanoseconds(block_height)
 
         return Block(
             block_height=block_height,
-            timestamp_nanosec=timestamp_nanosec,
+            timestamp_nanoseconds=timestamp_nanoseconds,
         )

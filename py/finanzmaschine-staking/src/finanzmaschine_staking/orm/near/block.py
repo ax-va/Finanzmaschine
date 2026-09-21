@@ -12,14 +12,14 @@ class Block(SQLModel, table=True):
         sa_type=BigInteger,
     )
 
-    timestamp_nanosec: int = Field(
+    timestamp_nanoseconds: int = Field(
         sa_type=BigInteger,
     )
 
     @property
     def datetime_utc(self) -> datetime:
         seconds, nanoseconds = divmod(
-            self.timestamp_nanosec, 1_000_000_000
+            self.timestamp_nanoseconds, 1_000_000_000
         )
 
         return datetime.fromtimestamp(

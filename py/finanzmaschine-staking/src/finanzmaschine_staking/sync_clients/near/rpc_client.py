@@ -149,7 +149,7 @@ class RpcClient:
         min_interval_sec=MIN_INTERVAL_SEC,
     )
     @handle_block_height_not_found
-    def get_block_timestamp_nanosec(self, block_height: int) -> int:
+    def get_block_timestamp_nanoseconds(self, block_height: int) -> int:
         block = self._get_block(
             url=self.ARCHIVAL_MAINNET_URL,
             params={
