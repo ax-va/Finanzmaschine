@@ -25,26 +25,26 @@ class SnapshotStorage:
     }
 
     def __init__(self):
-        self._snapshots = pl.DataFrame(schema=self.SCHEMA)
+        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
 
     @property
-    def snapshots(self) -> pl.DataFrame:
-        return self._snapshots
+    def df_balance_snapshots(self) -> pl.DataFrame:
+        return self._df_snapshots
 
     def add(
         self,
         snapshot: BalanceSnapshot,
     ) -> None:
-        duplicates = self._snapshots.filter(
+        df_duplicates: pl.DataFrame = self._df_snapshots.filter(
             (pl.col(BLOCK_HEIGHT) == snapshot.block_height)
         )
 
-        if not duplicates.is_empty():
+        if not df_duplicates.is_empty():
             raise ValueError(
                 f"Snapshot already exists for {BLOCK_HEIGHT}={snapshot.block_height}"
             )
 
-        row = pl.DataFrame(
+        df_row = pl.DataFrame(
             {
                 BLOCK_HEIGHT: [snapshot.block_height],
                 STAKED_BALANCE_YOCTO_STR: [snapshot.staked_balance_yocto_str],
@@ -53,8 +53,8 @@ class SnapshotStorage:
             schema=self.SCHEMA,
         )
 
-        self._snapshots = (
-            pl.concat([self._snapshots, row])
+        self._df_snapshots: pl.DataFrame = (
+            pl.concat([self._df_snapshots, df_row])
             .sort([BLOCK_HEIGHT])
         )
 
@@ -63,7 +63,7 @@ class SnapshotStorage:
         self,
         block_height: int,
     ) -> BalanceSnapshot | None:
-        df_snapshot = self._snapshots.filter(
+        df_snapshot: pl.DataFrame = self._df_snapshots.filter(
             (pl.col(BLOCK_HEIGHT) == block_height)
         )
 
@@ -75,7 +75,7 @@ class SnapshotStorage:
                 f"Multiple snapshots found for {BLOCK_HEIGHT}={block_height}"
             )
 
-        row = df_snapshot.row(0, named=True)
+        row: dict = df_snapshot.row(0, named=True)
 
         return BalanceSnapshot(
             block_height=row[BLOCK_HEIGHT],
@@ -94,16 +94,16 @@ class SnapshotStorage:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
 
         file_stem = (
-            target_dir / f"near_balance_snapshots_{timestamp}"
+            target_dir / f"near_balance_df_snapshots_{timestamp}"
         )
 
-        self._snapshots.write_csv(
+        self._df_snapshots.write_csv(
             file_stem.with_suffix(".csv")
         )
-        self._snapshots.write_parquet(
+        self._df_snapshots.write_parquet(
             file_stem.with_suffix(".parquet")
         )
 
 
     def clear(self) -> None:
-        self._snapshots = pl.DataFrame(schema=self.SCHEMA)
+        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
