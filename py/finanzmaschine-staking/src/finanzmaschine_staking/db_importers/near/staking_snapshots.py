@@ -3,7 +3,6 @@ from typing import Iterable
 
 import polars as pl
 
-from finanzmaschine_staking.dataframes.near.snapshot_storage import BLOCK_HEIGHT
 from finanzmaschine_staking.dataframes.near.staking_snapshots import (
     create_staking_snapshots,
     load_snapshots_metadata,
@@ -12,6 +11,7 @@ from finanzmaschine_staking.dataframes.near.staking_snapshots import (
 from finanzmaschine_staking.orm.near.block import Block
 from finanzmaschine_staking.repositories.near.block_repository import BlockRepository
 from finanzmaschine_staking.repositories.near.snapshot_repository import SnapshotRepository
+from finanzmaschine_staking.storage.near.snapshot_storage import BLOCK_HEIGHT
 from finanzmaschine_staking.sync_clients.near.block_client import BlockClient
 
 
