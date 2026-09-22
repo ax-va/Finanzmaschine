@@ -26,9 +26,30 @@ class SnapshotStorage:
         UNSTAKED_BALANCE_YOCTO_STR: pl.String,
     }
 
-    def __init__(self, metadata: SnapshotMetadata) -> None:
+    def __init__(
+        self,
+        metadata: SnapshotMetadata,
+        target_dir: str | Path | None = None,
+    ) -> None:
+        """
+        Args:
+            metadata:
+                A metadata object containing an account key and a pool ID.
+            target_dir:
+                Directory where metadata and balance snapshots from completed chunks are saved.
+                If omitted, a timestamped subdirectory is created in the current working directory.
+        """
         self._metadata: SnapshotMetadata = metadata
-        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
+        self._df_balance_snapshots = pl.DataFrame(schema=self.SCHEMA)
+
+        if target_dir is not None:
+            self._target_dir = Path(target_dir)
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            self._target_dir = Path.cwd() / f"snapshots_{timestamp}"
+
+        self._target_dir.mkdir(parents=True, exist_ok=True)
+        self._metadata_path = self._target_dir / "near_metadata.yaml"
 
     @property
     def metadata(self) -> SnapshotMetadata:
@@ -36,13 +57,13 @@ class SnapshotStorage:
 
     @property
     def df_balance_snapshots(self) -> pl.DataFrame:
-        return self._df_snapshots
+        return self._df_balance_snapshots
 
     def add(
         self,
         snapshot: BalanceSnapshot,
     ) -> None:
-        df_duplicates: pl.DataFrame = self._df_snapshots.filter(
+        df_duplicates: pl.DataFrame = self._df_balance_snapshots.filter(
             (pl.col(BLOCK_HEIGHT) == snapshot.block_height)
         )
 
@@ -60,8 +81,8 @@ class SnapshotStorage:
             schema=self.SCHEMA,
         )
 
-        self._df_snapshots: pl.DataFrame = (
-            pl.concat([self._df_snapshots, df_row])
+        self._df_balance_snapshots: pl.DataFrame = (
+            pl.concat([self._df_balance_snapshots, df_row])
             .sort([BLOCK_HEIGHT])
         )
 
@@ -69,7 +90,7 @@ class SnapshotStorage:
         self,
         block_height: int,
     ) -> BalanceSnapshot | None:
-        df_snapshot: pl.DataFrame = self._df_snapshots.filter(
+        df_snapshot: pl.DataFrame = self._df_balance_snapshots.filter(
             (pl.col(BLOCK_HEIGHT) == block_height)
         )
 
@@ -90,42 +111,27 @@ class SnapshotStorage:
         )
 
     def clear(self) -> None:
-        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
+        self._df_balance_snapshots = pl.DataFrame(schema=self.SCHEMA)
 
-    def save(
-        self,
-        target_dir: str | Path | None = None,
-    ) -> None:
+    def save(self) -> None:
+        self._save_metadata()
+        self._save_balance_snapshots()
 
-        if target_dir is not None:
-            target_dir = Path(target_dir)
-
-        else:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            target_dir = Path.cwd() / f"snapshots_{timestamp}"
-
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        self._save_metadata(target_dir)
-        self._save_balance_snapshots(target_dir)
-
-    def _save_metadata(self, target_dir: Path) -> None:
-        metadata_path = target_dir / "metadata.yaml"
-
-        if not metadata_path.exists():
-            with metadata_path.open("w") as f:
+    def _save_metadata(self) -> None:
+        if not self._metadata_path.exists():
+            with self._metadata_path.open("w") as f:
                 yaml.safe_dump(self._metadata.model_dump(), f)
 
-    def _save_balance_snapshots(self, target_dir: Path) -> None:
+    def _save_balance_snapshots(self) -> None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
         file_stem = (
-            target_dir / f"near_balance_df_snapshots_{timestamp}"
+            self._target_dir / f"near_balance_snapshots_{timestamp}"
         )
 
-        self._df_snapshots.write_csv(
+        self._df_balance_snapshots.write_csv(
             file_stem.with_suffix(".csv")
         )
-        self._df_snapshots.write_parquet(
+        self._df_balance_snapshots.write_parquet(
             file_stem.with_suffix(".parquet")
         )

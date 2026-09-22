@@ -23,7 +23,7 @@ def import_staking_snapshots(
 ) -> None:
     source_dir = Path(source_dir)
 
-    metadata = load_snapshots_metadata(source_dir / "metadata.yaml")
+    metadata = load_snapshots_metadata(source_dir / "near_metadata.yaml")
 
     for parquet_path in sorted(source_dir.glob("*.parquet")):
         df_balance_snapshots: pl.DataFrame = load_balance_snapshots(parquet_path)

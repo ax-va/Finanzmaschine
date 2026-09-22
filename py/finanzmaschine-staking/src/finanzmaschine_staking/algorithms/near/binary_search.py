@@ -21,11 +21,11 @@ def are_balances_equal(
 
 
 def find_next_balance_change(
-    staking_client: StakingClient,
     account_id: str,
     pool_id: str,
     left_snapshot: BalanceSnapshot,
     right_block_height: int,
+    staking_client: StakingClient,
 ) -> BalanceSnapshot | None:
     """
     Finds the next snapshot with changed balance (staked or unstaked balances)
@@ -33,11 +33,11 @@ def find_next_balance_change(
     Returns `None`, if no balance snapshot is detected in the given interval.
 
     Args:
-        staking_client: NEAR staking client.
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
         left_snapshot: Left snapshot that sets the left block height.
         right_block_height: Right block height.
+        staking_client: NEAR staking client.
 
     Returns:
         The snapshot of the next balance change or `None`.
@@ -131,21 +131,21 @@ def find_next_balance_change(
 
 
 def find_balance_changes(
-    staking_client: StakingClient,
     account_id: str,
     pool_id: str,
     left_snapshot: BalanceSnapshot,
     right_block_height: int,
+    staking_client: StakingClient,
 ) -> list[BalanceSnapshot]:
     """
     Finds all balance changes between left snapshot and right block height.
 
     Args:
-        staking_client: NEAR staking client.
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
         left_snapshot: Left snapshot that sets the left block height.
         right_block_height: Right block height.
+        staking_client: NEAR staking client.
 
     Returns:
         The snapshots in ascending block-height order.
@@ -174,13 +174,12 @@ def find_balance_changes(
 
 
 def find_balance_changes_in_chunks(
+    account_id: str,
     staking_client: StakingClient,
     snapshot_storage: SnapshotStorage,
-    account_id: str,
     left_block_height: int,
     right_block_height: int | None = None,
     chunk_size: int = 1_000_000,
-    target_dir: str | Path | None = None,
     last_known_snapshot: BalanceSnapshot | None = None
 ) -> None:
     """
@@ -199,12 +198,12 @@ def find_balance_changes_in_chunks(
     from a previously completed chunk without losing a balance change at the chunk boundary.
 
     Args:
+        account_id:
+            Account whose staking balance is being searched.
         staking_client:
             Client used to retrieve staking balance snapshots.
         snapshot_storage:
             Temporal storage for metadata and found balance snapshots.
-        account_id:
-            Account whose staking balance is being searched.
         left_block_height:
             Left boundary of the block range.
         right_block_height:
@@ -213,9 +212,6 @@ def find_balance_changes_in_chunks(
         chunk_size:
             Maximum block-height range covered by each chunk.
             Defaults to 1,000,000 blocks.
-        target_dir:
-            Directory where snapshots from completed chunks are saved.
-            If omitted, a timestamped subdirectory is created in the current working directory.
         last_known_snapshot:
             Last known balance snapshot preceding the search range.
             If omitted, the first available snapshot is treated as the initial baseline
@@ -225,10 +221,6 @@ def find_balance_changes_in_chunks(
 
     if right_block_height is None:
         right_block_height = staking_client.rpc_client.get_final_block_height()
-
-    if target_dir is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-        target_dir = Path(f"./snapshots_{timestamp}")
 
     logger.debug(
         f"Starting global search for balance changes between block heights "
@@ -297,7 +289,7 @@ def find_balance_changes_in_chunks(
             else:
                 last_known_snapshot = current_left_snapshot
 
-            snapshot_storage.save(target_dir)
+            snapshot_storage.save()
 
         chunk_left_block_height = chunk_right_block_height
 
