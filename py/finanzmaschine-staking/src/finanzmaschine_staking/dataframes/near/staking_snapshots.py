@@ -3,7 +3,7 @@ from pathlib import Path
 import polars as pl
 import yaml
 
-from finanzmaschine_staking.dataframes.near.snapshot_storage import (
+from finanzmaschine_staking.storage.near.snapshot_storage import (
     BLOCK_HEIGHT,
     STAKED_BALANCE_YOCTO_STR,
     UNSTAKED_BALANCE_YOCTO_STR,

@@ -1,6 +1,4 @@
 import logging
-from datetime import datetime
-from pathlib import Path
 
 from finanzmaschine_staking.orm.near.balance_snapshot import BalanceSnapshot
 from finanzmaschine_staking.storage.near.snapshot_storage import SnapshotStorage
@@ -217,15 +215,31 @@ def find_balance_changes_in_chunks(
             If omitted, the first available snapshot is treated as the initial baseline
             and is not considered a balance change.
     """
-    chunk_left_block_height = left_block_height
+    if (
+        last_known_snapshot is not None
+        and left_block_height > last_known_snapshot.block_height
+    ):
+        raise ValueError(
+            f"`last_known_snapshot.block_height` must be greater than or equal to `left_block_height`"
+        )
 
     if right_block_height is None:
         right_block_height = staking_client.rpc_client.get_final_block_height()
 
-    logger.debug(
+    if (
+        last_known_snapshot is not None
+        and last_known_snapshot.block_height >= right_block_height
+    ):
+        raise ValueError(
+            f"`last_known_snapshot.block_height` must be less than `right_block_height`"
+        )
+
+    logger.info(
         f"Starting global search for balance changes between block heights "
         f"{left_block_height} and {right_block_height}"
     )
+
+    chunk_left_block_height = left_block_height
 
     while chunk_left_block_height < right_block_height:
         chunk_right_block_height = min(
@@ -233,20 +247,29 @@ def find_balance_changes_in_chunks(
             right_block_height,
         )
 
-        logger.debug(
-            f"Starting chunk search for balance changes between block heights "
-            f"{chunk_left_block_height} and {chunk_right_block_height}"
-        )
-
         current_left_snapshot = None
-        if (
-            last_known_snapshot is not None
-            and chunk_left_block_height == last_known_snapshot.block_height
-        ):
+
+        if last_known_snapshot is not None:
+            if last_known_snapshot.block_height >= chunk_right_block_height:
+                chunk_left_block_height = chunk_right_block_height
+                continue
+
+            logger.info(
+                f"Starting search for balance changes between block heights "
+                f"{last_known_snapshot.block_height} and {chunk_right_block_height}"
+            )
+
             current_left_snapshot = last_known_snapshot
 
         else:
+
+            logger.info(
+                f"Starting search for balance changes between block heights "
+                f"{chunk_left_block_height} and {chunk_right_block_height}"
+            )
+
             block_height_offset = 0
+
             while True:
                 try:
                     current_left_snapshot = staking_client.get_snapshot(
@@ -273,24 +296,16 @@ def find_balance_changes_in_chunks(
 
             snapshot_storage.clear()
 
-            if (
-                last_known_snapshot is not None
-                and not are_balances_equal(
-                    current_left_snapshot, last_known_snapshot
-                )
-            ):
+            if last_known_snapshot is None:
                 snapshot_storage.add(current_left_snapshot)
 
             for snapshot in snapshots:
                 snapshot_storage.add(snapshot)
 
-            if snapshots:
-                last_known_snapshot = snapshots[-1]
-            else:
-                last_known_snapshot = current_left_snapshot
+            last_known_snapshot = snapshots[-1] if snapshots else current_left_snapshot
 
             snapshot_storage.save()
 
         chunk_left_block_height = chunk_right_block_height
 
-    logger.debug("Global search completed")
+    logger.info("Global search completed")

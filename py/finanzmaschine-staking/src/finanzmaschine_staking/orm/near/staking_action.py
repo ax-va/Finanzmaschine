@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Any, Self
 
 from pydantic import field_validator
 from sqlalchemy import BigInteger
@@ -21,12 +20,12 @@ class StakingAction(SQLModel, table=True):
     __tablename__ = "near_staking_actions"
 
     receipt_id: str = Field(primary_key=True)
-    tx_tash: str = Field(index=True)
-    account_id: str = Field(index=True)
+    tx_hash: str = Field(index=True)
+    account_key: str = Field(index=True)
     pool_id: str = Field(index=True)
 
     block_height: int = Field(
-        foreign_key='near_block_heights.block_height',
+        foreign_key='near_blocks.block_height',
         index=True,
         sa_type=BigInteger,
     )
