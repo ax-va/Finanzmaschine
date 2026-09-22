@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from finanzmaschine_staking.dataframes.near.snapshot_storage import SnapshotStorage
 from finanzmaschine_staking.orm.near.balance_snapshot import BalanceSnapshot
+from finanzmaschine_staking.storage.near.snapshot_storage import SnapshotStorage
 from finanzmaschine_staking.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
 from finanzmaschine_staking.sync_clients.near.staking_client import StakingClient
 
@@ -177,7 +177,6 @@ def find_balance_changes_in_chunks(
     staking_client: StakingClient,
     snapshot_storage: SnapshotStorage,
     account_id: str,
-    pool_id: str,
     left_block_height: int,
     right_block_height: int | None = None,
     chunk_size: int = 1_000_000,
@@ -203,11 +202,9 @@ def find_balance_changes_in_chunks(
         staking_client:
             Client used to retrieve staking balance snapshots.
         snapshot_storage:
-            Temporal storage for found balance snapshots.
+            Temporal storage for metadata and found balance snapshots.
         account_id:
             Account whose staking balance is being searched.
-        pool_id:
-            Staking pool associated with the account.
         left_block_height:
             Left boundary of the block range.
         right_block_height:
@@ -262,7 +259,7 @@ def find_balance_changes_in_chunks(
                 try:
                     current_left_snapshot = staking_client.get_snapshot(
                         account_id=account_id,
-                        pool_id=pool_id,
+                        pool_id=snapshot_storage.metadata.pool_id,
                         block_height=chunk_left_block_height + block_height_offset,
                     )
                     break
@@ -277,7 +274,7 @@ def find_balance_changes_in_chunks(
             snapshots = find_balance_changes(
                 staking_client=staking_client,
                 account_id=account_id,
-                pool_id=pool_id,
+                pool_id=snapshot_storage.metadata.pool_id,
                 left_snapshot=current_left_snapshot,
                 right_block_height=chunk_right_block_height,
             )

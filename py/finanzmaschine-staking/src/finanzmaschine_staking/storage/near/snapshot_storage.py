@@ -2,8 +2,10 @@ from datetime import datetime
 from pathlib import Path
 
 import polars as pl
+import yaml
 
 from finanzmaschine_staking.orm.near.balance_snapshot import BalanceSnapshot
+from finanzmaschine_staking.orm.near.snapshot_metadata import SnapshotMetadata
 
 BLOCK_HEIGHT = "block_height"
 STAKED_BALANCE_YOCTO_STR = "staked_balance_yocto_str"
@@ -12,7 +14,7 @@ UNSTAKED_BALANCE_YOCTO_STR = "unstaked_balance_yocto_str"
 
 class SnapshotStorage:
     """
-    Stores balance snapshots collected during a staking balance search.
+    Stores metadata and balance snapshots that are collected during a staking balance search.
 
     Acts as temporary storage between search iterations
     and allows collected snapshots to be retrieved, cleared, and persisted.
@@ -24,8 +26,13 @@ class SnapshotStorage:
         UNSTAKED_BALANCE_YOCTO_STR: pl.String,
     }
 
-    def __init__(self):
+    def __init__(self, metadata: SnapshotMetadata) -> None:
+        self._metadata: SnapshotMetadata = metadata
         self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
+
+    @property
+    def metadata(self) -> SnapshotMetadata:
+        return self._metadata
 
     @property
     def df_balance_snapshots(self) -> pl.DataFrame:
@@ -58,7 +65,6 @@ class SnapshotStorage:
             .sort([BLOCK_HEIGHT])
         )
 
-
     def get(
         self,
         block_height: int,
@@ -83,15 +89,35 @@ class SnapshotStorage:
             unstaked_balance_yocto_str=row[UNSTAKED_BALANCE_YOCTO_STR],
         )
 
+    def clear(self) -> None:
+        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
 
     def save(
         self,
         target_dir: str | Path | None = None,
     ) -> None:
-        target_dir = Path(target_dir) if target_dir is not None else Path.cwd()
+
+        if target_dir is not None:
+            target_dir = Path(target_dir)
+
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            target_dir = Path.cwd() / f"snapshots_{timestamp}"
+
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+        self._save_metadata(target_dir)
+        self._save_balance_snapshots(target_dir)
+
+    def _save_metadata(self, target_dir: Path) -> None:
+        metadata_path = target_dir / "metadata.yaml"
+
+        if not metadata_path.exists():
+            with metadata_path.open("w") as f:
+                yaml.safe_dump(self._metadata.model_dump(), f)
+
+    def _save_balance_snapshots(self, target_dir: Path) -> None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
         file_stem = (
             target_dir / f"near_balance_df_snapshots_{timestamp}"
@@ -103,7 +129,3 @@ class SnapshotStorage:
         self._df_snapshots.write_parquet(
             file_stem.with_suffix(".parquet")
         )
-
-
-    def clear(self) -> None:
-        self._df_snapshots = pl.DataFrame(schema=self.SCHEMA)
