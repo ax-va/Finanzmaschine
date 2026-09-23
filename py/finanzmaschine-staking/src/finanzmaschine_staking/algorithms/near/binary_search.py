@@ -242,12 +242,13 @@ def find_balance_changes_in_chunks(
     chunk_left_block_height = left_block_height
 
     while chunk_left_block_height < right_block_height:
+
+        snapshot_storage.clear()
+
         chunk_right_block_height = min(
             chunk_left_block_height + chunk_size,
             right_block_height,
         )
-
-        current_left_snapshot = None
 
         if last_known_snapshot is not None:
             if last_known_snapshot.block_height >= chunk_right_block_height:
@@ -255,16 +256,14 @@ def find_balance_changes_in_chunks(
                 continue
 
             logger.info(
-                f"Starting search for balance changes between block heights "
+                f"Starting chunk search for balance changes between block heights "
                 f"{last_known_snapshot.block_height} and {chunk_right_block_height}"
             )
-
-            current_left_snapshot = last_known_snapshot
 
         else:
 
             logger.info(
-                f"Starting search for balance changes between block heights "
+                f"Starting chunk search for balance changes between block heights "
                 f"{chunk_left_block_height} and {chunk_right_block_height}"
             )
 
@@ -272,11 +271,12 @@ def find_balance_changes_in_chunks(
 
             while True:
                 try:
-                    current_left_snapshot = staking_client.get_snapshot(
+                    last_known_snapshot = staking_client.get_snapshot(
                         account_id=account_id,
                         pool_id=snapshot_storage.metadata.pool_id,
                         block_height=chunk_left_block_height + block_height_offset,
                     )
+                    snapshot_storage.add(last_known_snapshot)
                     break
 
                 except BlockHeightNotFoundError:
@@ -285,24 +285,20 @@ def find_balance_changes_in_chunks(
                     if chunk_left_block_height + block_height_offset == chunk_right_block_height:
                         break
 
-        if current_left_snapshot is not None:
+        if last_known_snapshot is not None:
             snapshots = find_balance_changes(
                 staking_client=staking_client,
                 account_id=account_id,
                 pool_id=snapshot_storage.metadata.pool_id,
-                left_snapshot=current_left_snapshot,
+                left_snapshot=last_known_snapshot,
                 right_block_height=chunk_right_block_height,
             )
-
-            snapshot_storage.clear()
-
-            if last_known_snapshot is None:
-                snapshot_storage.add(current_left_snapshot)
 
             for snapshot in snapshots:
                 snapshot_storage.add(snapshot)
 
-            last_known_snapshot = snapshots[-1] if snapshots else current_left_snapshot
+            if snapshots:
+                last_known_snapshot = snapshots[-1]
 
             snapshot_storage.save()
 
