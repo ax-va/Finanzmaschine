@@ -59,6 +59,7 @@ class RpcClient:
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
+            httpx.RemoteProtocolError,
         ),
     )
     @rate_limit(
@@ -121,6 +122,7 @@ class RpcClient:
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
+            httpx.RemoteProtocolError,
         ),
     )
     @rate_limit(
@@ -143,6 +145,7 @@ class RpcClient:
         exceptions=(
             httpx.HTTPStatusError,
             httpx.ReadTimeout,
+            httpx.RemoteProtocolError,
         ),
     )
     @rate_limit(
