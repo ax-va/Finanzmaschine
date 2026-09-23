@@ -5,6 +5,8 @@ from typing import Iterable
 import polars as pl
 
 from finanzmaschine_staking.dataframes.near.staking_snapshots import (
+    ACCOUNT_KEY,
+    POOL_ID,
     create_staking_snapshots,
     load_snapshots_metadata,
     load_balance_snapshots,
@@ -83,8 +85,13 @@ def _import_blocks(
             )
 
             block: Block = block_client.get_block(block_height)
-            block_repository.add(block)
-            imported_count += 1
+
+            if block_repository.safe_add(block):
+                    imported_count += 1
+            else:
+                logger.warning(
+                    f"Block {block.block_height} was concurrently imported"
+                )
 
     logger.debug(f"Imported {imported_count} missing blocks")
 
@@ -102,6 +109,29 @@ def _import_staking_snapshots(
         df_balance_snapshots=df_balance_snapshots,
     )
 
-    snapshot_repository.add_all(df_staking_snapshots)
+    df_missing_staking_snapshots: pl.DataFrame = df_staking_snapshots.filter(
+        ~pl.struct([BLOCK_HEIGHT, ACCOUNT_KEY, POOL_ID])
+        .map_elements(
+            lambda row_: snapshot_repository.get(
+                block_height=row_[BLOCK_HEIGHT],
+                account_key=row_[ACCOUNT_KEY],
+                pool_id=row_[POOL_ID],
+            )
+            is not None,
+            return_dtype=pl.Boolean,
+        )
+    )
 
-    logger.debug(f"Imported {df_staking_snapshots.height} staking snapshots")
+    imported_count: int = 0
+
+    for row in df_missing_staking_snapshots.iter_rows(named=True):
+        snapshot = StakingSnapshot.model_validate(row)
+
+        if snapshot_repository.safe_add(snapshot):
+           imported_count += 1
+        else:
+            logger.warning(
+                f"Staking snapshot at block {snapshot.block_height} was concurrently imported"
+            )
+
+    logger.debug(f"Imported {imported_count} staking snapshots")

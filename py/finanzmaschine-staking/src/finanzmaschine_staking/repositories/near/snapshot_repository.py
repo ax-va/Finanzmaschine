@@ -1,5 +1,6 @@
 import polars as pl
 from sqlalchemy import insert
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from finanzmaschine_staking.orm.near.staking_snapshot import StakingSnapshot
@@ -8,6 +9,10 @@ from finanzmaschine_staking.orm.near.staking_snapshot import StakingSnapshot
 class SnapshotRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
+
+    @property
+    def session(self) -> Session:
+        return self._session
 
     def get(
         self,
@@ -28,3 +33,18 @@ class SnapshotRepository:
             insert(StakingSnapshot),
             df.to_dicts(),
         )
+
+    def flush(self) -> None:
+        self._session.flush()
+
+    def safe_add(self, snapshot: StakingSnapshot) -> bool:
+        try:
+            with self._session.begin_nested():
+                # savepoint
+                self.add(snapshot)
+                self.flush()
+
+            return True
+
+        except IntegrityError:
+            return False
