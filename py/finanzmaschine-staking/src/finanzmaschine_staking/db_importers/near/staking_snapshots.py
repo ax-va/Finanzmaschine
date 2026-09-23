@@ -75,25 +75,24 @@ def _import_blocks(
     block_repository: BlockRepository,
 ) -> None:
 
+    logger.debug(f"Importing blocks to the database")
+
     imported_count: int = 0
 
     for block_height in block_heights:
         if block_repository.get(block_height) is None:
 
-            logger.debug(
-                f"Importing block {block_height} to the {Block.__tablename__} table"
-            )
-
             block: Block = block_client.get_block(block_height)
 
             if block_repository.safe_add(block):
-                    imported_count += 1
+                imported_count += 1
+                logger.debug(f"Imported block {block_height}")
             else:
                 logger.warning(
-                    f"Block {block.block_height} was concurrently imported"
+                    f"Block {block.block_height} was already concurrently imported"
                 )
 
-    logger.debug(f"Imported {imported_count} missing blocks")
+    logger.debug(f"Imported {imported_count} blocks")
 
 
 def _import_staking_snapshots(
@@ -102,6 +101,10 @@ def _import_staking_snapshots(
     df_balance_snapshots: pl.DataFrame,
     snapshot_repository: SnapshotRepository,
 ) -> None:
+
+    logger.debug(f"Importing staking snapshots to the database")
+
+    imported_count: int = 0
 
     df_staking_snapshots: pl.DataFrame = create_staking_snapshots(
         account_key=account_key,
@@ -122,16 +125,16 @@ def _import_staking_snapshots(
         )
     )
 
-    imported_count: int = 0
-
     for row in df_missing_staking_snapshots.iter_rows(named=True):
         snapshot = StakingSnapshot.model_validate(row)
 
         if snapshot_repository.safe_add(snapshot):
            imported_count += 1
+           logger.debug(f"Imported staking snapshot at block height {snapshot.block_height}")
         else:
             logger.warning(
-                f"Staking snapshot at block {snapshot.block_height} was concurrently imported"
+                f"Staking snapshot at block height {snapshot.block_height} "
+                f"was already concurrently imported"
             )
 
     logger.debug(f"Imported {imported_count} staking snapshots")
