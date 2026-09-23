@@ -75,7 +75,7 @@ def _import_blocks(
     block_repository: BlockRepository,
 ) -> None:
 
-    logger.debug(f"Importing blocks to the database")
+    logger.debug(f"Importing missing blocks to the database")
 
     imported_count: int = 0
 
@@ -102,7 +102,7 @@ def _import_staking_snapshots(
     snapshot_repository: SnapshotRepository,
 ) -> None:
 
-    logger.debug(f"Importing staking snapshots to the database")
+    logger.debug(f"Importing missing staking snapshots to the database")
 
     imported_count: int = 0
 
