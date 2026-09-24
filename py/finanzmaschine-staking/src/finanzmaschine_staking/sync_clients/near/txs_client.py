@@ -2,7 +2,7 @@ import httpx
 
 
 class TxsClient:
-    BASE_URL = "https://tx.main.fastnear.com"
+    TX_MAIN_URL = "https://tx.main.fastnear.com"
 
     def __init__(self, client: httpx.Client) -> None:
         self._client = client
@@ -13,7 +13,7 @@ class TxsClient:
         limit: int = 200,
     ) -> list[dict]:
         response = self._client.post(
-            f"{self.BASE_URL}/v0/account",
+            f"{self.TX_MAIN_URL}/v0/account",
             json={
                 "account_id": account_id,
                 "is_signer": True,
@@ -38,7 +38,7 @@ class TxsClient:
 
         for i in range(0, len(tx_hashes), max_num):
             response = self._client.post(
-                f"{self.BASE_URL}/v0/transactions",
+                f"{self.TX_MAIN_URL}/v0/transactions",
                 json={"tx_hashes": tx_hashes[i : i + max_num]},
             )
             response.raise_for_status()
