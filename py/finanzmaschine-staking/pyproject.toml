@@ -6,7 +6,7 @@ authors = ["ax-va"]
 license = "../../LICENSE.md"
 readme = "../../README.md"
 packages = [{ include = "finanzmaschine_staking", from = "src" }]
-keywords = ["finance", "crypto", "staking", "staking-rewards", "tax-reporting", "investment-management", "portfolio-accounting"]
+keywords = ["finance", "crypto", "staking", "staking-rewards"]
 
 [tool.poetry.urls]
 homepage = "https://github.com/ax-va/Finanzmaschine"
