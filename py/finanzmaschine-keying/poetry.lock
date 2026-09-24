@@ -13,6 +13,18 @@ files = [
 ]
 
 [[package]]
+name = "filelock"
+version = "4.0.3"
+description = "A platform independent file lock."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "filelock-4.0.3-py3-none-any.whl", hash = "sha256:30cd166e2aee2c7534ce2c33c6367c4cd051b8368e20e2c4eb0c34f699bacfab"},
+    {file = "filelock-4.0.3.tar.gz", hash = "sha256:87296d60478e14204fd9406e79831400fef76693bae2895deec236c98e87a8aa"},
+]
+
+[[package]]
 name = "greenlet"
 version = "3.5.6"
 description = "Lightweight in-process concurrent programming"
@@ -551,4 +563,4 @@ typing-extensions = ">=4.15.0"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "86c60853feb4893bf211e463129027f28e61162736ee5513abc7b03f6f9242b6"
+content-hash = "141665f92352e098ceebcd7494ed70fe818de19d0b2847b24691b816b992bba9"

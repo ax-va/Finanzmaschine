@@ -1,0 +1,2 @@
+class KeyMappingIntegrityError(Exception):
+    pass
