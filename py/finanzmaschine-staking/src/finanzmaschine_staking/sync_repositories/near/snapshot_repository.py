@@ -22,7 +22,7 @@ class SnapshotRepository:
     ) -> StakingSnapshot | None:
         return self._session.get(
             StakingSnapshot,
-            (block_height, account_key, pool_id),
+            (account_key, pool_id, block_height),
         )
 
     def add(self, snapshot: StakingSnapshot) -> None:

@@ -65,7 +65,7 @@ def import_staking_snapshots(
             snapshot_repository=snapshot_repository,
         )
 
-    logger.info(f"Completed staking snapshots import")
+    logger.info(f"Staking snapshots import completed")
 
 
 def _import_blocks(
@@ -112,12 +112,12 @@ def _import_staking_snapshots(
     )
 
     df_missing_staking_snapshots: pl.DataFrame = df_staking_snapshots.filter(
-        ~pl.struct([BLOCK_HEIGHT, ACCOUNT_KEY, POOL_ID])
+        ~pl.struct([ACCOUNT_KEY, POOL_ID, BLOCK_HEIGHT])
         .map_elements(
             lambda row_: snapshot_repository.get(
-                block_height=row_[BLOCK_HEIGHT],
                 account_key=row_[ACCOUNT_KEY],
                 pool_id=row_[POOL_ID],
+                block_height=row_[BLOCK_HEIGHT],
             )
             is not None,
             return_dtype=pl.Boolean,

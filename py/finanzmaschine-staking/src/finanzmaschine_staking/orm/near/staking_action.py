@@ -19,8 +19,8 @@ class StakingActionType(StrEnum):
 class StakingAction(SQLModel, table=True):
     __tablename__ = "near_staking_actions"
 
-    receipt_id: str = Field(primary_key=True)
-    tx_hash: str = Field(index=True)
+    receipt_key: str = Field(primary_key=True)
+    tx_hash_key: str = Field(index=True)
     account_key: str = Field(index=True)
     pool_id: str = Field(index=True)
 
