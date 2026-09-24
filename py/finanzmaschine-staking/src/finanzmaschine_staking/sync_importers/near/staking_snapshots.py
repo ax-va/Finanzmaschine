@@ -14,9 +14,9 @@ from finanzmaschine_staking.dataframes.near.staking_snapshots import (
 from finanzmaschine_staking.orm.near.block import Block
 from finanzmaschine_staking.orm.near.snapshot_metadata import SnapshotMetadata
 from finanzmaschine_staking.orm.near.staking_snapshot import StakingSnapshot
-from finanzmaschine_staking.repositories.near.block_repository import BlockRepository
-from finanzmaschine_staking.repositories.near.snapshot_repository import SnapshotRepository
 from finanzmaschine_staking.storage.near.snapshot_storage import BLOCK_HEIGHT
+from finanzmaschine_staking.sync_repositories.near.block_repository import BlockRepository
+from finanzmaschine_staking.sync_repositories.near.snapshot_repository import SnapshotRepository
 from finanzmaschine_staking.sync_clients.near.block_client import BlockClient
 
 logger = logging.getLogger(__name__)
@@ -31,8 +31,7 @@ def import_staking_snapshots(
     source_dir = Path(source_dir)
 
     logger.info(
-        f"Starting staking snapshots import from {source_dir!r} "
-        f"to the {StakingSnapshot.__tablename__} table"
+        f"Starting staking snapshots import from {source_dir!r} to the database"
     )
 
     metadata: SnapshotMetadata = load_snapshots_metadata(source_dir / "near_metadata.yaml")
@@ -130,7 +129,7 @@ def _import_staking_snapshots(
 
         if snapshot_repository.safe_add(snapshot):
            imported_count += 1
-           logger.debug(f"Imported staking snapshot at block height {snapshot.block_height}")
+           logger.debug(f"Imported staking snapshot at block {snapshot.block_height}")
         else:
             logger.warning(
                 f"Staking snapshot at block height {snapshot.block_height} "
