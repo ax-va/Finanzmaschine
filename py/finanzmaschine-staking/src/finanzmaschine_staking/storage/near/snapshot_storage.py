@@ -14,7 +14,8 @@ UNSTAKED_BALANCE_YOCTO_STR = "unstaked_balance_yocto_str"
 
 class SnapshotStorage:
     """
-    Stores metadata and balance snapshots that are collected during a staking balance search.
+    Stores metadata and balance snapshots
+    that are collected during a staking balance search.
 
     Acts as temporary storage between search iterations
     and allows collected snapshots to be retrieved, cleared, and persisted.

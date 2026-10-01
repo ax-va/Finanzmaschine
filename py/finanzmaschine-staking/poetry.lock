@@ -77,6 +77,38 @@ files = [
 ]
 
 [[package]]
+name = "filelock"
+version = "4.0.8"
+description = "A platform independent file lock."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "filelock-4.0.8-py3-none-any.whl", hash = "sha256:325ff22f358c18443b1fcdfa0a7aa3faec4b500c2807c554719da4567b533d31"},
+    {file = "filelock-4.0.8.tar.gz", hash = "sha256:733d9b6b153fc63672f86104324186818b6bbe9dd7db84e9bb9887b6a04a2775"},
+]
+
+[[package]]
+name = "finanzmaschine-keying"
+version = "0.1.0"
+description = "Finanzmaschine Keying"
+optional = false
+python-versions = ">=3.12,<4.0"
+groups = ["main"]
+files = []
+develop = true
+
+[package.dependencies]
+filelock = ">=4.0.3,<5.0.0"
+polars = ">=1.38.1,<2.0.0"
+pyyaml = ">=6.0.3,<7.0.0"
+sqlmodel = ">=0.0.39,<0.1.0"
+
+[package.source]
+type = "directory"
+url = "../finanzmaschine-keying"
+
+[[package]]
 name = "greenlet"
 version = "3.5.5"
 description = "Lightweight in-process concurrent programming"
@@ -908,4 +940,4 @@ typing-extensions = ">=4.15.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "2c0da67866511187b48f5c9d759a4bd3b0626e1b1783b4e9be2dee0aa4e1860c"
+content-hash = "935412daae3c024691723243dc87b1690f521cb9076c262ff45cae3e9ea8e21c"

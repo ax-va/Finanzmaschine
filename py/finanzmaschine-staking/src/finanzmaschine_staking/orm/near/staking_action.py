@@ -20,7 +20,7 @@ class StakingAction(SQLModel, table=True):
     __tablename__ = "near_staking_actions"
 
     receipt_key: str = Field(primary_key=True)
-    tx_hash_key: str = Field(index=True)
+    transaction_key: str = Field(index=True)
     account_key: str = Field(index=True)
     pool_id: str = Field(index=True)
 

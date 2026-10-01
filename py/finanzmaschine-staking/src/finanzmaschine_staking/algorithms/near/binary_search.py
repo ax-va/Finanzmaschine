@@ -271,7 +271,7 @@ def find_balance_changes_in_chunks(
 
             while True:
                 try:
-                    last_known_snapshot = staking_client.get_snapshot(
+                    last_known_snapshot: BalanceSnapshot = staking_client.get_snapshot(
                         account_id=account_id,
                         pool_id=snapshot_storage.metadata.pool_id,
                         block_height=chunk_left_block_height + block_height_offset,
