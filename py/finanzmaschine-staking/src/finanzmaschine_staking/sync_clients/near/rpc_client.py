@@ -128,9 +128,9 @@ class RpcClient:
     @rate_limit(
         min_interval_sec=MIN_INTERVAL_SEC,
     )
-    def get_final_block_height(self) -> int:
+    def fetch_final_block_height(self) -> int:
 
-        block = self._get_block(
+        block = self._fetch_block(
             url=self.RPC_MAINNET_URL,
             params={
                 "finality": "final",
@@ -152,8 +152,8 @@ class RpcClient:
         min_interval_sec=MIN_INTERVAL_SEC,
     )
     @handle_block_height_not_found
-    def get_block_timestamp_nanoseconds(self, block_height: int) -> int:
-        block = self._get_block(
+    def fetch_block_timestamp_nanoseconds(self, block_height: int) -> int:
+        block = self._fetch_block(
             url=self.ARCHIVAL_RPC_MAINNET_URL,
             params={
                 "block_id": block_height,
@@ -162,7 +162,7 @@ class RpcClient:
 
         return int(block["header"]["timestamp_nanosec"])
 
-    def _get_block(self, url: str, params: dict) -> dict:
+    def _fetch_block(self, url: str, params: dict) -> dict:
         payload = {
             "jsonrpc": "2.0",
             "id": "staking",

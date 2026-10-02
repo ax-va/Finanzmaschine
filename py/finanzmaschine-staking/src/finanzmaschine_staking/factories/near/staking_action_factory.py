@@ -39,8 +39,8 @@ def is_staking_action(raw_tx: dict) -> bool:
     return True
 
 
-def _extract_staking_action_data(raw_tx: dict) -> StakingActionData:
-    transaction: dict = raw_tx["transaction"]
+def _extract_staking_action_data(raw_txs: dict) -> StakingActionData:
+    transaction: dict = raw_txs["transaction"]
 
     function_call: dict | None = _extract_function_call(transaction)
     if function_call is None:

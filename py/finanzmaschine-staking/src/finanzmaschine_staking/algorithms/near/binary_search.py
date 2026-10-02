@@ -224,7 +224,7 @@ def find_balance_changes_in_chunks(
         )
 
     if right_block_height is None:
-        right_block_height = staking_client.rpc_client.get_final_block_height()
+        right_block_height = staking_client.rpc_client.fetch_final_block_height()
 
     if (
         last_known_snapshot is not None

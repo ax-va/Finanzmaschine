@@ -33,14 +33,14 @@ class StakingClient:
             Staking balance snapshot containing
             the staked and unstaked balances at the specified block height.
         """
-        staked_balance: str = self._get_balance(
+        staked_balance: str = self._fetch_balance(
             account_id=account_id,
             pool_id=pool_id,
             block_height=block_height,
             method_name="get_account_staked_balance",
         )
 
-        unstaked_balance: str = self._get_balance(
+        unstaked_balance: str = self._fetch_balance(
             account_id=account_id,
             pool_id=pool_id,
             block_height=block_height,
@@ -53,7 +53,7 @@ class StakingClient:
             unstaked_balance_yocto_str=unstaked_balance,
         )
 
-    def _get_balance(
+    def _fetch_balance(
         self,
         account_id: str,
         pool_id: str,
