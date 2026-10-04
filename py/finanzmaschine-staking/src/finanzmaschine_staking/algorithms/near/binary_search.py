@@ -1,7 +1,7 @@
 import logging
 
 from finanzmaschine_crypto.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
-from finanzmaschine_staking.algorithms.near.exceptions import UnexpectedBalanceDecreaseError
+from finanzmaschine_staking.algorithms.near.binary_search_exceptions import UnexpectedBalanceDecreaseError
 from finanzmaschine_staking.orm.near.balance import Balance
 from finanzmaschine_staking.storage.near.snapshot_storage import SnapshotStorage
 from finanzmaschine_staking.sync_clients.near.staking_client import StakingClient

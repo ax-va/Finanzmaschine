@@ -1,0 +1,2 @@
+class UnexpectedBalanceDecreaseError(RuntimeError):
+    pass
