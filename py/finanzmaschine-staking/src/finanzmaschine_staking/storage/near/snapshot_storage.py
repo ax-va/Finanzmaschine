@@ -11,17 +11,20 @@ from finanzmaschine_staking.orm.near.snapshot_metadata import SnapshotMetadata
 BLOCK_HEIGHT = "block_height"
 STAKED_BALANCE_YOCTO_STR = "staked_balance_yocto_str"
 UNSTAKED_BALANCE_YOCTO_STR = "unstaked_balance_yocto_str"
+LOWER_BLOCK_HEIGHT = "lower_block_height"
+UPPER_BLOCK_HEIGHT = "upper_block_height"
+ACCOUNT_KEY = "account_key"
+POOL_KEY = "pool_key"
 
 logger = logging.getLogger(__name__)
 
 
 class SnapshotStorage:
     """
-    Stores metadata and balance snapshots
-    that are collected during a staking balance search.
+    Stores staking snapshots that are collected during a staking snapshot search.
 
-    Acts as temporary storage between search iterations
-    and allows collected snapshots to be retrieved, cleared, and persisted.
+    Accumulates balances in memory between search iterations
+    and persists staking snapshots to disk.
     """
 
     SCHEMA = {
@@ -37,10 +40,9 @@ class SnapshotStorage:
     ) -> None:
         """
         Args:
-            metadata:
-                A metadata object containing an account key and a pool ID.
+            metadata: A metadata object containing account and pool keys.
             target_dir:
-                Directory where metadata and balance snapshots from completed chunks are saved.
+                Directory where snapshots of processed chunks are saved.
                 If omitted, a timestamped subdirectory is created in the current working directory.
         """
         self._metadata: SnapshotMetadata = metadata
@@ -50,9 +52,11 @@ class SnapshotStorage:
             self._target_dir = Path(target_dir)
         else:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            self._target_dir = Path.cwd() / f"balances_{timestamp}"
+            self._target_dir = Path.cwd() / f"near_snapshots_{timestamp}"
 
         self._target_dir.mkdir(parents=True, exist_ok=True)
+
+        self._validate_or_save_metadata()
 
     @property
     def metadata(self) -> SnapshotMetadata:
@@ -61,6 +65,10 @@ class SnapshotStorage:
     @property
     def df_balances(self) -> pl.DataFrame:
         return self._df_balances
+
+    @property
+    def target_dir(self) -> Path:
+        return self._target_dir
 
     def add(
         self,
@@ -114,6 +122,11 @@ class SnapshotStorage:
         )
 
     def clear(self) -> None:
+        """
+        Clears balances accumulated in memory.
+
+        Persisted snapshots are not affected.
+        """
         self._df_balances = pl.DataFrame(schema=self.SCHEMA)
 
     def save(
@@ -121,35 +134,74 @@ class SnapshotStorage:
         lower_block_height: int,
         upper_block_height: int,
     ) -> None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        """
+        Persists the current balance snapshots and their block interval.
 
-        metadata_path = self._target_dir / f"near_metadata_{timestamp}.yaml"
-        with metadata_path.open("w") as f:
+        Args:
+             lower_block_height: Lower block height, inclusive.
+             upper_block_height: Upper block height, inclusive.
 
-            logger.debug(f"Saving metadata in YAML: {metadata_path}")
-
-            yaml.safe_dump(self._metadata.model_dump(), f)
-
-        interval_path = self._target_dir / f"near_interval_{timestamp}.yaml"
-        with interval_path.open("w") as f:
-
-            logger.debug(f"Saving interval in YAML: {interval_path}")
-
-            yaml.safe_dump(
-                {
-                    "lower_block_height": lower_block_height,
-                    "upper_block_height": upper_block_height,
-                }, f
+        Raises:
+            ValueError: If `upper_block_height` is less than `lower_block_height`.
+        """
+        if upper_block_height < lower_block_height:
+            raise ValueError(
+                "`upper_block_height` must be greater than or equal to `lower_block_height`"
             )
 
-        balances_file_stem = self._target_dir / f"near_balances_{timestamp}"
-        balances_path_csv = balances_file_stem.with_suffix(".csv")
-        balances_path_parquet = balances_file_stem.with_suffix(".parquet")
+        snapshots_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
-        logger.debug(f"Saving balances in CSV: {balances_path_csv}")
+        balances_path = self._target_dir / f"balances_{snapshots_id}.csv"
+        interval_path = self._target_dir / f"interval_{snapshots_id}.yaml"
+        interval_data = {
+            LOWER_BLOCK_HEIGHT: lower_block_height,
+            UPPER_BLOCK_HEIGHT: upper_block_height,
+        }
 
-        self._df_balances.write_csv(balances_path_csv)
+        logger.debug(
+            f"Saving balances for block heights "
+            f"{lower_block_height} to {upper_block_height}: {balances_path}"
+        )
 
-        logger.debug(f"Saving balances in PARQUET: {balances_path_parquet}")
+        self._df_balances.write_csv(balances_path)
 
-        self._df_balances.write_parquet(balances_path_parquet)
+        logger.debug(
+            f"Saving interval for block heights "
+            f"{lower_block_height} to {upper_block_height}: {interval_path}"
+        )
+
+        with interval_path.open("w", encoding="utf-8") as file:
+            yaml.safe_dump(interval_data, file)
+
+    def _validate_or_save_metadata(self) -> None:
+        metadata_path = self._target_dir / "metadata.yaml"
+
+        if metadata_path.exists():
+
+            logger.debug(f"The metadata file already exists: {metadata_path}")
+            logger.debug(f"Comparing metadata in the metadata file with the current values")
+
+            with metadata_path.open("r", encoding="utf-8") as file:
+                metadata: dict = yaml.safe_load(file) or {}
+
+            for key_name, expected in (
+                (ACCOUNT_KEY, self._metadata.account_key),
+                (POOL_KEY, self._metadata.pool_key),
+            ):
+                if key_name not in metadata:
+                    raise KeyError(f"Missing `{key_name}` in {metadata_path}")
+
+                actual = metadata[key_name]
+
+                if actual != expected:
+                    raise ValueError(
+                        f"Expected `{key_name}` {expected}, "
+                        f"but got {actual} in {metadata_path}"
+                    )
+
+        else:
+
+            logger.debug(f"Saving metadata: {metadata_path}")
+
+            with metadata_path.open("w", encoding="utf-8") as file:
+                yaml.safe_dump(self._metadata.model_dump(), file)
