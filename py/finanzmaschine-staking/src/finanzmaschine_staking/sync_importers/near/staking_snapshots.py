@@ -13,7 +13,7 @@ from finanzmaschine_staking.dataframes.near.staking_snapshots import (
 )
 from finanzmaschine_staking.orm.near.block import Block
 from finanzmaschine_staking.orm.near.snapshot_metadata import SnapshotMetadata
-from finanzmaschine_staking.orm.near.staking_snapshot import StakingSnapshot
+from finanzmaschine_staking.orm.near.snapshot import StakingSnapshot
 from finanzmaschine_staking.storage.near.snapshot_storage import BLOCK_HEIGHT
 from finanzmaschine_staking.sync_repositories.near.block_repository import BlockRepository
 from finanzmaschine_staking.sync_repositories.near.snapshot_repository import SnapshotRepository
