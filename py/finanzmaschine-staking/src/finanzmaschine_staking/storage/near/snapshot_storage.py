@@ -78,6 +78,15 @@ class SnapshotStorage:
         self,
         balance: Balance,
     ) -> None:
+        """
+        Adds a balance snapshot to the in-memory storage.
+
+        Args:
+            balance: Balance snapshot to add.
+
+        Raises:
+            ValueError: If a balance snapshot with the same block height already exists.
+        """
         df_duplicates: pl.DataFrame = self._df_balances.filter(
             (pl.col(BLOCK_HEIGHT) == balance.block_height)
         )
@@ -105,6 +114,19 @@ class SnapshotStorage:
         self,
         block_height: int,
     ) -> Balance | None:
+        """
+        Returns the balance snapshot at the given block height.
+
+        Args:
+            block_height: Block height of the balance snapshot to retrieve.
+
+        Returns:
+            The balance snapshot or `None`
+            if no balance snapshot exists at the given block height.
+
+        Raises:
+            RuntimeError: If multiple balance snapshots exist at the given block height.
+        """
         df_balance: pl.DataFrame = self._df_balances.filter(
             (pl.col(BLOCK_HEIGHT) == block_height)
         )
@@ -183,10 +205,11 @@ class SnapshotStorage:
         if metadata_path.exists():
 
             logger.debug(f"The metadata file already exists: {metadata_path}")
-            logger.debug(f"Comparing metadata in the metadata file with the current values")
 
             with metadata_path.open("r", encoding="utf-8") as file:
                 metadata: dict = yaml.safe_load(file) or {}
+
+            logger.debug(f"Comparing metadata in the metadata file with the current values")
 
             for key_name, expected in (
                 (ACCOUNT_KEY, self._metadata.account_key),
