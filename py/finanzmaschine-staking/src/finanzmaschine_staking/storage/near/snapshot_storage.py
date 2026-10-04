@@ -168,8 +168,8 @@ class SnapshotStorage:
         Persists the current balance snapshots and their block interval.
 
         Args:
-             lower_block_height: Lower block height, inclusive.
-             upper_block_height: Upper block height, inclusive.
+            lower_block_height: Lower block height, inclusive.
+            upper_block_height: Upper block height, inclusive.
 
         Raises:
             ValueError: If `upper_block_height` is less than `lower_block_height`.
