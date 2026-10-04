@@ -46,8 +46,10 @@ class SnapshotStorage:
                 If omitted, a timestamped subdirectory is created in the current working directory.
 
         Raises:
-            KeyError: From `self._validate_or_save_metadata`.
-            ValueError: From `self._validate_or_save_metadata`.
+            KeyError:
+                From `self._validate_or_save_metadata`.
+            ValueError:
+                From `self._validate_or_save_metadata`.
         """
         self._metadata: SnapshotMetadata = metadata
         self._df_balances = pl.DataFrame(schema=self.SCHEMA)
@@ -85,7 +87,8 @@ class SnapshotStorage:
             balance: Balance snapshot to add.
 
         Raises:
-            ValueError: If a balance snapshot with the same block height already exists.
+            ValueError:
+                If a balance snapshot with the same block height already exists.
         """
         df_duplicates: pl.DataFrame = self._df_balances.filter(
             (pl.col(BLOCK_HEIGHT) == balance.block_height)
@@ -125,7 +128,8 @@ class SnapshotStorage:
             if no balance snapshot exists at the given block height.
 
         Raises:
-            RuntimeError: If multiple balance snapshots exist at the given block height.
+            RuntimeError:
+                If multiple balance snapshots exist at the given block height.
         """
         df_balance: pl.DataFrame = self._df_balances.filter(
             (pl.col(BLOCK_HEIGHT) == block_height)
