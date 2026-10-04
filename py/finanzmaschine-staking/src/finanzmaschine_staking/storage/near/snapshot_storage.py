@@ -40,10 +40,14 @@ class SnapshotStorage:
     ) -> None:
         """
         Args:
-            metadata: A metadata object containing account and pool keys.
+            metadata: A metadata object containing `account_key` and `pool_key`.
             target_dir:
-                Directory where snapshots of processed chunks are saved.
+                Directory where snapshots of processed intervals are saved.
                 If omitted, a timestamped subdirectory is created in the current working directory.
+
+        Raises:
+            KeyError: From `self._validate_or_save_metadata`.
+            ValueError: From `self._validate_or_save_metadata`.
         """
         self._metadata: SnapshotMetadata = metadata
         self._df_balances = pl.DataFrame(schema=self.SCHEMA)
