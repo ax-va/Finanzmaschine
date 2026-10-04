@@ -285,8 +285,8 @@ def find_staking_snapshots(
     Raises:
         ValueError:
             If `chunk_size` is less than or equal to zero.
-            If `last_known_snapshot.block_height` is outside the
-            [lower_block_height`, exclusive `upper_block_height`) interval.
+            If `last_known_snapshot.block_height` is outside
+            the [lower_block_height`, exclusive `upper_block_height`) interval.
             From `find_balance_increases`.
         UnexpectedBalanceDecreaseError:
             From `find_balance_increases`.
