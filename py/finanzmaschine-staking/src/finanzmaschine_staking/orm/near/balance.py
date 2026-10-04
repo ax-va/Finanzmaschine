@@ -3,7 +3,7 @@ from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class BalanceSnapshot(SQLModel):
+class Balance(SQLModel):
     block_height: int = Field(
         primary_key=True,
         foreign_key='near_blocks.block_height',

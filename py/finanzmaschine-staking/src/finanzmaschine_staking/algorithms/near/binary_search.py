@@ -1,307 +1,390 @@
 import logging
 
-from finanzmaschine_staking.orm.near.balance_snapshot import BalanceSnapshot
+from finanzmaschine_staking.algorithms.near.exceptions import UnexpectedBalanceDecreaseError
+from finanzmaschine_staking.orm.near.balance import Balance
 from finanzmaschine_staking.storage.near.snapshot_storage import SnapshotStorage
-from finanzmaschine_staking.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
+from finanzmaschine_crypto.sync_clients.near.rpc_client_exeptions import BlockHeightNotFoundError
 from finanzmaschine_staking.sync_clients.near.staking_client import StakingClient
 
 logger = logging.getLogger(__name__)
 
 
-def are_balances_equal(
-    snapshot_1: BalanceSnapshot,
-    snapshot_2: BalanceSnapshot,
-) -> bool:
-    return (
-        snapshot_1.staked_balance_yocto_str == snapshot_2.staked_balance_yocto_str
-        and snapshot_1.unstaked_balance_yocto_str == snapshot_2.unstaked_balance_yocto_str
-    )
-
-
-def find_next_balance_change(
+def find_next_balance_increase(
     account_id: str,
     pool_id: str,
-    left_snapshot: BalanceSnapshot,
-    right_block_height: int,
+    lower_block_balance: Balance,
+    upper_block_height: int,
     staking_client: StakingClient,
-) -> BalanceSnapshot | None:
+) -> Balance | None:
     """
-    Finds the next snapshot with changed balance (staked or unstaked balances)
-    between left snapshot and right block height searching from left to right.
-    Returns `None`, if no balance snapshot is detected in the given interval.
+    Finds the next total balance increase between
+    the exclusive lower and inclusive upper block heights.
+
+    The total balance is the sum of staked and unstaked balances.
+
+    Returns `None`, if no balance increase is detected in the given interval.
+
+    Search contract:
+        The total balance must be monotonically non-decreasing over the searched interval.
+        This condition is required for the binary search to be valid.
+
+        This function is intended to search intervals
+        where no staking action can decrease the total balance.
+
+        If a total balance decrease is observed at any inspected block,
+        `UnexpectedBalanceDecreaseError` is raised.
 
     Args:
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
-        left_snapshot: Left snapshot that sets the left block height.
-        right_block_height: Right block height.
+        lower_block_balance: Lower-block balance that sets the lower block height, exclusive.
+        upper_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
 
     Returns:
-        The snapshot of the next balance change or `None`.
+        The first balance with a total balance greater than `lower_block_balance.block_height`,
+        or `None` if no increase is detected.
 
     Raises:
         ValueError:
-            If `right_block_height` is less than or equal to `left_snapshot.block_height`.
+            If `upper_block_height` is less than or equal to `lower_block_balance.block_height`.
+        UnexpectedBalanceDecreaseError:
+            If a total balance decrease is detected during the search.
     """
     logger.debug(
-        f"Starting search for next balance change between block heights "
-        f"{left_snapshot.block_height} and {right_block_height}"
+        f"Starting search for next balance increase between block heights "
+        f"{lower_block_balance.block_height} and {upper_block_height}"
     )
 
-    if right_block_height <= left_snapshot.block_height:
+    if upper_block_height <= lower_block_balance.block_height:
         raise ValueError(
-            "`right_block_height` must be greater than `left_snapshot.block_height`"
+            "`upper_block_height` must be greater than `lower_block_balance.block_height`"
         )
 
-    right_snapshot = staking_client.get_snapshot(
-        account_id=account_id,
-        pool_id=pool_id,
-        block_height=right_block_height,
-    )
+    while upper_block_height > lower_block_balance.block_height:
 
-    if are_balances_equal(left_snapshot, right_snapshot):
+        try:
+            upper_block_balance: Balance = staking_client.get_balance(
+                account_id=account_id,
+                pool_id=pool_id,
+                block_height=upper_block_height,
+            )
+
+        except BlockHeightNotFoundError:
+            logger.warning(f"Block height not found: {upper_block_height}")
+
+            upper_block_height -= 1
+
+        else:
+            break
+
+    else:
         logger.debug(
-            f"No balance change between block heights "
-            f"{left_snapshot.block_height} and {right_snapshot.block_height}"
+            f"No block found after block height {lower_block_balance.block_height}"
         )
 
         return None
 
-    while right_snapshot.block_height - left_snapshot.block_height > 1:
-        logger.debug(
-            f"Searching balance change between block heights "
-            f"{left_snapshot.block_height} and {right_snapshot.block_height}"
+    if (
+        upper_block_balance.total_balance_yocto
+        < lower_block_balance.total_balance_yocto
+    ):
+        raise UnexpectedBalanceDecreaseError(
+            "Violation of the binary search contract: "
+            f"`upper_block_balance.total_balance_yocto` of {upper_block_balance.total_balance_yocto} "
+            f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
         )
 
-        middle_block_height = (left_snapshot.block_height + right_snapshot.block_height) // 2
-        right_block_height = middle_block_height
+    elif (
+        lower_block_balance.total_balance_yocto
+        == upper_block_balance.total_balance_yocto
+    ):
+        logger.debug(
+            f"No balance increase between block heights "
+            f"{lower_block_balance.block_height} and {upper_block_height}"
+        )
 
-        while left_snapshot.block_height < right_block_height:
+        return None
+
+    while upper_block_balance.block_height - lower_block_balance.block_height > 1:
+        logger.debug(
+            f"Searching balance increase between block heights "
+            f"{lower_block_balance.block_height} and {upper_block_balance.block_height}"
+        )
+
+        middle_block_height = (
+            lower_block_balance.block_height
+            + upper_block_balance.block_height
+        ) // 2
+        temp_upper_block_height = middle_block_height
+
+        while lower_block_balance.block_height < temp_upper_block_height:
             try:
-                middle_snapshot = staking_client.get_snapshot(
+                temp_block_balance: Balance = staking_client.get_balance(
                     account_id=account_id,
                     pool_id=pool_id,
-                    block_height=right_block_height,
+                    block_height=temp_upper_block_height,
                 )
 
             except BlockHeightNotFoundError:
-                logger.warning(f"Block height not found: {right_block_height}")
+                logger.warning(f"Block height not found: {temp_upper_block_height}")
 
-                right_block_height -= 1
+                temp_upper_block_height -= 1
 
             else:
                 break
 
         else:
-            left_block_height = middle_block_height
-            left_block_height += 1
+            temp_lower_block_height = middle_block_height + 1
 
-            while left_block_height < right_snapshot.block_height:
+            while temp_lower_block_height < upper_block_balance.block_height:
                 try:
-                    middle_snapshot = staking_client.get_snapshot(
+                    temp_block_balance: Balance = staking_client.get_balance(
                         account_id=account_id,
                         pool_id=pool_id,
-                        block_height=left_block_height,
+                        block_height=temp_lower_block_height,
                     )
 
                 except BlockHeightNotFoundError:
-                    logger.warning(f"Block height not found: {left_block_height}")
+                    logger.warning(f"Block height not found: {temp_lower_block_height}")
 
-                    left_block_height += 1
+                    temp_lower_block_height += 1
 
                 else:
                     break
 
             else:
-                logger.debug(f"Found next balance change at block height {right_snapshot.block_height}")
+                logger.debug(
+                    f"Found next balance increase at block height {upper_block_balance.block_height}"
+                )
 
-                return right_snapshot
+                return upper_block_balance
 
-        if are_balances_equal(left_snapshot, middle_snapshot):
-            left_snapshot = middle_snapshot
+        if (
+            temp_block_balance.total_balance_yocto
+            < lower_block_balance.total_balance_yocto
+        ):
+            raise UnexpectedBalanceDecreaseError(
+                "Violation of the binary search contract: "
+                f"`temp_block_balance.total_balance_yocto` of {temp_block_balance.total_balance_yocto} "
+                f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
+            )
+
+        elif (
+            lower_block_balance.total_balance_yocto
+            == temp_block_balance.total_balance_yocto
+        ):
+            lower_block_balance = temp_block_balance
+
         else:
-            right_snapshot = middle_snapshot
+            upper_block_balance = temp_block_balance
 
-    logger.debug(f"Found next balance change at block height {right_snapshot.block_height}")
+    logger.debug(
+        f"Found next balance increase at block height {upper_block_balance.block_height}"
+    )
 
-    return right_snapshot
+    return upper_block_balance
 
 
-def find_balance_changes(
+def find_balance_increases(
     account_id: str,
     pool_id: str,
-    left_snapshot: BalanceSnapshot,
-    right_block_height: int,
+    lower_block_balance: Balance,
+    upper_block_height: int,
     staking_client: StakingClient,
-) -> list[BalanceSnapshot]:
+) -> list[Balance]:
     """
-    Finds all balance changes between left snapshot and right block height.
+    Finds all total balance increases between
+    the exclusive lower and inclusive upper block heights.
+
+    Repeatedly searches for the next balance whose total balance
+    is greater than the previously found balance.
+
+    Search contract:
+        The search contract of `find_next_balance_increase`
+        applies to the entire searched interval.
 
     Args:
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
-        left_snapshot: Left snapshot that sets the left block height.
-        right_block_height: Right block height.
+        lower_block_balance: Lower-block balance that sets the lower block height, exclusive.
+        upper_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
 
     Returns:
-        The snapshots in ascending block-height order.
+        The balances at which the total balance increases, ordered by block height.
 
     Raises:
-        ValueError: from `find_next_balance_change`.
+        ValueError:
+            If `upper_block_height` is less than or equal to `lower_block_balance.block_height`.
+        UnexpectedBalanceDecreaseError:
+            If a total balance decrease is detected at an inspected block.
     """
-    changes: list[BalanceSnapshot] = []
+    balances: list[Balance] = []
 
     while True:
-        next_snapshot = find_next_balance_change(
-            staking_client=staking_client,
+        next_balance: Balance | None = find_next_balance_increase(
             account_id=account_id,
             pool_id=pool_id,
-            left_snapshot=left_snapshot,
-            right_block_height=right_block_height,
+            lower_block_balance=lower_block_balance,
+            upper_block_height=upper_block_height,
+            staking_client=staking_client,
         )
 
-        if next_snapshot is None:
+        if next_balance is None:
             break
 
-        changes.append(next_snapshot)
-        left_snapshot = next_snapshot
+        balances.append(next_balance)
+        lower_block_balance = next_balance
 
-    return changes
+    return balances
 
 
-def find_balance_changes_in_chunks(
+def find_staking_snapshots(
     account_id: str,
+    pool_id: str,
+    lower_block_height: int,
+    upper_block_height: int,
     staking_client: StakingClient,
     snapshot_storage: SnapshotStorage,
-    left_block_height: int,
-    right_block_height: int | None = None,
     chunk_size: int = 1_000_000,
-    last_known_snapshot: BalanceSnapshot | None = None
+    last_known_balance: Balance | None = None,
 ) -> None:
     """
-    Finds staking balance changes within a block range in fixed-size chunks.
+    Finds staking snapshots within a block range in fixed-size chunks.
 
-    Splits the range from `left_block_height` to `right_block_height` into chunks
-    and searches each chunk for balance changes.
-    The snapshots found in each completed chunk are saved to `target_dir`.
+    Splits the inclusive range from `lower_block_height` to `upper_block_height`
+    into non-overlapping chunks and searches each chunk for balance increases.
 
-    If a chunk starts at a block height that does not exist,
-    the first existing block within the chunk is used as its left snapshot.
-    When `last_known_snapshot` is provided, this snapshot is compared with
-    the first snapshot of the chunk and is included in the results if its balance has changed.
+    Each processed chaunk is saved to the `snapshot_storage.target_dir` directory,
+    including chunks where no staking snapshots are found.
 
-    `last_known_snapshot` also allows an interrupted search to be resumed
-    from a previously completed chunk without losing a balance change at the chunk boundary.
+    If `last_known_balance` is not provided, the first existing balance in the search range
+    is used as the initial baseline and included in the result.
+
+    If `last_known_balance` is provided, chunks before its block height are skipped
+    and the search resumes from that balance.
+
+    Search contract:
+        The search contract of `find_balance_increases`
+        applies to the entire searched interval.
 
     Args:
-        account_id:
-            Account whose staking balance is being searched.
-        staking_client:
-            Client used to retrieve staking balance snapshots.
-        snapshot_storage:
-            Temporal storage for metadata and found balance snapshots.
-        left_block_height:
-            Left boundary of the block range.
-        right_block_height:
-            Right boundary of the block range.
-            If omitted, the current final block height is fetched once before the search starts.
-        chunk_size:
-            Maximum block-height range covered by each chunk.
-            Defaults to 1,000,000 blocks.
-        last_known_snapshot:
-            Last known balance snapshot preceding the search range.
-            If omitted, the first available snapshot is treated as the initial baseline
-            and is not considered a balance change.
+        account_id: Account whose staking balance is being searched.
+        pool_id: Staking pool associated with the account.
+        lower_block_height: Lower block height, inclusive.
+        upper_block_height: Upper block height, inclusive.
+        staking_client: NEAR staking client.
+        snapshot_storage: Temporal storage for metadata and found staking snapshots.
+        chunk_size: Maximum block-height range covered by each chunk.
+        last_known_balance:
+            Last known balance preceding the search range.
+            If omitted, the first available balance is treated
+            as the initial baseline and is included in the result.
+
+    Raises:
+        ValueError:
+            If `chunk_size` is less than or equal to zero.
+            If `last_known_snapshot.block_height` is outside
+            the [`lower_block_height`, `upper_block_height`) interval.
+            From `find_balance_increases`.
+        UnexpectedBalanceDecreaseError: From `find_balance_increases`.
     """
-    if (
-        last_known_snapshot is not None
-        and left_block_height > last_known_snapshot.block_height
-    ):
-        raise ValueError(
-            f"`last_known_snapshot.block_height` must be greater than or equal to `left_block_height`"
-        )
+    if chunk_size <= 0:
+        raise ValueError("`chunk_size` must be greater than 0")
 
-    if right_block_height is None:
-        right_block_height = staking_client.rpc_client.fetch_final_block_height()
+    if last_known_balance is not None:
 
-    if (
-        last_known_snapshot is not None
-        and last_known_snapshot.block_height >= right_block_height
-    ):
-        raise ValueError(
-            f"`last_known_snapshot.block_height` must be less than `right_block_height`"
-        )
+        if last_known_balance.block_height < lower_block_height:
+            raise ValueError(
+                f"`last_known_snapshot.block_height` must be greater than or equal to `lower_block_height`"
+            )
+
+        if upper_block_height <= last_known_balance.block_height:
+            raise ValueError(
+                f"`last_known_snapshot.block_height` must be less than `upper_block_height`"
+            )
 
     logger.info(
-        f"Starting global search for balance changes between block heights "
-        f"{left_block_height} and {right_block_height}"
+        f"Starting global search for staking snapshots between block heights "
+        f"{lower_block_height} and {upper_block_height}"
     )
 
-    chunk_left_block_height = left_block_height
+    chunk_lower_block_height = lower_block_height
 
-    while chunk_left_block_height < right_block_height:
+    while chunk_lower_block_height <= upper_block_height:
 
         snapshot_storage.clear()
 
-        chunk_right_block_height = min(
-            chunk_left_block_height + chunk_size,
-            right_block_height,
+        chunk_upper_block_height = min(
+            chunk_lower_block_height + chunk_size - 1,
+            upper_block_height,
         )
 
-        if last_known_snapshot is not None:
-            if last_known_snapshot.block_height >= chunk_right_block_height:
-                chunk_left_block_height = chunk_right_block_height
+        if last_known_balance is not None:
+            if chunk_upper_block_height <= last_known_balance.block_height:
+                logger.info(
+                    f"Skipping chunk search for staking snapshots between "
+                    f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+                )
+
+                chunk_lower_block_height = chunk_upper_block_height + 1
                 continue
 
-            logger.info(
-                f"Starting chunk search for balance changes between block heights "
-                f"{last_known_snapshot.block_height} and {chunk_right_block_height}"
-            )
-
         else:
-
             logger.info(
-                f"Starting chunk search for balance changes between block heights "
-                f"{chunk_left_block_height} and {chunk_right_block_height}"
+                f"Searching the first existing balance between block heights "
+                f"{chunk_lower_block_height} and {chunk_upper_block_height}"
             )
 
-            block_height_offset = 0
+            block_height = chunk_lower_block_height
 
-            while True:
+            while block_height <= chunk_upper_block_height:
                 try:
-                    last_known_snapshot: BalanceSnapshot = staking_client.get_snapshot(
+                    last_known_balance: Balance = staking_client.get_balance(
                         account_id=account_id,
-                        pool_id=snapshot_storage.metadata.pool_id,
-                        block_height=chunk_left_block_height + block_height_offset,
+                        pool_id=pool_id,
+                        block_height=block_height,
                     )
-                    snapshot_storage.add(last_known_snapshot)
+                    snapshot_storage.add(last_known_balance)
                     break
 
                 except BlockHeightNotFoundError:
-                    block_height_offset += 1
+                    block_height += 1
 
-                    if chunk_left_block_height + block_height_offset == chunk_right_block_height:
-                        break
+        logger.info(
+            f"Starting chunk search for staking snapshots between block heights "
+            f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+        )
 
-        if last_known_snapshot is not None:
-            snapshots = find_balance_changes(
+        if (
+            last_known_balance is not None
+            and last_known_balance.block_height < chunk_upper_block_height
+        ):
+            balances: list[Balance] = find_balance_increases(
                 staking_client=staking_client,
                 account_id=account_id,
-                pool_id=snapshot_storage.metadata.pool_id,
-                left_snapshot=last_known_snapshot,
-                right_block_height=chunk_right_block_height,
+                pool_id=pool_id,
+                lower_block_balance=last_known_balance,
+                upper_block_height=chunk_upper_block_height,
             )
 
-            for snapshot in snapshots:
-                snapshot_storage.add(snapshot)
+            for balance in balances:
+                snapshot_storage.add(balance)
 
-            if snapshots:
-                last_known_snapshot = snapshots[-1]
+            if balances:
+                last_known_balance = balances[-1]
 
-            snapshot_storage.save()
+        logger.debug(
+            f"Saving staking snapshots for chunk between block heights "
+            f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+        )
 
-        chunk_left_block_height = chunk_right_block_height
+        snapshot_storage.save(
+            lower_block_height=chunk_lower_block_height,
+            upper_block_height=chunk_upper_block_height,
+        )
+
+        chunk_lower_block_height = chunk_upper_block_height + 1
 
     logger.info("Global search completed")
