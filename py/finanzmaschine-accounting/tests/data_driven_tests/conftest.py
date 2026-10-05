@@ -5,12 +5,12 @@ from typing import List
 import polars as pl
 import pytest
 
-from finanzmaschine_accounting.catalog import asset_registry
-from finanzmaschine_accounting.portfolio.assets import CryptoEtp
-from finanzmaschine_accounting.portfolio.operations import TradeEnum
-from finanzmaschine_accounting.portfolio.operations.operation import parse_operation, Operation
-from finanzmaschine_accounting.portfolio.positions import CryptoEtpPosition
-from finanzmaschine_accounting.portfolio.records import CryptoEtpBrokerTradeRecord
+from fzm_accounting.catalog import asset_registry
+from fzm_accounting.portfolio.assets import CryptoEtp
+from fzm_accounting.portfolio.operations import TradeEnum
+from fzm_accounting.portfolio.operations.operation import parse_operation, Operation
+from fzm_accounting.portfolio.positions import CryptoEtpPosition
+from fzm_accounting.portfolio.records import CryptoEtpBrokerTradeRecord
 
 
 def create_df_expected_closing(file_path: Path) -> pl.DataFrame:

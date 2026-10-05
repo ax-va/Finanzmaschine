@@ -6,9 +6,9 @@ from sqlalchemy import pool
 from sqlmodel import SQLModel
 
 # Import table models to register them in `SQLModel.metadata`
-from finanzmaschine_staking.orm.near.block import Block  # noqa: F401
-from finanzmaschine_staking.orm.near.staking_action import StakingAction  # noqa: F401
-from finanzmaschine_staking.orm.near.staking_snapshot import StakingSnapshot  # noqa: F401
+from fzm_staking.orm.near.block import Block  # noqa: F401
+from fzm_staking.orm.near.staking_action import StakingAction  # noqa: F401
+from fzm_staking.orm.near.snapshot import StakingSnapshot  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

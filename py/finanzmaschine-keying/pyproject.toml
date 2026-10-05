@@ -14,14 +14,12 @@ dependencies = [
     "polars>=1.38.1,<2.0.0",
     "pyyaml>=6.0.3,<7.0.0",
     "sqlmodel>=0.0.39,<0.1.0",
-    "pyyaml>=6.0.3,<7.0.0",
     "filelock (>=4.0.3,<5.0.0)",
 ]
 
 [project.urls]
 Homepage = "https://github.com/ax-va/Finanzmaschine"
 Repository = "https://github.com/ax-va/Finanzmaschine/tree/main/py/finanzmaschine-keying"
-
 
 [dependenncy-groups]
 dev = [
@@ -36,7 +34,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [
-    { include = "finanzmaschine_keying", from = "src" },
+    { include = "fzm_keying", from = "src" },
 ]
 
 [tool.pytest.ini_options]

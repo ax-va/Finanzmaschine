@@ -5,10 +5,10 @@ from typing import TypeVar
 import polars as pl
 import pytest
 
-from finanzmaschine_accounting.portfolio.operations.operation import parse_operation
-from finanzmaschine_accounting.portfolio.positions.base_position import ClosingOrder
-from finanzmaschine_accounting.helpers.decimal_helper import round_to_quantum
-from finanzmaschine_accounting.portfolio.positions.priced_position import PricedPosition
+from fzm_accounting.portfolio.operations.operation import parse_operation
+from fzm_accounting.portfolio.positions.base_position import ClosingOrder
+from fzm_accounting.helpers.decimal_helper import round_to_quantum
+from fzm_accounting.portfolio.positions.priced_position import PricedPosition
 
 P = TypeVar("P", bound="PricedPosition")
 
