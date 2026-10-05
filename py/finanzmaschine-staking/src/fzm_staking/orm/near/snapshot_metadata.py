@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from sqlmodel import Field, SQLModel
 
 
-class SnapshotMetadata(BaseModel):
-    account_key: str
-    pool_key: str
+class SnapshotMetadata(SQLModel):
+    account_key: str = Field(primary_key=True)
+    pool_key: str = Field(primary_key=True)

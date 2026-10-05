@@ -20,7 +20,7 @@ class Balance(SQLModel):
     @classmethod
     def validate_balance_yocto_str(cls, value: str) -> str:
         if not value.isdigit():
-            raise ValueError(f"Balance yocto sting must contain only digits: {value}")
+            raise ValueError(f"Balance yocto string must contain only digits: {value}")
         return value
 
     @property

@@ -1,10 +1,10 @@
-from sqlmodel import Field
+from fzm_staking.orm.near.balance import Balance
+from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
 
-from fzm_staking.orm.near.balance import BalanceSnapshot
 
-
-class StakingSnapshot(BalanceSnapshot, table=True):
+class StakingSnapshot(
+    SnapshotMetadata,
+    Balance,
+    table=True,
+):
     __tablename__ = 'near_staking_snapshots'
-
-    account_key: str = Field(primary_key=True)
-    pool_id: str = Field(primary_key=True)
