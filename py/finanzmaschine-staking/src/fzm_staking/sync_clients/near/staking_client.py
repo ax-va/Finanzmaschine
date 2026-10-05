@@ -1,8 +1,8 @@
 import json
 from functools import lru_cache
 
+from fzm_crypto.sync_clients.near.rpc_client import RpcClient
 from fzm_staking.orm.near.balance import Balance
-from fzm_staking.sync_clients.near.rpc_client import RpcClient
 
 
 class StakingClient:
