@@ -1,9 +1,9 @@
 from fzm_staking.orm.near.balance import Balance
-from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
+from fzm_staking.orm.near.key import Key
 
 
 class Snapshot(
-    SnapshotMetadata,
+    Key,
     Balance,
     table=True,
 ):

@@ -11,7 +11,7 @@ from fzm_staking.storage.near.snapshot_storage import (
     POOL_KEY,
     SnapshotStorage,
 )
-from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
+from fzm_staking.orm.near.key import Key
 
 STAKING_SNAPSHOT_SCHEMA = {
     ACCOUNT_KEY: pl.String,
@@ -36,34 +36,34 @@ def load_df_balances(file_path: str | Path) -> pl.DataFrame:
     )
 
 
-def load_snapshot_metadata(file_path: str | Path) -> SnapshotMetadata:
+def load_key(file_path: str | Path) -> Key:
     """
-    Loads staking snapshot metadata from a YAML file.
+    Loads staking key from a YAML file.
 
     Args:
-        file_path: Path to the YAML file containing snapshot metadata.
+        file_path: Path to the YAML file containing account and pool keys.
 
     Returns:
-        A snapshot metadata object.
+        A staking key.
     """
     with Path(file_path).open("r", encoding="utf-8") as file:
-        return SnapshotMetadata.model_validate(yaml.safe_load(file))
+        return Key.model_validate(yaml.safe_load(file))
 
 
 def create_df_staking_snapshots(
-    metadata: SnapshotMetadata,
+    key: Key,
     df_balances: pl.DataFrame,
 ) -> pl.DataFrame:
     """
-    Creates staking snapshots dataframe from metadata and balance snapshots.
+    Creates staking snapshots dataframe from staking key and balance snapshots.
 
-    Adds the account and pool keys from metadata to each balance snapshot.
+    Adds the account and pool keys to each balance snapshot.
 
     If `df_balances` is empty, returns
     an empty dataframe with the staking snapshot schema.
 
     Args:
-        metadata: SnapshotMetadata object containing account and pool keys.
+        key: Staking key containing account and pool keys.
         df_balances: Dataframe containing balance snapshots.
 
     Returns:
@@ -90,8 +90,8 @@ def create_df_staking_snapshots(
 
     return pl.DataFrame(
         data={
-            ACCOUNT_KEY: metadata.account_key,
-            POOL_KEY: metadata.pool_key,
+            ACCOUNT_KEY: key.account_key,
+            POOL_KEY: key.pool_key,
             BLOCK_HEIGHT: df_balances[BLOCK_HEIGHT],
             STAKED_BALANCE_YOCTO_STR: df_balances[STAKED_BALANCE_YOCTO_STR],
             UNSTAKED_BALANCE_YOCTO_STR: df_balances[UNSTAKED_BALANCE_YOCTO_STR],

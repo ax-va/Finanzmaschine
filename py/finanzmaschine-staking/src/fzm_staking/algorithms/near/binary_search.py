@@ -275,7 +275,7 @@ def find_staking_snapshots(
         lower_block_height: Lower block height, inclusive.
         upper_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
-        snapshot_storage: Temporal storage for metadata and found staking snapshots.
+        snapshot_storage: Temporal storage for staking key and snapshots.
         chunk_size: Maximum block-height range covered by each chunk.
         last_known_balance:
             Last known balance preceding the search range.

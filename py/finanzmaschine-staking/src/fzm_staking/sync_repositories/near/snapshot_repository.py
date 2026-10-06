@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from fzm_staking.orm.near.snapshot import Snapshot
-from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
+from fzm_staking.orm.near.key import Key
 
 
 class SnapshotRepository:
@@ -22,14 +22,14 @@ class SnapshotRepository:
 
     def get(
         self,
-        metadata: SnapshotMetadata,
+        key: Key,
         block_height: int,
     ) -> Snapshot | None:
         """
-        Returns a staking snapshot by its snapshot metadata and block height.
+        Returns a staking snapshot by its snapshot key and block height.
 
         Args:
-            metadata: Snapshot metadata containing the account and pool keys.
+            key: Snapshot key containing the account and pool keys.
             block_height: Block height of the staking snapshot.
 
         Returns:
@@ -37,7 +37,7 @@ class SnapshotRepository:
         """
         return self._session.get(
             Snapshot,
-            (metadata.account_key, metadata.pool_key, block_height),
+            (key.account_key, key.pool_key, block_height),
         )
 
     def add(self, snapshot: Snapshot) -> None:

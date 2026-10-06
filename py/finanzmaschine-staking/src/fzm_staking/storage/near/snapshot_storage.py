@@ -6,7 +6,7 @@ import polars as pl
 import yaml
 
 from fzm_staking.orm.near.balance import Balance
-from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
+from fzm_staking.orm.near.key import Key
 
 BLOCK_HEIGHT = "block_height"
 STAKED_BALANCE_YOCTO_STR = "staked_balance_yocto_str"
@@ -35,23 +35,23 @@ class SnapshotStorage:
 
     def __init__(
         self,
-        metadata: SnapshotMetadata,
+        key: Key,
         target_dir: str | Path | None = None,
     ) -> None:
         """
         Args:
-            metadata: A metadata object containing `account_key` and `pool_key`.
+            key: Staking key containing `account_key` and `pool_key`.
             target_dir:
                 Directory where snapshots of processed intervals are saved.
                 If omitted, a timestamped subdirectory is created in the current working directory.
 
         Raises:
             KeyError:
-                From `self._validate_or_save_metadata`.
+                From `self._validate_or_save_key`.
             ValueError:
-                From `self._validate_or_save_metadata`.
+                From `self._validate_or_save_key`.
         """
-        self._metadata: SnapshotMetadata = metadata
+        self._key: Key = key
         self._df_balances = pl.DataFrame(schema=self.SCHEMA)
 
         if target_dir is not None:
@@ -62,11 +62,11 @@ class SnapshotStorage:
 
         self._target_dir.mkdir(parents=True, exist_ok=True)
 
-        self._validate_or_save_metadata()
+        self._validate_or_save_key()
 
     @property
-    def metadata(self) -> SnapshotMetadata:
-        return self._metadata
+    def key(self) -> Key:
+        return self._key
 
     @property
     def df_balances(self) -> pl.DataFrame:
@@ -203,36 +203,36 @@ class SnapshotStorage:
         with interval_path.open("w", encoding="utf-8") as file:
             yaml.safe_dump(interval_data, file)
 
-    def _validate_or_save_metadata(self) -> None:
-        metadata_path = self._target_dir / "metadata.yaml"
+    def _validate_or_save_key(self) -> None:
+        key_path = self._target_dir / "key.yaml"
 
-        if metadata_path.exists():
+        if key_path.exists():
 
-            logger.debug(f"The metadata file already exists: {metadata_path}")
+            logger.debug(f"The key file already exists: {key_path}")
 
-            with metadata_path.open("r", encoding="utf-8") as file:
-                metadata: dict = yaml.safe_load(file) or {}
+            with key_path.open("r", encoding="utf-8") as file:
+                key: dict = yaml.safe_load(file) or {}
 
-            logger.debug(f"Comparing metadata in the metadata file with the current values")
+            logger.debug(f"Comparing the key in the key file with the current values")
 
             for key_name, expected in (
-                (ACCOUNT_KEY, self._metadata.account_key),
-                (POOL_KEY, self._metadata.pool_key),
+                (ACCOUNT_KEY, self._key.account_key),
+                (POOL_KEY, self._key.pool_key),
             ):
-                if key_name not in metadata:
-                    raise KeyError(f"Missing `{key_name}` in {metadata_path}")
+                if key_name not in key:
+                    raise KeyError(f"Missing `{key_name}` in {key_path}")
 
-                actual = metadata[key_name]
+                actual = key[key_name]
 
                 if actual != expected:
                     raise ValueError(
                         f"Expected `{key_name}` {expected}, "
-                        f"but got {actual} in {metadata_path}"
+                        f"but got {actual} in {key_path}"
                     )
 
         else:
 
-            logger.debug(f"Saving metadata: {metadata_path}")
+            logger.debug(f"Saving key: {key_path}")
 
-            with metadata_path.open("w", encoding="utf-8") as file:
-                yaml.safe_dump(self._metadata.model_dump(), file)
+            with key_path.open("w", encoding="utf-8") as file:
+                yaml.safe_dump(self._key.model_dump(), file)

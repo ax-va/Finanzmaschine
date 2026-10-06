@@ -6,13 +6,13 @@ import polars as pl
 
 from fzm_staking.dfs.near.staking_snapshots import (
     create_df_staking_snapshots,
-    load_snapshot_metadata,
+    load_key,
     load_df_balances,
 )
 from fzm_crypto.orm.near.block import Block
 from fzm_crypto.sync_clients.near.block_client import BlockClient
 from fzm_staking.orm.near.snapshot import Snapshot
-from fzm_staking.orm.near.snapshot_metadata import SnapshotMetadata
+from fzm_staking.orm.near.key import Key
 from fzm_staking.storage.near.snapshot_storage import BLOCK_HEIGHT
 from fzm_staking.sync_repositories.near.block_repository import BlockRepository
 from fzm_staking.sync_repositories.near.snapshot_repository import SnapshotRepository
@@ -29,7 +29,7 @@ def import_staking_snapshots(
     """
     Imports staking snapshots from the given directory to the database.
 
-    Loads snapshot metadata from `metadata.yaml` in `source_dir`
+    Loads snapshot key from `key.yaml` in `source_dir`
     and processes all CSV files in the directory.
 
     For each balance snapshot, ensures that
@@ -40,7 +40,7 @@ def import_staking_snapshots(
 
     Args:
         source_dir:
-            Directory containing `metadata.yaml` and balance snapshot CSV files.
+            Directory containing staking `key.yaml` and balance snapshot CSV files.
         block_client:
             NEAR block client used to fetch blocks missing from the database.
         block_repository:
@@ -55,10 +55,10 @@ def import_staking_snapshots(
 
     logger.info(f"Source directory: {source_dir}")
 
-    metadata: SnapshotMetadata = load_snapshot_metadata(source_dir / "metadata.yaml")
+    key: Key = load_key(source_dir / "key.yaml")
 
-    logger.info(f"Account key: {metadata.account_key}")
-    logger.info(f"Pool key: {metadata.pool_key}")
+    logger.info(f"Account key: {key.account_key}")
+    logger.info(f"Pool key: {key.pool_key}")
 
     csv_paths: list[Path] = sorted(source_dir.glob("*.csv"))
     num_csv_paths: int = len(csv_paths)
@@ -84,7 +84,7 @@ def import_staking_snapshots(
         logger.debug(f"Imported {imported_blocks_count} blocks")
 
         imported_snapshots_count: int = _import_staking_snapshots(
-            metadata=metadata,
+            key=key,
             df_balances=df_balances,
             snapshot_repository=snapshot_repository,
         )
@@ -137,7 +137,7 @@ def _import_blocks(
 
 
 def _import_staking_snapshots(
-    metadata: SnapshotMetadata,
+    key: Key,
     df_balances: pl.DataFrame,
     snapshot_repository: SnapshotRepository,
 ) -> int:
@@ -147,7 +147,7 @@ def _import_staking_snapshots(
     Snapshots that cause an integrity conflict are not imported.
 
     Args:
-        metadata: Snapshot metadata containing the account and pool keys.
+        key: Snapshot key containing the account and pool keys.
         df_balances: Dataframe containing balance snapshots to import.
         snapshot_repository: Repository used to persist staking snapshots.
 
@@ -160,7 +160,7 @@ def _import_staking_snapshots(
     imported_count: int = 0
 
     df_staking_snapshots: pl.DataFrame = create_df_staking_snapshots(
-        metadata=metadata,
+        key=key,
         df_balances=df_balances,
     )
 
