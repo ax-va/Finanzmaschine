@@ -10,11 +10,11 @@ from fzm_staking.dfs.near.staking_snapshots import (
     load_df_balances,
 )
 from fzm_crypto.orm.near.block import Block
+from fzm_crypto.sync_repositories.near.block_repository import BlockRepository
 from fzm_crypto.sync_clients.near.block_client import BlockClient
 from fzm_staking.orm.near.snapshot import Snapshot
 from fzm_staking.orm.near.key import Key
 from fzm_staking.storage.near.snapshot_storage import BLOCK_HEIGHT
-from fzm_staking.sync_repositories.near.block_repository import BlockRepository
 from fzm_staking.sync_repositories.near.snapshot_repository import SnapshotRepository
 
 logger = logging.getLogger(__name__)
@@ -53,12 +53,12 @@ def import_staking_snapshots(
 
     source_dir = Path(source_dir)
 
-    logger.info(f"Source directory: {source_dir}")
+    logger.info(f"Using source directory: {source_dir}")
 
     key: Key = load_key(source_dir / "key.yaml")
 
-    logger.info(f"Account key: {key.account_key}")
-    logger.info(f"Pool key: {key.pool_key}")
+    logger.info(f"Using account key: {key.account_key}")
+    logger.info(f"Using pool key: {key.pool_key}")
 
     csv_paths: list[Path] = sorted(source_dir.glob("*.csv"))
     num_csv_paths: int = len(csv_paths)

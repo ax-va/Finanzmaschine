@@ -1,5 +1,6 @@
+from sqlalchemy import Integer, func, type_coerce
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from fzm_staking.orm.near.snapshot import Snapshot
 from fzm_staking.orm.near.key import Key
@@ -29,7 +30,7 @@ class SnapshotRepository:
         Returns a staking snapshot by its snapshot key and block height.
 
         Args:
-            key: Snapshot key containing the account and pool keys.
+            key: Staking relationship key.
             block_height: Block height of the staking snapshot.
 
         Returns:
@@ -39,6 +40,35 @@ class SnapshotRepository:
             Snapshot,
             (key.account_key, key.pool_key, block_height),
         )
+
+    def get_latest(self, key: Key) -> Snapshot | None:
+        """
+        Returns the latest staking snapshot for a key.
+
+        Args:
+            key: Staking relationship key.
+
+        Returns:
+            The snapshot with the greatest block height,
+            or `None` if none exists.
+        """
+        statement = select(
+            type_coerce(
+                func.max(Snapshot.block_height),
+                Integer,
+            )
+        ).where(
+            Snapshot.account_key == key.account_key,
+            Snapshot.pool_key == key.pool_key,
+        )
+
+        block_height: int | None = self._session.exec(statement).one()
+
+        if block_height is None:
+            return None
+
+        return self.get(key, block_height)
+
 
     def add(self, snapshot: Snapshot) -> None:
         """

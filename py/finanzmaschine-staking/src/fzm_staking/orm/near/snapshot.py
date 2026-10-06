@@ -7,4 +7,6 @@ class Snapshot(
     Balance,
     table=True,
 ):
+    """Represents a NEAR staking snapshot."""
+
     __tablename__ = 'near_staking_snapshots'
