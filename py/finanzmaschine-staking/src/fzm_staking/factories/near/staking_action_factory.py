@@ -13,7 +13,7 @@ def create_staking_action(
         receipt_key=key_mapping.get_key(staking_action_data["receipt_id"]),
         transaction_key=key_mapping.get_key(staking_action_data["transaction_hash"]),
         account_key=key_mapping.get_key(staking_action_data["account_id"]),
-        pool_id=staking_action_data["pool_id"],
+        pool_key=key_mapping.get_key(staking_action_data["pool_id"]),
         block_height=staking_action_data["block_height"],
         action_type=staking_action_data["action_type"],
         quantity_yocto_str=staking_action_data["quantity_yocto_str"],
