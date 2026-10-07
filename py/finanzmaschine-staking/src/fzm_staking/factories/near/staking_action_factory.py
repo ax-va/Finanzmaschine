@@ -1,5 +1,5 @@
 from fzm_keying import KeyMapping
-from fzm_staking.factories.near.staking_action_type import StakingActionData
+from fzm_staking.factories.near.staking_action_data import StakingActionData
 from fzm_staking.orm.near.staking_action import StakingAction, StakingActionType
 
 
@@ -39,8 +39,8 @@ def is_staking_action(raw_tx: dict) -> bool:
     return True
 
 
-def _extract_staking_action_data(raw_txs: dict) -> StakingActionData:
-    transaction: dict = raw_txs["transaction"]
+def _extract_staking_action_data(raw_tx: dict) -> StakingActionData:
+    transaction: dict = raw_tx["transaction"]
 
     function_call: dict | None = _extract_function_call(transaction)
     if function_call is None:

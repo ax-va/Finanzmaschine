@@ -1,6 +1,3 @@
-from typing import Self
-
-from pydantic import model_validator
 from sqlalchemy import BigInteger
 from sqlmodel import Field
 
@@ -15,12 +12,11 @@ class SnapshotSearch(
 
     __tablename__ = "near_staking_snapshot_searches"
 
-    from_block_height: int = Field(
+    inclusive_lower_height: int = Field(
         sa_type=BigInteger,
     )
-    up_to_block_height: int | None = Field(
+    inclusive_upper_height: int | None = Field(
         default=None,
         sa_type=BigInteger,
     )
-
     locked: bool = Field(default=False)
