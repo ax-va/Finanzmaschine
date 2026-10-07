@@ -23,5 +23,4 @@ class SnapshotSearch(
         sa_type=BigInteger,
     )
 
-    started: bool = Field(default=False)
-    stopped: bool = Field(default=False)
+    locked: bool = Field(default=False)

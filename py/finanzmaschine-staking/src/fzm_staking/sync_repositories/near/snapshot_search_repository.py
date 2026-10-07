@@ -1,5 +1,5 @@
-from sqlalchemy import delete
-from sqlmodel import Session, select
+from sqlalchemy import delete, update, CursorResult
+from sqlmodel import Session, select, col
 
 from fzm_staking.orm.near.key import Key
 from fzm_staking.orm.near.snapshot_search import SnapshotSearch
@@ -20,6 +20,50 @@ class SnapshotSearchRepository:
         """Returns the database session used by the repository."""
         return self._session
 
+    def lock(self, key: Key) -> bool:
+        """
+        Atomically locks the snapshot search for the given key.
+
+        Args:
+            key: Staking relationship key.
+
+        Returns:
+            `True` if the snapshot search was successfully locked.
+            `False` if it was already locked or does not exist.
+        """
+
+        statement =(
+            update(SnapshotSearch)
+            .where(
+                col(SnapshotSearch.account_key) == key.account_key,
+                col(SnapshotSearch.pool_key) == key.pool_key,
+                col(SnapshotSearch.locked).is_(False)
+            )
+            .values(locked=True)
+        )
+
+        result: CursorResult = self._session.exec(statement)
+        return result.rowcount == 1
+
+    def unlock(self, key: Key) -> None:
+        """
+        Unlocks the snapshot search for the given key.
+
+        Args:
+            key: Staking relationship key.
+        """
+
+        statement = (
+            update(SnapshotSearch)
+            .where(
+                col(SnapshotSearch.account_key) == key.account_key,
+                col(SnapshotSearch.pool_key) == key.pool_key,
+            )
+            .values(locked=False)
+        )
+
+        self._session.exec(statement)
+
     def get(self, key: Key) -> SnapshotSearch | None:
         """
         Returns the snapshot search for a key.
@@ -28,7 +72,7 @@ class SnapshotSearchRepository:
             key: Staking relationship key.
 
         Returns:
-            The snapshot search or `None` if does not exist.
+            The snapshot search or `None` if it does not exist.
         """
         return self._session.get(
             SnapshotSearch,
