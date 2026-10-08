@@ -12,8 +12,8 @@ class TxsClient:
     def fetch_account_txs(
         self,
         account_id: str,
-        lower_block_height: int | None = None,
-        upper_block_height: int | None = None,
+        lower_tx_block_height: int | None = None,
+        upper_tx_block_height: int | None = None,
         is_function_call: bool | None = None,
         is_success: bool | None = None,
         desc: bool = False,
@@ -26,10 +26,10 @@ class TxsClient:
 
         Args:
             account_id: NEAR account ID to fetch transactions for.
-            lower_block_height:
+            lower_tx_block_height:
                 Minimum transaction block height, inclusive.
                 If `None`, no lower bound is applied.
-            upper_block_height:
+            upper_tx_block_height:
                 Maximum transaction block height, inclusive.
                 If `None`, no upper bound is applied.
             is_function_call:
@@ -51,12 +51,12 @@ class TxsClient:
         """
 
         if (
-            lower_block_height is not None
-            and upper_block_height is not None
-            and lower_block_height > upper_block_height
+            lower_tx_block_height is not None
+            and upper_tx_block_height is not None
+            and lower_tx_block_height > upper_tx_block_height
         ):
             raise ValueError(
-                "`lower_block_height` must not exceed `upper_block_height`"
+                "`lower_tx_block_height` must not exceed `upper_block_height`"
             )
 
         account_txs: list[dict] = []
@@ -68,11 +68,11 @@ class TxsClient:
             "desc": desc,
         }
 
-        if lower_block_height is not None:
-            payload["from_tx_block_height"] = lower_block_height - 1
+        if lower_tx_block_height is not None:
+            payload["from_tx_block_height"] = lower_tx_block_height - 1
 
-        if upper_block_height is not None:
-            payload["to_tx_block_height"] = upper_block_height
+        if upper_tx_block_height is not None:
+            payload["to_tx_block_height"] = upper_tx_block_height
 
         if is_function_call is not None:
             payload["is_function_call"] = is_function_call
