@@ -9,7 +9,7 @@ from fzm_staking.sync_clients.near.staking_client import StakingClient
 logger = logging.getLogger(__name__)
 
 
-def find_next_balance_increase(
+def find_increased_balance(
     account_id: str,
     pool_id: str,
     lower_block_balance: Balance,
@@ -17,12 +17,11 @@ def find_next_balance_increase(
     staking_client: StakingClient,
 ) -> Balance | None:
     """
-    Finds the next total balance increase between
-    the exclusive lower and inclusive upper block heights.
+    Find the first total balance increase after the given lower block balance.
 
-    The total balance is the sum of staked and unstaked balances.
+    Searches within (lower_block_balance.block_height, upper_block_height].
 
-    Returns `None`, if no balance increase is detected in the given interval.
+    Returns `None` if no increase is found.
 
     Search contract:
         The total balance must be monotonically non-decreasing over the searched interval.
@@ -42,7 +41,8 @@ def find_next_balance_increase(
         staking_client: NEAR staking client.
 
     Returns:
-        The first balance with a total balance greater than `lower_block_balance.block_height`,
+        The earliest available block balance
+        whose total exceeds the initial lower-block total balance,
         or `None` if no increase is detected.
 
     Raises:
@@ -51,9 +51,11 @@ def find_next_balance_increase(
         UnexpectedBalanceDecreaseError:
             If a total balance decrease is detected during the search.
     """
+
     logger.debug(
-        f"Starting search for next balance increase between block heights "
-        f"{lower_block_balance.block_height} and {upper_block_height}"
+        "Searching for increased balance in (%s, %s]",
+        lower_block_balance.block_height,
+        upper_block_height,
     )
 
     if upper_block_height <= lower_block_balance.block_height:
@@ -95,21 +97,23 @@ def find_next_balance_increase(
             f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
         )
 
-    elif (
+    if (
         lower_block_balance.total_balance_yocto
         == upper_block_balance.total_balance_yocto
     ):
         logger.debug(
-            f"No balance increase between block heights "
-            f"{lower_block_balance.block_height} and {upper_block_height}"
+            "No increased balance found in (%s, %s]",
+            lower_block_balance.block_height,
+            upper_block_height,
         )
 
         return None
 
     while upper_block_balance.block_height - lower_block_balance.block_height > 1:
         logger.debug(
-            f"Searching balance increase between block heights "
-            f"{lower_block_balance.block_height} and {upper_block_balance.block_height}"
+            "Search interval: (%s, %s]",
+            lower_block_balance.block_height,
+            upper_block_balance.block_height,
         )
 
         middle_block_height = (
@@ -146,7 +150,7 @@ def find_next_balance_increase(
                     )
 
                 except BlockHeightNotFoundError:
-                    logger.warning(f"Block height not found: {temp_lower_block_height}")
+                    logger.debug(f"Block height not found: {temp_lower_block_height}")
 
                     temp_lower_block_height += 1
 
@@ -155,7 +159,7 @@ def find_next_balance_increase(
 
             else:
                 logger.debug(
-                    f"Found next balance increase at block height {upper_block_balance.block_height}"
+                    f"Found increased balance at block height {upper_block_balance.block_height}"
                 )
 
                 return upper_block_balance
@@ -170,23 +174,22 @@ def find_next_balance_increase(
                 f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
             )
 
-        elif (
+        if (
             lower_block_balance.total_balance_yocto
             == temp_block_balance.total_balance_yocto
         ):
             lower_block_balance = temp_block_balance
-
         else:
             upper_block_balance = temp_block_balance
 
     logger.debug(
-        f"Found next balance increase at block height {upper_block_balance.block_height}"
+        f"Found increased balance at block height {upper_block_balance.block_height}"
     )
 
     return upper_block_balance
 
 
-def find_balance_increases(
+def find_increased_balances(
     account_id: str,
     pool_id: str,
     lower_block_balance: Balance,
@@ -201,7 +204,7 @@ def find_balance_increases(
     is greater than the previously found balance.
 
     Search contract:
-        The search contract of `find_next_balance_increase`
+        The search contract of `find_increased_balance`
         applies to the entire searched interval.
 
     Args:
@@ -223,7 +226,7 @@ def find_balance_increases(
     balances: list[Balance] = []
 
     while True:
-        next_balance: Balance | None = find_next_balance_increase(
+        next_balance: Balance | None = find_increased_balance(
             account_id=account_id,
             pool_id=pool_id,
             lower_block_balance=lower_block_balance,
@@ -256,7 +259,7 @@ def find_staking_snapshots(
     Splits the inclusive range from `lower_block_height` to `upper_block_height`
     into non-overlapping chunks and searches each chunk for balance increases.
 
-    Each processed chaunk is saved to the `snapshot_storage.target_dir` directory,
+    Each processed chunk is saved to the `snapshot_storage.target_dir` directory,
     including chunks where no staking snapshots are found.
 
     If `last_known_balance` is not provided, the first existing balance in the search range
@@ -266,7 +269,7 @@ def find_staking_snapshots(
     and the search resumes from that balance.
 
     Search contract:
-        The search contract of `find_balance_increases`
+        The search contract of `find_increased_balances`
         applies to the entire searched interval.
 
     Args:
@@ -278,19 +281,27 @@ def find_staking_snapshots(
         snapshot_storage: Temporal storage for staking key and snapshots.
         chunk_size: Maximum block-height range covered by each chunk.
         last_known_balance:
-            Last known balance preceding the search range.
+            Last known balance within the search range, used to resume the search.
+            The caller must ensure that the preceding block range has already been searched.
             If omitted, the first available balance is treated
             as the initial baseline and is included in the result.
 
+
     Raises:
         ValueError:
+            If `lower_block_height` exceeds `upper_block_height`.
             If `chunk_size` is less than or equal to zero.
-            If `last_known_snapshot.block_height` is outside
-            the [lower_block_height`, exclusive `upper_block_height`) interval.
-            From `find_balance_increases`.
+            If `last_known_balance.block_height` is outside
+            the [`lower_block_height`, `upper_block_height`) interval.
+            From `find_increased_balances`.
         UnexpectedBalanceDecreaseError:
-            From `find_balance_increases`.
+            From `find_increased_balances`.
     """
+    if lower_block_height > upper_block_height:
+        raise ValueError(
+            "`lower_block_height` must not exceed `upper_block_height`"
+        )
+
     if chunk_size <= 0:
         raise ValueError("`chunk_size` must be greater than 0")
 
@@ -298,17 +309,17 @@ def find_staking_snapshots(
 
         if last_known_balance.block_height < lower_block_height:
             raise ValueError(
-                f"`last_known_snapshot.block_height` must be greater than or equal to `lower_block_height`"
+                f"`last_known_balance.block_height` must be greater than or equal to `lower_block_height`"
             )
 
         if upper_block_height <= last_known_balance.block_height:
             raise ValueError(
-                f"`last_known_snapshot.block_height` must be less than `upper_block_height`"
+                f"`last_known_balance.block_height` must be less than `upper_block_height`"
             )
 
     logger.info(
-        f"Starting global search for staking snapshots between block heights "
-        f"{lower_block_height} and {upper_block_height}"
+        "Searching for staking snapshots in chunks in [%s, %s]",
+        lower_block_height, upper_block_height
     )
 
     chunk_lower_block_height = lower_block_height
@@ -322,11 +333,16 @@ def find_staking_snapshots(
             upper_block_height,
         )
 
+        logger.info(
+            "Chunk: [%s, %s]",
+            chunk_lower_block_height, chunk_upper_block_height
+        )
+
         if last_known_balance is not None:
             if chunk_upper_block_height <= last_known_balance.block_height:
                 logger.info(
-                    f"Skipping chunk search for staking snapshots between "
-                    f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+                    "Skipping chunk: [%s, %s]",
+                    chunk_lower_block_height, chunk_upper_block_height
                 )
 
                 chunk_lower_block_height = chunk_upper_block_height + 1
@@ -334,8 +350,8 @@ def find_staking_snapshots(
 
         else:
             logger.info(
-                f"Searching the first existing balance between block heights "
-                f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+                "Searching for the first existing balance in chunk [%s, %s]",
+                chunk_lower_block_height, chunk_upper_block_height
             )
 
             block_height = chunk_lower_block_height
@@ -353,16 +369,11 @@ def find_staking_snapshots(
                 except BlockHeightNotFoundError:
                     block_height += 1
 
-        logger.info(
-            f"Starting chunk search for staking snapshots between block heights "
-            f"{chunk_lower_block_height} and {chunk_upper_block_height}"
-        )
-
         if (
             last_known_balance is not None
             and last_known_balance.block_height < chunk_upper_block_height
         ):
-            balances: list[Balance] = find_balance_increases(
+            balances: list[Balance] = find_increased_balances(
                 staking_client=staking_client,
                 account_id=account_id,
                 pool_id=pool_id,
@@ -377,8 +388,8 @@ def find_staking_snapshots(
                 last_known_balance = balances[-1]
 
         logger.debug(
-            f"Saving staking snapshots for chunk between block heights "
-            f"{chunk_lower_block_height} and {chunk_upper_block_height}"
+            "Saving staking snapshots for chunk [%s, %s]",
+            chunk_lower_block_height, chunk_upper_block_height
         )
 
         snapshot_storage.save(
@@ -388,4 +399,4 @@ def find_staking_snapshots(
 
         chunk_lower_block_height = chunk_upper_block_height + 1
 
-    logger.info("Global search completed")
+    logger.info("Search in chunks completed")
