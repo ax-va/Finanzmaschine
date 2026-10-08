@@ -49,8 +49,8 @@ class StakingClient:
 
         return Balance(
             block_height=block_height,
-            staked_balance_yocto_str=staked_balance,
-            unstaked_balance_yocto_str=unstaked_balance,
+            staked_yocto_str=staked_balance,
+            unstaked_yocto_str=unstaked_balance,
         )
 
     def _fetch_balance(

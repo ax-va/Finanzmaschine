@@ -88,18 +88,18 @@ def find_increased_balance(
         return None
 
     if (
-        upper_block_balance.total_balance_yocto
-        < lower_block_balance.total_balance_yocto
+        upper_block_balance.total_yocto
+        < lower_block_balance.total_yocto
     ):
         raise UnexpectedBalanceDecreaseError(
             "Violation of the binary search contract: "
-            f"`upper_block_balance.total_balance_yocto` of {upper_block_balance.total_balance_yocto} "
-            f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
+            f"`upper_block_balance.total_yocto` of {upper_block_balance.total_yocto} "
+            f"is less than `lower_block_balance.total_yocto` of {lower_block_balance.total_yocto}"
         )
 
     if (
-        lower_block_balance.total_balance_yocto
-        == upper_block_balance.total_balance_yocto
+        lower_block_balance.total_yocto
+        == upper_block_balance.total_yocto
     ):
         logger.debug(
             "No increased balance found in (%s, %s]",
@@ -165,18 +165,18 @@ def find_increased_balance(
                 return upper_block_balance
 
         if (
-            temp_block_balance.total_balance_yocto
-            < lower_block_balance.total_balance_yocto
+            temp_block_balance.total_yocto
+            < lower_block_balance.total_yocto
         ):
             raise UnexpectedBalanceDecreaseError(
                 "Violation of the binary search contract: "
-                f"`temp_block_balance.total_balance_yocto` of {temp_block_balance.total_balance_yocto} "
-                f"is less than `lower_block_balance.total_balance_yocto` of {lower_block_balance.total_balance_yocto}"
+                f"`temp_block_balance.total_yocto` of {temp_block_balance.total_yocto} "
+                f"is less than `lower_block_balance.total_yocto` of {lower_block_balance.total_yocto}"
             )
 
         if (
-            lower_block_balance.total_balance_yocto
-            == temp_block_balance.total_balance_yocto
+            lower_block_balance.total_yocto
+            == temp_block_balance.total_yocto
         ):
             lower_block_balance = temp_block_balance
         else:

@@ -5,8 +5,8 @@ import yaml
 
 from fzm_staking.storage.near.snapshot_storage import (
     BLOCK_HEIGHT,
-    STAKED_BALANCE_YOCTO_STR,
-    UNSTAKED_BALANCE_YOCTO_STR,
+    STAKED_YOCTO_STR,
+    UNSTAKED_YOCTO_STR,
     ACCOUNT_KEY,
     POOL_KEY,
     SnapshotStorage,
@@ -93,8 +93,8 @@ def create_df_staking_snapshots(
             ACCOUNT_KEY: key.account_key,
             POOL_KEY: key.pool_key,
             BLOCK_HEIGHT: df_balances[BLOCK_HEIGHT],
-            STAKED_BALANCE_YOCTO_STR: df_balances[STAKED_BALANCE_YOCTO_STR],
-            UNSTAKED_BALANCE_YOCTO_STR: df_balances[UNSTAKED_BALANCE_YOCTO_STR],
+            STAKED_YOCTO_STR: df_balances[STAKED_YOCTO_STR],
+            UNSTAKED_YOCTO_STR: df_balances[UNSTAKED_YOCTO_STR],
         },
         schema=SnapshotStorage.SCHEMA,
     )

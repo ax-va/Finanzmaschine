@@ -5,9 +5,11 @@ from fzm_staking.orm.near.staking_action import StakingActionType
 
 class StakingActionData(TypedDict):
     receipt_id: str
+    action_index: int
     transaction_hash: str
     account_id: str
     pool_id: str
-    block_height: int
+    tx_block_height: int
+    receipt_block_height: int
     action_type: StakingActionType
-    quantity_yocto_str: str | None
+    operation_yocto_str: str | None

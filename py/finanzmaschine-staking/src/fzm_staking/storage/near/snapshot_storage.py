@@ -9,8 +9,8 @@ from fzm_staking.orm.near.balance import Balance
 from fzm_staking.orm.near.key import Key
 
 BLOCK_HEIGHT = "block_height"
-STAKED_BALANCE_YOCTO_STR = "staked_balance_yocto_str"
-UNSTAKED_BALANCE_YOCTO_STR = "unstaked_balance_yocto_str"
+STAKED_YOCTO_STR = "staked_yocto_str"
+UNSTAKED_YOCTO_STR = "unstaked_yocto_str"
 LOWER_BLOCK_HEIGHT = "lower_block_height"
 UPPER_BLOCK_HEIGHT = "upper_block_height"
 ACCOUNT_KEY = "account_key"
@@ -29,8 +29,8 @@ class SnapshotStorage:
 
     SCHEMA = {
         BLOCK_HEIGHT: pl.Int64,
-        STAKED_BALANCE_YOCTO_STR: pl.String,
-        UNSTAKED_BALANCE_YOCTO_STR: pl.String,
+        STAKED_YOCTO_STR: pl.String,
+        UNSTAKED_YOCTO_STR: pl.String,
     }
 
     def __init__(
@@ -102,8 +102,8 @@ class SnapshotStorage:
         df_row = pl.DataFrame(
             {
                 BLOCK_HEIGHT: [balance.block_height],
-                STAKED_BALANCE_YOCTO_STR: [balance.staked_balance_yocto_str],
-                UNSTAKED_BALANCE_YOCTO_STR: [balance.unstaked_balance_yocto_str],
+                STAKED_YOCTO_STR: [balance.staked_yocto_str],
+                UNSTAKED_YOCTO_STR: [balance.unstaked_yocto_str],
             },
             schema=self.SCHEMA,
         )
@@ -147,8 +147,8 @@ class SnapshotStorage:
 
         return Balance(
             block_height=row[BLOCK_HEIGHT],
-            staked_balance_yocto_str=row[STAKED_BALANCE_YOCTO_STR],
-            unstaked_balance_yocto_str=row[UNSTAKED_BALANCE_YOCTO_STR],
+            staked_yocto_str=row[STAKED_YOCTO_STR],
+            unstaked_yocto_str=row[UNSTAKED_YOCTO_STR],
         )
 
     def clear(self) -> None:

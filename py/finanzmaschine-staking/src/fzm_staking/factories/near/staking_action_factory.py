@@ -1,132 +1,168 @@
+import base64
+import binascii
+import json
+
 from fzm_keying import KeyMapping
-from fzm_staking.factories.near.staking_action_data import StakingActionData
 from fzm_staking.orm.near.staking_action import StakingAction, StakingActionType
 
 
-def create_staking_action(
+def create_staking_actions(
+    raw_txs: list[dict],
+    key_mapping: KeyMapping,
+) -> list[StakingAction]:
+
+    staking_actions: list[StakingAction] = []
+
+    for raw_tx in raw_txs:
+        if _contains_staking_action(raw_tx):
+            staking_actions.extend(
+                _create_staking_actions(raw_tx, key_mapping)
+            )
+
+    return staking_actions
+
+
+def _create_staking_actions(
     raw_tx: dict,
     key_mapping: KeyMapping,
-) -> StakingAction:
-    staking_action_data: StakingActionData = _extract_staking_action_data(raw_tx)
+) -> list[StakingAction]:
+    """Create staking actions from the transaction's successful initial receipts."""
 
-    return StakingAction(
-        receipt_key=key_mapping.get_key(staking_action_data["receipt_id"]),
-        transaction_key=key_mapping.get_key(staking_action_data["transaction_hash"]),
-        account_key=key_mapping.get_key(staking_action_data["account_id"]),
-        pool_key=key_mapping.get_key(staking_action_data["pool_id"]),
-        block_height=staking_action_data["block_height"],
-        action_type=staking_action_data["action_type"],
-        quantity_yocto_str=staking_action_data["quantity_yocto_str"],
-    )
+    transaction = raw_tx["transaction"]
 
-
-def is_staking_action(raw_tx: dict) -> bool:
-    transaction: dict = raw_tx["transaction"]
-
-    function_call: dict | None = _extract_function_call(transaction)
-    if function_call is None:
-        return False
-
-    method_name: str | None = function_call.get("method_name")
-    if method_name is None:
-        return False
-
-    try:
-        StakingActionType(method_name)
-    except (ValueError, TypeError):
-        return False
-
-    return True
-
-
-def _extract_staking_action_data(raw_tx: dict) -> StakingActionData:
-    transaction: dict = raw_tx["transaction"]
-
-    function_call: dict | None = _extract_function_call(transaction)
-    if function_call is None:
-        raise RuntimeError(f"'FuctionCall' not found: {transaction}")
-
-    method_name: str | None = function_call.get("method_name")
-    if method_name is None:
-        raise RuntimeError(f"'method_name' not found: {function_call}")
-
-    try:
-        action_type = StakingActionType(method_name)
-    except (ValueError, TypeError):
-        raise RuntimeError(f"{method_name!r} is not a valid staking action type")
-
-    receipt_id: str = _extract_receipt_id(raw_tx)
-    receipt: dict = _extract_receipt(raw_tx, receipt_id)
-
-    return {
-        "receipt_id": receipt_id,
-        "transaction_hash": transaction["hash"],
-        "account_id": transaction["signer_id"],
-        "pool_id": transaction["receiver_id"],
-        "block_height": receipt["execution_outcome"]["block_height"],
-        "action_type": action_type,
-        "quantity_yocto_str": _extract_quantity_yocto_str(function_call, action_type),
+    receipt_ids = raw_tx["execution_outcome"]["outcome"]["receipt_ids"]
+    receipts_by_id = {
+        item["receipt"]["receipt_id"]: item
+        for item in raw_tx["receipts"]
     }
 
+    staking_actions: list[StakingAction] = []
 
-def _extract_function_call(
-    transaction: dict,
-) -> dict | None:
-    actions = transaction.get("actions", [])
-    if len(actions) != 1:
-        return None
+    for receipt_id in receipt_ids:
+        receipt = receipts_by_id.get(receipt_id)
 
-    function_call = actions[0].get("FunctionCall")
+        if receipt is None:
+            raise RuntimeError(f"Receipt {receipt_id} not found")
 
-    return function_call
+        receipt_data = receipt["receipt"]
+        action_receipt = receipt_data["receipt"].get("Action")
+
+        if action_receipt is None:
+            continue
+
+        recognized_actions = []
+
+        for action_index, action in enumerate(action_receipt["actions"]):
+            function_call = action.get("FunctionCall")
+            if function_call is None:
+                continue
+
+            try:
+                action_type = StakingActionType(function_call.get("method_name"))
+            except (ValueError, TypeError):
+                continue
+
+            recognized_actions.append((action_index, function_call, action_type))
+
+        if not recognized_actions:
+            continue
+
+        status = receipt["execution_outcome"]["outcome"]["status"]
+        if not any(key in status for key in ("SuccessValue", "SuccessReceiptId")):
+            raise RuntimeError(f"Staking receipt execution failed: {status}")
+
+        for action_index, function_call, action_type in recognized_actions:
+            staking_actions.append(
+                StakingAction(
+                    receipt_key=key_mapping.get_key(receipt_id),
+                    action_index=action_index,
+                    transaction_key=key_mapping.get_key(transaction["hash"]),
+                    account_key=key_mapping.get_key(transaction["signer_id"]),
+                    pool_key=key_mapping.get_key(receipt_data["receiver_id"]),
+                    tx_block_height=raw_tx["execution_outcome"]["block_height"],
+                    receipt_block_height=receipt["execution_outcome"]["block_height"],
+                    action_type=action_type,
+                    operation_yocto_str=_extract_operation_yocto_str(
+                        function_call,
+                        action_type,
+                    ),
+                )
+            )
+
+    return staking_actions
 
 
-def _extract_receipt_id(raw_tx: dict) -> str:
-    receipt_ids = (
-        raw_tx["execution_outcome"]
-        ["outcome"]
-        ["receipt_ids"]
-    )
+def _contains_staking_action(raw_tx: dict) -> bool:
+    """Check whether the transaction contains any recognized staking FunctionCall."""
 
-    if len(receipt_ids) != 1:
-        raise RuntimeError(f"Expected exactly one receipt, got {receipt_ids}")
+    for action in raw_tx["transaction"].get("actions", []):
+        function_call = action.get("FunctionCall")
 
-    return receipt_ids[0]
+        if function_call is None:
+            continue
 
+        try:
+            StakingActionType(function_call.get("method_name"))
+        except (ValueError, TypeError):
+            continue
 
-def _extract_receipt(
-    raw_tx: dict,
-    receipt_id: str,
-) -> dict:
-    for item in raw_tx["receipts"]:
-        if item["receipt"]["receipt_id"] == receipt_id:
-            return item
+        return True
 
-    raise RuntimeError(f"Receipt {receipt_id} not found")
+    return False
 
 
-def _extract_quantity_yocto_str(
+def _extract_operation_yocto_str(
     function_call: dict,
     action_type: StakingActionType,
 ) -> str | None:
-
-    if action_type == StakingActionType.DEPOSIT_AND_STAKE:
-        return function_call["deposit"]
-
+    """Extract the requested staking quantity in yoctoNEAR."""
     if action_type in (
+        StakingActionType.DEPOSIT,
+        StakingActionType.DEPOSIT_AND_STAKE,
+    ):
+        quantity = function_call["deposit"]
+
+    elif action_type in (
+        StakingActionType.STAKE,
+        StakingActionType.UNSTAKE,
+        StakingActionType.WITHDRAW,
+    ):
+        try:
+            decoded_args = base64.b64decode(
+                function_call["args"],
+                validate=True,
+            )
+            args = json.loads(decoded_args)
+            quantity = args["amount"]
+
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+            UnicodeDecodeError,
+            binascii.Error,
+        ) as exc:
+            raise ValueError(
+                f"Invalid FunctionCall arguments for {action_type.value}"
+            ) from exc
+
+    elif action_type in (
         StakingActionType.STAKE_ALL,
         StakingActionType.UNSTAKE_ALL,
         StakingActionType.WITHDRAW_ALL,
     ):
         return None
 
-    if action_type in (
-        StakingActionType.DEPOSIT,
-        StakingActionType.STAKE,
-        StakingActionType.UNSTAKE,
-        StakingActionType.WITHDRAW,
-    ):
-        # TODO: Add handling DEPOSIT, STAKE, UNSTAKE, WITHDRAW
-        raise NotImplementedError(f"DEPOSIT, STAKE, UNSTAKE, and WITHDRAW not supported yet: {action_type}")
+    else:
+        raise ValueError(f"Unexpected staking action type: {action_type}")
 
-    raise RuntimeError(f"Unexpected staking action type: {action_type}")
+    if (
+        not isinstance(quantity, str)
+        or not quantity.isascii()
+        or not quantity.isdecimal()
+    ):
+        raise ValueError(
+            f"Invalid quantity for {action_type.value}: {quantity!r}"
+        )
+
+    return quantity

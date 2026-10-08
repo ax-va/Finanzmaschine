@@ -31,8 +31,8 @@ def upgrade() -> None:
         sa.Column('account_key', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column('pool_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column('block_height', sa.BigInteger(), nullable=False),
-        sa.Column('staked_balance_yocto_str', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column('unstaked_balance_yocto_str', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column('staked_yocto_str', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column('unstaked_yocto_str', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.ForeignKeyConstraint(['block_height'], ['near_blocks.block_height'], ),
         sa.PrimaryKeyConstraint( 'account_key', 'pool_id', 'block_height')
     )

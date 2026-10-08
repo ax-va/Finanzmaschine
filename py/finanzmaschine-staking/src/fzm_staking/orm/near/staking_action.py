@@ -25,24 +25,30 @@ class StakingAction(SQLModel, table=True):
     account_key: str = Field(index=True)
     pool_key: str = Field(index=True)
 
-    block_height: int = Field(
+    tx_block_height: int = Field(
+        foreign_key='near_blocks.block_height',
+        index=True,
+        sa_type=BigInteger,
+    )
+
+    receipt_block_height: int = Field(
         foreign_key='near_blocks.block_height',
         index=True,
         sa_type=BigInteger,
     )
 
     action_type: StakingActionType
-    quantity_yocto_str: str | None = None
+    operation_yocto_str: str | None = None
 
-    @field_validator("quantity_yocto_str")
+    @field_validator("operation_yocto_str")
     @classmethod
-    def validate_quantity_yocto_str(cls, value: str | None) -> str | None:
+    def validate_yocto_str(cls, value: str | None) -> str | None:
         if value is not None and not value.isdigit():
-            raise ValueError(f"Quantity yocto string must contain only digits: {value}")
+            raise ValueError(f"Operation yocto string must contain only digits: {value}")
         return value
 
     @property
-    def quantity_yocto(self) -> int | None:
-        if self.quantity_yocto_str is None:
+    def operation_yocto(self) -> int | None:
+        if self.operation_yocto_str is None:
             return None
-        return int(self.quantity_yocto_str)
+        return int(self.operation_yocto_str)
