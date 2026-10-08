@@ -12,24 +12,24 @@ class TxsClient:
     def fetch_account_txs(
         self,
         account_id: str,
-        exclusive_lower_height: int | None = None,
-        inclusive_upper_height: int | None = None,
+        lower_block_height: int | None = None,
+        upper_block_height: int | None = None,
         is_function_call: bool | None = None,
         is_success: bool | None = None,
         desc: bool = False,
     ) -> list[dict]:
         """
-        Fetch account transactions.
+        Fetches transactions signed by a NEAR account.
 
         Retrieves all matching transactions, automatically following pagination
         using the resume token returned by the API.
 
         Args:
             account_id: NEAR account ID to fetch transactions for.
-            exclusive_lower_height:
-                Minimum transaction block height, exclusive.
+            lower_block_height:
+                Minimum transaction block height, inclusive.
                 If `None`, no lower bound is applied.
-            inclusive_upper_height:
+            upper_block_height:
                 Maximum transaction block height, inclusive.
                 If `None`, no upper bound is applied.
             is_function_call:
@@ -44,8 +44,20 @@ class TxsClient:
             All matching transaction records returned by the API.
 
         Raises:
-            httpx.HTTPStatusError: If an API request returns an unsuccessful HTTP status code.
+            ValueError:
+                If `lower_block_height` exceeds `upper_block_height`.
+            httpx.HTTPStatusError:
+                If an API request returns an unsuccessful HTTP status code.
         """
+
+        if (
+            lower_block_height is not None
+            and upper_block_height is not None
+            and lower_block_height > upper_block_height
+        ):
+            raise ValueError(
+                "`lower_block_height` must not exceed `upper_block_height`"
+            )
 
         account_txs: list[dict] = []
 
@@ -56,11 +68,11 @@ class TxsClient:
             "desc": desc,
         }
 
-        if exclusive_lower_height is not None:
-            payload["from_tx_block_height"] = exclusive_lower_height
+        if lower_block_height is not None:
+            payload["from_tx_block_height"] = lower_block_height - 1
 
-        if inclusive_upper_height is not None:
-            payload["to_tx_block_height"] = inclusive_upper_height
+        if upper_block_height is not None:
+            payload["to_tx_block_height"] = upper_block_height
 
         if is_function_call is not None:
             payload["is_function_call"] = is_function_call
