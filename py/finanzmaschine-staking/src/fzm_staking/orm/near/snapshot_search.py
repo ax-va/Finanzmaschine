@@ -12,10 +12,12 @@ class SnapshotSearch(
 
     __tablename__ = "near_staking_snapshot_searches"
 
-    inclusive_lower_height: int = Field(
+    # inclusive
+    from_block_height: int = Field(
         sa_type=BigInteger,
     )
-    inclusive_upper_height: int | None = Field(
+    # inclusive
+    up_to_block_height: int | None = Field(
         default=None,
         sa_type=BigInteger,
     )

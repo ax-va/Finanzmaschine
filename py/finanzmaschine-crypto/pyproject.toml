@@ -20,6 +20,12 @@ dependencies = [
 Homepage = "https://github.com/ax-va/Finanzmaschine"
 Repository = "https://github.com/ax-va/Finanzmaschine/tree/main/py/finanzmaschine-crypto"
 
+[project.entry-points."fzm_alembic.models"]
+near_blocks = "fzm_crypto.orm.near.block"
+
+[project.entry-points."fzm_alembic.migrations"]
+crypto = "fzm_crypto.migrations"
+
 [dependenncy-groups]
 dev = [
     "pytest>=8.0,<9.0",

@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 def find_increased_balance(
     account_id: str,
     pool_id: str,
-    lower_block_balance: Balance,
-    upper_block_height: int,
+    start_block_balance: Balance,
+    up_to_block_height: int,
     staking_client: StakingClient,
 ) -> Balance | None:
     """
     Find the first total balance increase after the given lower block balance.
 
-    Searches within (lower_block_balance.block_height, upper_block_height].
+    Searches within (start_block_balance.block_height, up_to_block_height].
 
     Returns `None` if no increase is found.
 
@@ -36,8 +36,8 @@ def find_increased_balance(
     Args:
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
-        lower_block_balance: Lower-block balance that sets the lower block height, exclusive.
-        upper_block_height: Upper block height, inclusive.
+        start_block_balance: Lower-block balance that sets the lower block height, exclusive.
+        up_to_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
 
     Returns:
@@ -47,21 +47,24 @@ def find_increased_balance(
 
     Raises:
         ValueError:
-            If `upper_block_height` is less than or equal to `lower_block_balance.block_height`.
+            If `up_to_block_height` is less than or equal to `start_block_balance.block_height`.
         UnexpectedBalanceDecreaseError:
             If a total balance decrease is detected during the search.
     """
 
     logger.debug(
         "Searching for increased balance in (%s, %s]",
-        lower_block_balance.block_height,
-        upper_block_height,
+        start_block_balance.block_height,
+        up_to_block_height,
     )
 
-    if upper_block_height <= lower_block_balance.block_height:
+    if up_to_block_height <= start_block_balance.block_height:
         raise ValueError(
-            "`upper_block_height` must be greater than `lower_block_balance.block_height`"
+            "`up_to_block_height` must be greater than `start_block_balance.block_height`"
         )
+
+    lower_block_balance = start_block_balance
+    upper_block_height = up_to_block_height
 
     while upper_block_height > lower_block_balance.block_height:
 
@@ -192,8 +195,8 @@ def find_increased_balance(
 def find_increased_balances(
     account_id: str,
     pool_id: str,
-    lower_block_balance: Balance,
-    upper_block_height: int,
+    start_block_balance: Balance,
+    up_to_block_height: int,
     staking_client: StakingClient,
 ) -> list[Balance]:
     """
@@ -210,8 +213,8 @@ def find_increased_balances(
     Args:
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
-        lower_block_balance: Lower-block balance that sets the lower block height, exclusive.
-        upper_block_height: Upper block height, inclusive.
+        start_block_balance: Lower-block balance that sets the lower block height, exclusive.
+        up_to_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
 
     Returns:
@@ -219,18 +222,20 @@ def find_increased_balances(
 
     Raises:
         ValueError:
-            If `upper_block_height` is less than or equal to `lower_block_balance.block_height`.
+            If `up_to_block_height` is less than or equal to `start_block_balance.block_height`.
         UnexpectedBalanceDecreaseError:
             If a total balance decrease is detected at an inspected block.
     """
+
     balances: list[Balance] = []
+    lower_block_balance = start_block_balance
 
     while True:
         next_balance: Balance | None = find_increased_balance(
             account_id=account_id,
             pool_id=pool_id,
-            lower_block_balance=lower_block_balance,
-            upper_block_height=upper_block_height,
+            start_block_balance=lower_block_balance,
+            up_to_block_height=up_to_block_height,
             staking_client=staking_client,
         )
 
@@ -246,8 +251,8 @@ def find_increased_balances(
 def find_staking_snapshots(
     account_id: str,
     pool_id: str,
-    lower_block_height: int,
-    upper_block_height: int,
+    from_block_height: int,
+    up_to_block_height: int,
     staking_client: StakingClient,
     snapshot_storage: SnapshotStorage,
     chunk_size: int = 1_000_000,
@@ -256,7 +261,7 @@ def find_staking_snapshots(
     """
     Finds staking snapshots within a block range in fixed-size chunks.
 
-    Splits the inclusive range from `lower_block_height` to `upper_block_height`
+    Splits the inclusive range from `from_block_height` to `up_to_block_height`
     into non-overlapping chunks and searches each chunk for balance increases.
 
     Each processed chunk is saved to the `snapshot_storage.target_dir` directory,
@@ -275,8 +280,8 @@ def find_staking_snapshots(
     Args:
         account_id: Account whose staking balance is being searched.
         pool_id: Staking pool associated with the account.
-        lower_block_height: Lower block height, inclusive.
-        upper_block_height: Upper block height, inclusive.
+        from_block_height: Lower block height, inclusive.
+        up_to_block_height: Upper block height, inclusive.
         staking_client: NEAR staking client.
         snapshot_storage: Temporal storage for staking key and snapshots.
         chunk_size: Maximum block-height range covered by each chunk.
@@ -289,17 +294,17 @@ def find_staking_snapshots(
 
     Raises:
         ValueError:
-            If `lower_block_height` exceeds `upper_block_height`.
+            If `from_block_height` exceeds `up_to_block_height`.
             If `chunk_size` is less than or equal to zero.
             If `last_known_balance.block_height` is outside
-            the [`lower_block_height`, `upper_block_height`) interval.
+            the [`from_block_height`, `up_to_block_height`) interval.
             From `find_increased_balances`.
         UnexpectedBalanceDecreaseError:
             From `find_increased_balances`.
     """
-    if lower_block_height > upper_block_height:
+    if from_block_height > up_to_block_height:
         raise ValueError(
-            "`lower_block_height` must not exceed `upper_block_height`"
+            "`from_block_height` must not exceed `up_to_block_height`"
         )
 
     if chunk_size <= 0:
@@ -307,21 +312,23 @@ def find_staking_snapshots(
 
     if last_known_balance is not None:
 
-        if last_known_balance.block_height < lower_block_height:
+        if last_known_balance.block_height < from_block_height:
             raise ValueError(
-                f"`last_known_balance.block_height` must be greater than or equal to `lower_block_height`"
+                f"`last_known_balance.block_height` must be greater than or equal to `from_block_height`"
             )
 
-        if upper_block_height <= last_known_balance.block_height:
+        if up_to_block_height <= last_known_balance.block_height:
             raise ValueError(
-                f"`last_known_balance.block_height` must be less than `upper_block_height`"
+                f"`last_known_balance.block_height` must be less than `up_to_block_height`"
             )
 
     logger.info(
         "Searching for staking snapshots in chunks in [%s, %s]",
-        lower_block_height, upper_block_height
+        from_block_height, up_to_block_height
     )
 
+    lower_block_height = from_block_height
+    upper_block_height = up_to_block_height
     chunk_lower_block_height = lower_block_height
 
     while chunk_lower_block_height <= upper_block_height:
@@ -377,8 +384,8 @@ def find_staking_snapshots(
                 staking_client=staking_client,
                 account_id=account_id,
                 pool_id=pool_id,
-                lower_block_balance=last_known_balance,
-                upper_block_height=chunk_upper_block_height,
+                start_block_balance=last_known_balance,
+                up_to_block_height=chunk_upper_block_height,
             )
 
             for balance in balances:

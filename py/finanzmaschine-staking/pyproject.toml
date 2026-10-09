@@ -23,6 +23,14 @@ dependencies = [
 Homepage = "https://github.com/ax-va/Finanzmaschine"
 Repository = "https://github.com/ax-va/Finanzmaschine/tree/main/py/finanzmaschine-staking"
 
+[project.entry-points."fzm_alembic.models"]
+near_staking_snapshots = "fzm_staking.orm.near.snapshot"
+near_staking_snapshot_searches = "fzm_staking.orm.near.snapshot_search"
+near_staking_actions = "fzm_staking.orm.near.action"
+
+[project.entry-points."fzm_alembic.migrations"]
+staking = "fzm_staking.migrations"
+
 [dependenncy-groups]
 dev = [
     "pytest>=8.0,<9.0",
