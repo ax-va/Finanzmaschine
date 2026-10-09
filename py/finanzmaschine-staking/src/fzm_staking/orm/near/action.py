@@ -26,13 +26,11 @@ class Action(SQLModel, table=True):
     pool_key: str = Field(index=True)
 
     tx_block_height: int = Field(
-        foreign_key='near_blocks.block_height',
         index=True,
         sa_type=BigInteger,
     )
 
     receipt_block_height: int = Field(
-        foreign_key='near_blocks.block_height',
         index=True,
         sa_type=BigInteger,
     )
