@@ -2,7 +2,7 @@ from sqlalchemy import delete, update, CursorResult
 from sqlmodel import Session, select, col
 
 from fzm_staking.orm.near.key import Key
-from fzm_staking.orm.near.snapshot_search import SnapshotSearch
+from fzm_staking.orm.near.search import SnapshotSearch
 
 
 class SnapshotSearchRepository:

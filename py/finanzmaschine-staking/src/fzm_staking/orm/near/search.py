@@ -4,13 +4,13 @@ from sqlmodel import Field
 from fzm_staking.orm.near.key import Key
 
 
-class SnapshotSearch(
+class Search(
     Key,
     table=True,
 ):
     """Represents the state and coverage of a staking snapshot search."""
 
-    __tablename__ = "near_staking_snapshot_searches"
+    __tablename__ = "near_staking_searches"
 
     # inclusive block height
     from_block_height: int = Field(
