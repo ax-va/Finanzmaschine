@@ -4,7 +4,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "crypto_near_001"
+revision: str = "crypto_001"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
