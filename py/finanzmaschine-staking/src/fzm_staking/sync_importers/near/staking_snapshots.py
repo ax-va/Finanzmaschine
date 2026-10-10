@@ -4,7 +4,7 @@ from typing import Iterable
 
 import polars as pl
 
-from fzm_staking.dfs.near.staking_snapshots import (
+from fzm_staking.dataframes.near.staking_snapshots import (
     create_df_staking_snapshots,
     load_key,
     load_df_balances,
