@@ -115,9 +115,9 @@ class StakingSnapshotRepository:
         except IntegrityError:
             return False
 
-    def import_to(
+    def import_from(
         self,
-        from_source_dir: str | Path,
+        source_dir: str | Path,
     ) -> None:
         """
         Imports staking snapshots from the given directory to the database.
@@ -132,13 +132,13 @@ class StakingSnapshotRepository:
         Snapshots that cause an integrity conflict are not imported.
 
         Args:
-            from_source_dir:
+            source_dir:
                 Directory containing staking `key.yaml` and balance snapshot CSV files.
         """
 
         logger.info("Starting staking snapshots import to the database")
 
-        source_dir = Path(from_source_dir)
+        source_dir = Path(source_dir)
 
         logger.info(f"From source directory: {source_dir}")
 
@@ -161,7 +161,7 @@ class StakingSnapshotRepository:
 
             logger.debug(f"Loaded {df_balances.height} balance snapshots")
 
-            imported_snapshots_count: int = self._import_to(
+            imported_snapshots_count: int = self._import(
                 key=key,
                 df_balances=df_balances,
             )
@@ -170,7 +170,7 @@ class StakingSnapshotRepository:
 
         logger.info(f"Processed {num_csv_paths} staking snapshot files")
 
-    def _import_to(
+    def _import(
         self,
         key: StakingKey,
         df_balances: pl.DataFrame,
