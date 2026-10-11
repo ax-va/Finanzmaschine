@@ -7,10 +7,13 @@ from fzm_alembic.runner import create_config, downgrade, upgrade
 def test_near_migrations() -> None:
     """Verify NEAR migration discovery and revision chain integrity."""
     config = create_config("sqlite://")
+
     # Load the migration script directory from the Alembic configuration
     script = ScriptDirectory.from_config(config)
+
     # Collect all available migration revisions
     revisions = list(script.walk_revisions())
+
     # Extract revisions IDs for comparison with the expected set
     revision_ids = {revision.revision for revision in revisions}
 
@@ -28,6 +31,7 @@ def test_near_upgrade(tmp_path) -> None:
     """Verify that upgrading creates all NEAR database tables."""
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
 
+    # Apply all migrations
     upgrade(database_url)
 
     engine = create_engine(database_url)
@@ -51,6 +55,7 @@ def test_near_downgrade(tmp_path) -> None:
 
     # Apply all migrations to prepare the database for rollback
     upgrade(database_url)
+
     # Roll back all migrations to the base revision
     downgrade(database_url, "base")
 
