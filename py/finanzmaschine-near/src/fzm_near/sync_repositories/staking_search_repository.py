@@ -1,0 +1,95 @@
+from sqlalchemy import update, CursorResult
+from sqlmodel import Session, col
+
+from fzm_near.orm.staking_key import StakingKey
+from fzm_near.orm.staking_search import StakingSearch
+
+
+class StakingSearchRepository:
+    """Provides synchronous database operations for snapshot searches."""
+
+    def __init__(self, session: Session) -> None:
+        """
+        Args:
+            session: Database session used for persistence operations.
+        """
+        self._session = session
+
+    @property
+    def session(self) -> Session:
+        """Returns the database session used by the repository."""
+        return self._session
+
+    def lock(self, key: StakingKey) -> bool:
+        """
+        Atomically locks the snapshot search for the given key.
+
+        Args:
+            key: Staking relationship key.
+
+        Returns:
+            `True` if the snapshot search was successfully locked.
+            `False` if it was already locked or does not exist.
+        """
+
+        statement =(
+            update(StakingSearch)
+            .where(
+                col(StakingSearch.account_key) == key.account_key,
+                col(StakingSearch.pool_key) == key.pool_key,
+                col(StakingSearch.locked).is_(False)
+            )
+            .values(locked=True)
+        )
+
+        result: CursorResult = self._session.exec(statement)
+        return result.rowcount == 1
+
+    def unlock(self, key: StakingKey) -> None:
+        """
+        Unlocks the snapshot search for the given key.
+
+        Args:
+            key: Staking relationship key.
+        """
+
+        statement = (
+            update(StakingSearch)
+            .where(
+                col(StakingSearch.account_key) == key.account_key,
+                col(StakingSearch.pool_key) == key.pool_key,
+            )
+            .values(locked=False)
+        )
+
+        self._session.exec(statement)
+
+    def get(self, key: StakingKey) -> StakingSearch | None:
+        """
+        Returns the snapshot search for a key.
+
+        Args:
+            key: Staking relationship key.
+
+        Returns:
+            The snapshot search or `None` if it does not exist.
+        """
+        return self._session.get(
+            StakingSearch,
+            (key.account_key, key.pool_key),
+        )
+
+    def add(self, search: StakingSearch) -> None:
+        """
+        Adds a snapshot search to the current database session.
+
+        Args:
+            search: Snapshot search to add.
+        """
+        self._session.add(search)
+
+    def flush(self) -> None:
+        """Flushes pending changes to the database."""
+        self._session.flush()
+
+
