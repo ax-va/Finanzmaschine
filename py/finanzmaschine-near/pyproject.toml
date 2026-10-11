@@ -31,13 +31,10 @@ Homepage = "https://github.com/ax-va/Finanzmaschine"
 Repository = "https://github.com/ax-va/Finanzmaschine/tree/main/py/finanzmaschine-near"
 
 [project.entry-points."fzm_alembic.models"]
-near_block = "fzm_near.orm.block"
-near_staking_action = "fzm_near.orm.staking_action"
-near_staking_snapshot = "fzm_near.orm.staking_snapshot"
-near_staking_search = "fzm_near.orm.staking_search"
+near = "fzm_near.orm"
 
 [project.entry-points."fzm_alembic.migrations"]
-migrations = "fzm_near.migrations"
+near = "fzm_near.migrations"
 
 [dependenncy-groups]
 dev = [
