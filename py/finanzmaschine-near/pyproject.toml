@@ -37,7 +37,7 @@ near_staking_snapshot = "fzm_near.orm.staking_snapshot"
 near_staking_search = "fzm_near.orm.staking_search"
 
 [project.entry-points."fzm_alembic.migrations"]
-migrations = "fzm_staking.migrations"
+migrations = "fzm_near.migrations"
 
 [dependenncy-groups]
 dev = [
@@ -52,7 +52,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [
-    { include = "fzm_staking", from = "src" },
+    { include = "fzm_near", from = "src" },
 ]
 
 [tool.poetry.dependencies]
