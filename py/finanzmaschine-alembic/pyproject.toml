@@ -1,5 +1,5 @@
 [project]
-name = "finanzmaschine-migrations"
+name = "finanzmaschine-alembic"
 version = "0.1.0"
 description = "Finanzmaschine Alembic"
 authors = [
