@@ -1,7 +1,7 @@
 [project]
-name = "integration-tests"
+name = "finanzmaschine-tests"
 version = "0.1.0"
-description = "Integration Tests"
+description = "Finanzmaschine Tests"
 authors = [
     { name = "ax-va"}
 ]
@@ -29,3 +29,7 @@ finanzmaschine-migrations = {develop = true}
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.1.1"
 
+[tool.pytest.ini_options]
+testpaths = ["integration"]
+python_files = ["test_*.py"]
+addopts = "-ra"
