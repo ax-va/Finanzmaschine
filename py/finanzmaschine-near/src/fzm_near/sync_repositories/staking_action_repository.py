@@ -60,9 +60,9 @@ class StakingActionRepository:
             from_receipt_block_height: Optional inclusive lower receipt block height.
             up_to_receipt_block_height: Optional inclusive upper receipt block height.
 
-    Returns:
-        Matching staking actions ordered by transaction block height,
-        receipt block height, receipt key, and action index.
+        Returns:
+            Matching staking actions ordered by transaction block height,
+            receipt block height, receipt key, and action index.
         """
         statement = select(StakingAction).where(
             StakingAction.account_key == account_key
