@@ -69,7 +69,7 @@ def find_increased_balance(
     while upper_block_height > lower_block_balance.block_height:
 
         try:
-            upper_block_balance: StakingBalance = staking_client.get_balance(
+            upper_block_balance: StakingBalance = staking_client.fetch_balance(
                 account_id=account_id,
                 pool_id=pool_id,
                 block_height=upper_block_height,
@@ -127,7 +127,7 @@ def find_increased_balance(
 
         while lower_block_balance.block_height < temp_upper_block_height:
             try:
-                temp_block_balance: StakingBalance = staking_client.get_balance(
+                temp_block_balance: StakingBalance = staking_client.fetch_balance(
                     account_id=account_id,
                     pool_id=pool_id,
                     block_height=temp_upper_block_height,
@@ -146,7 +146,7 @@ def find_increased_balance(
 
             while temp_lower_block_height < upper_block_balance.block_height:
                 try:
-                    temp_block_balance: StakingBalance = staking_client.get_balance(
+                    temp_block_balance: StakingBalance = staking_client.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=temp_lower_block_height,
@@ -365,7 +365,7 @@ def find_staking_snapshots(
 
             while block_height <= chunk_upper_block_height:
                 try:
-                    last_known_balance: StakingBalance = staking_client.get_balance(
+                    last_known_balance: StakingBalance = staking_client.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=block_height,

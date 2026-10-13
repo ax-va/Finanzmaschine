@@ -45,7 +45,7 @@ class TxsClient:
 
         Raises:
             ValueError:
-                If `lower_block_height` exceeds `upper_block_height`.
+                 "`from_tx_block_height` must not exceed `up_to_tx_block_height`"
             httpx.HTTPStatusError:
                 If an API request returns an unsuccessful HTTP status code.
         """
@@ -56,7 +56,7 @@ class TxsClient:
             and from_tx_block_height > up_to_tx_block_height
         ):
             raise ValueError(
-                "`from_tx_block_height` must not exceed `upper_block_height`"
+                "`from_tx_block_height` must not exceed `up_to_tx_block_height`"
             )
 
         account_txs: list[dict] = []

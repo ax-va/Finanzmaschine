@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from fzm_near.orm.block import Block
 from fzm_near.sync_clients.rpc_client import RpcClient
 
@@ -12,8 +10,7 @@ class BlockClient:
     def rpc_client(self) -> RpcClient:
         return self._rpc_client
 
-    @lru_cache(maxsize=4096)
-    def get_block(self, block_height: int) -> Block:
+    def fetch_block(self, block_height: int) -> Block:
         timestamp_nanoseconds = self._rpc_client.fetch_block_timestamp_nanoseconds(block_height)
 
         return Block(

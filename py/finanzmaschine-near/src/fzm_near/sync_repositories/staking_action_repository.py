@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, col
 
 from fzm_near.orm.staking_action import StakingAction
+from fzm_near.sync_repositories.staking_action_repository_error import StakingActionRepositoryError
 
 
 class StakingActionRepository:
@@ -115,19 +116,16 @@ class StakingActionRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, action: StakingAction) -> bool:
+    def safe_add(self, action: StakingAction) -> None:
         """
-        Adds and flushes a staking action within a savepoint.
+        Adds a staking action within a savepoint.
 
-        If an integrity conflict occurs,
-        the savepoint is rolled back
-        without rolling back the surrounding transaction.
+        Ignores an integrity conflict
+        if an action with the same primary key already exists.
+        Raises an error otherwise.
 
         Args:
             action: Staking action to add.
-
-        Returns:
-            `True` if the staking action was successfully flushed, otherwise `False`.
         """
         try:
             with self._session.begin_nested():
@@ -135,7 +133,18 @@ class StakingActionRepository:
                 self.add(action)
                 self.flush()
 
-            return True
+        except IntegrityError as e:
+            # The savepoint transaction is rolled back
+            action_: StakingAction | None = self.get_by_pk(
+                receipt_key=action.receipt_key,
+                action_index=action.action_index,
+            )
 
-        except IntegrityError:
-            return False
+            if action_ is not None:
+                # The action failed to add
+                # already exists in the database.
+                return
+
+            raise StakingActionRepositoryError(
+                f"Cannot add staking action for account key: {action.account_key}"
+            ) from e

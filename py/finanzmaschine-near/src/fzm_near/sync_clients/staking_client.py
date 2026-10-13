@@ -1,5 +1,4 @@
 import json
-from functools import lru_cache
 
 from fzm_near.orm.staking_balance import StakingBalance
 from fzm_near.sync_clients.rpc_client import RpcClient
@@ -13,8 +12,7 @@ class StakingClient:
     def rpc_client(self) -> RpcClient:
         return self._rpc_client
 
-    @lru_cache(maxsize=4096)
-    def get_balance(
+    def fetch_balance(
         self,
         account_id: str,
         pool_id: str,

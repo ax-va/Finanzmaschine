@@ -1,0 +1,2 @@
+class StakingActionRepositoryError(Exception):
+    pass

@@ -43,7 +43,7 @@ def test_near_upgrade(tmp_path) -> None:
             "near_blocks",
             "near_staking_actions",
             "near_staking_snapshots",
-            "near_staking_searches",
+            "near_staking_snapshot_searches",
         } <= tables
     finally:
         engine.dispose()
@@ -66,6 +66,6 @@ def test_near_downgrade(tmp_path) -> None:
         assert "near_blocks" not in tables
         assert "near_staking_actions" not in tables
         assert "near_staking_snapshots" not in tables
-        assert "near_staking_searches" not in tables
+        assert "near_staking_snapshot_searches" not in tables
     finally:
         engine.dispose()
