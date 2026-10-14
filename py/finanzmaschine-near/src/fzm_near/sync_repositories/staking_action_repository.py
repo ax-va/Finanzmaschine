@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, col
 
 from fzm_near.orm.staking_action import StakingAction
-from fzm_near.sync_repositories.staking_action_repository_error import StakingActionRepositoryError
+from fzm_near.sync_repositories.staking_action_repository_exceptions import StakingActionRepositoryError
 
 
 class StakingActionRepository:
