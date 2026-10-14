@@ -3,7 +3,7 @@ import logging
 from fzm_near.orm.staking_balance import StakingBalance
 from fzm_near.staking.exceptions import UnexpectedBalanceDecreaseError
 from fzm_near.staking.snapshot_storage import SnapshotStorage
-from fzm_near.sync_clients.exeptions import BlockHeightNotFoundError
+from fzm_near.sync_clients.exceptions import BlockHeightNotFoundError
 from fzm_near.sync_clients.staking_client import StakingClient
 
 logger = logging.getLogger(__name__)

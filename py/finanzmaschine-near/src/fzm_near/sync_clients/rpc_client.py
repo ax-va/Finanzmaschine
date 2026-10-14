@@ -6,7 +6,7 @@ import logging
 import httpx
 
 from fzm_near.sync_clients.decorators import retry, rate_limit
-from fzm_near.sync_clients.exeptions import BlockHeightNotFoundError
+from fzm_near.sync_clients.exceptions import BlockHeightNotFoundError
 
 MAX_RETRIES = 10
 MIN_RETRY_DELAY_SEC = 3.0
