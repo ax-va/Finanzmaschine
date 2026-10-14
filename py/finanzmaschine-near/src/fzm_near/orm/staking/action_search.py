@@ -2,7 +2,7 @@ from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class StakingActionSearch(SQLModel, table=True):
+class ActionSearch(SQLModel, table=True):
     __tablename__ = "near_staking_action_searches"
 
     account_key: str = Field(primary_key=True)

@@ -2,11 +2,11 @@ from sqlalchemy import update, CursorResult
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col
 
-from fzm_near.orm.staking_action_search import StakingActionSearch
-from fzm_near.sync_repositories.staking_action_search_repository_exceptions import StakingActionSearchRepositoryError
+from fzm_near.orm.staking.action_search import ActionSearch
+from fzm_near.sync_repositories.staking.action_search_repository_exceptions import ActionSearchRepositoryError
 
 
-class StakingActionSearchRepository:
+class ActionSearchRepository:
     """Provides synchronous database operations for NEAR staking action searches."""
 
     def __init__(self, session: Session) -> None:
@@ -21,7 +21,7 @@ class StakingActionSearchRepository:
         """Returns the database session used by the repository."""
         return self._session
 
-    def lock(self, search: StakingActionSearch) -> None:
+    def lock(self, search: ActionSearch) -> None:
         """
         Atomically locks the action search for the given key.
 
@@ -30,10 +30,10 @@ class StakingActionSearchRepository:
         """
 
         statement =(
-            update(StakingActionSearch)
+            update(ActionSearch)
             .where(
-                col(StakingActionSearch.account_key) == search.account_key,
-                col(StakingActionSearch.locked).is_(False)
+                col(ActionSearch.account_key) == search.account_key,
+                col(ActionSearch.locked).is_(False)
             )
             .values(locked=True)
         )
@@ -41,13 +41,13 @@ class StakingActionSearchRepository:
         result: CursorResult = self._session.exec(statement)
         
         if result.rowcount != 1:
-            raise StakingActionSearchRepositoryError(
+            raise ActionSearchRepositoryError(
                 f"Cannot lock action search for account key: {search.account_key}"
             )
 
         self._session.refresh(search)
 
-    def unlock(self, search: StakingActionSearch) -> None:
+    def unlock(self, search: ActionSearch) -> None:
         """
         Unlocks the action search for the given key.
 
@@ -56,9 +56,9 @@ class StakingActionSearchRepository:
         """
 
         statement = (
-            update(StakingActionSearch)
+            update(ActionSearch)
             .where(
-                col(StakingActionSearch.account_key) == search.account_key,
+                col(ActionSearch.account_key) == search.account_key,
             )
             .values(locked=False)
         )
@@ -66,7 +66,7 @@ class StakingActionSearchRepository:
         self._session.exec(statement)
         self._session.refresh(search)
 
-    def get(self, account_key: str) -> StakingActionSearch | None:
+    def get(self, account_key: str) -> ActionSearch | None:
         """
         Returns a staking action search by account key.
 
@@ -76,9 +76,9 @@ class StakingActionSearchRepository:
         Returns:
             The staking action search or `None` if it does not exist.
         """
-        return self._session.get(StakingActionSearch, account_key)
+        return self._session.get(ActionSearch, account_key)
 
-    def add(self, search: StakingActionSearch) -> None:
+    def add(self, search: ActionSearch) -> None:
         """
         Adds a staking action search to the current database session.
 
@@ -87,7 +87,7 @@ class StakingActionSearchRepository:
         """
         self._session.add(search)
 
-    def safe_add(self, search: StakingActionSearch) -> None:
+    def safe_add(self, search: ActionSearch) -> None:
         """
         Adds and flushes a staking action search within a savepoint.
 
@@ -104,13 +104,13 @@ class StakingActionSearchRepository:
                 self.flush()
 
         except IntegrityError:
-            raise StakingActionSearchRepositoryError(
+            raise ActionSearchRepositoryError(
                 f"Cannot add staking action search for account key: {search.account_key}"
             )
 
     def update(
         self,
-        search: StakingActionSearch,
+        search: ActionSearch,
         up_to_tx_block_height: int,
     ) -> None:
         """
@@ -121,7 +121,7 @@ class StakingActionSearchRepository:
             up_to_tx_block_height: New inclusive upper transaction block height.
         """
         if not search.locked:
-            raise StakingActionSearchRepositoryError(
+            raise ActionSearchRepositoryError(
                 f"Staking action search is not locked "
                 f"to update for account key: {search.account_key}"
             )
@@ -130,7 +130,7 @@ class StakingActionSearchRepository:
             search.up_to_tx_block_height is not None
             and up_to_tx_block_height < search.up_to_tx_block_height
         ):
-            raise StakingActionSearchRepositoryError(
+            raise ActionSearchRepositoryError(
                 f"`up_to_tx_block_height` must not decrease "
                 f"for account key: {search.account_key}"
             )

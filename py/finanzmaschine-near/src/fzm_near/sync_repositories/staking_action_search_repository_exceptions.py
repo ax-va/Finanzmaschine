@@ -1,2 +1,0 @@
-class StakingActionSearchRepositoryError(Exception):
-    pass

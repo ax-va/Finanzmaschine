@@ -1,6 +1,6 @@
 import json
 
-from fzm_near.orm.staking_balance import StakingBalance
+from fzm_near.orm.staking.balance import Balance
 from fzm_near.sync_clients.rpc_client import RpcClient
 
 
@@ -17,7 +17,7 @@ class StakingClient:
         account_id: str,
         pool_id: str,
         block_height: int,
-    ) -> StakingBalance:
+    ) -> Balance:
         """
         Gets a staking balance snapshot at a given block height.
         Uses LRU cache.
@@ -45,7 +45,7 @@ class StakingClient:
             method_name="get_account_unstaked_balance",
         )
 
-        return StakingBalance(
+        return Balance(
             block_height=block_height,
             staked_yocto_str=staked_balance,
             unstaked_yocto_str=unstaked_balance,

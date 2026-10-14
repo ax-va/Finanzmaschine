@@ -1,11 +1,11 @@
 from sqlalchemy import BigInteger
 from sqlmodel import Field
 
-from fzm_near.orm.staking_key import StakingKey
+from fzm_near.orm.staking.key import Key
 
 
-class StakingSnapshotSearch(
-    StakingKey,
+class SnapshotSearch(
+    Key,
     table=True,
 ):
     """Represents the state and coverage of a staking snapshot search."""

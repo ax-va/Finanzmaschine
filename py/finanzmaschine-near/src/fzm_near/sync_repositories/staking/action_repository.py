@@ -1,11 +1,11 @@
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, col
 
-from fzm_near.orm.staking_action import StakingAction
-from fzm_near.sync_repositories.staking_action_repository_exceptions import StakingActionRepositoryError
+from fzm_near.orm.staking.action import Action
+from fzm_near.sync_repositories.staking.action_repository_exceptions import ActionRepositoryError
 
 
-class StakingActionRepository:
+class ActionRepository:
     """Provides synchronous database operations for NEAR staking actions."""
 
     def __init__(self, session: Session) -> None:
@@ -24,7 +24,7 @@ class StakingActionRepository:
         self,
         receipt_key: str,
         action_index: int,
-    ) -> StakingAction | None:
+    ) -> Action | None:
         """
         Returns a staking action by its composite primary key.
 
@@ -36,7 +36,7 @@ class StakingActionRepository:
             The staking action or `None` if it does not exist.
         """
         return self._session.get(
-            StakingAction,
+            Action,
             (receipt_key, action_index),
         )
 
@@ -48,7 +48,7 @@ class StakingActionRepository:
         up_to_tx_block_height: int | None = None,
         from_receipt_block_height: int | None = None,
         up_to_receipt_block_height: int | None = None,
-    ) -> list[StakingAction]:
+    ) -> list[Action]:
         """
         Returns staking actions for an account, optionally filtered
         by pool, transaction block heights, and receipt block heights.
@@ -65,45 +65,45 @@ class StakingActionRepository:
             Matching staking actions ordered by transaction block height,
             receipt block height, receipt key, and action index.
         """
-        statement = select(StakingAction).where(
-            StakingAction.account_key == account_key
+        statement = select(Action).where(
+            Action.account_key == account_key
         )
 
         if pool_key is not None:
             statement = statement.where(
-                StakingAction.pool_key == pool_key
+                Action.pool_key == pool_key
             )
 
         if from_tx_block_height is not None:
             statement = statement.where(
-                from_tx_block_height <= StakingAction.tx_block_height
+                from_tx_block_height <= Action.tx_block_height
             )
 
         if up_to_tx_block_height is not None:
             statement = statement.where(
-                StakingAction.tx_block_height <= up_to_tx_block_height
+                Action.tx_block_height <= up_to_tx_block_height
             )
 
         if from_receipt_block_height is not None:
             statement = statement.where(
-                from_receipt_block_height <= StakingAction.receipt_block_height
+                from_receipt_block_height <= Action.receipt_block_height
             )
 
         if up_to_receipt_block_height is not None:
             statement = statement.where(
-                StakingAction.receipt_block_height <= up_to_receipt_block_height
+                Action.receipt_block_height <= up_to_receipt_block_height
             )
 
         statement = statement.order_by(
-            col(StakingAction.tx_block_height),
-            col(StakingAction.receipt_block_height),
-            col(StakingAction.receipt_key),
-            col(StakingAction.action_index),
+            col(Action.tx_block_height),
+            col(Action.receipt_block_height),
+            col(Action.receipt_key),
+            col(Action.action_index),
         )
 
         return list(self._session.exec(statement).all())
 
-    def add(self, action: StakingAction) -> None:
+    def add(self, action: Action) -> None:
         """
         Adds a staking action to the current database session.
 
@@ -116,7 +116,7 @@ class StakingActionRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, action: StakingAction) -> None:
+    def safe_add(self, action: Action) -> None:
         """
         Adds a staking action within a savepoint.
 
@@ -135,7 +135,7 @@ class StakingActionRepository:
 
         except IntegrityError as e:
             # The savepoint transaction is rolled back
-            action_: StakingAction | None = self.get_by_pk(
+            action_: Action | None = self.get_by_pk(
                 receipt_key=action.receipt_key,
                 action_index=action.action_index,
             )
@@ -145,6 +145,6 @@ class StakingActionRepository:
                 # already exists in the database.
                 return
 
-            raise StakingActionRepositoryError(
+            raise ActionRepositoryError(
                 f"Cannot add staking action for account key: {action.account_key}"
             ) from e

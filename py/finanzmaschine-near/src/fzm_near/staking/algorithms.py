@@ -1,6 +1,6 @@
 import logging
 
-from fzm_near.orm.staking_balance import StakingBalance
+from fzm_near.orm.staking.balance import Balance
 from fzm_near.staking.exceptions import UnexpectedBalanceDecreaseError
 from fzm_near.staking.snapshot_storage import SnapshotStorage
 from fzm_near.sync_clients.exceptions import BlockHeightNotFoundError
@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 def find_increased_balance(
     account_id: str,
     pool_id: str,
-    start_block_balance: StakingBalance,
+    start_block_balance: Balance,
     up_to_block_height: int,
     staking_client: StakingClient,
-) -> StakingBalance | None:
+) -> Balance | None:
     """
     Find the first total balance increase after the given lower block balance.
 
@@ -69,7 +69,7 @@ def find_increased_balance(
     while upper_block_height > lower_block_balance.block_height:
 
         try:
-            upper_block_balance: StakingBalance = staking_client.fetch_balance(
+            upper_block_balance: Balance = staking_client.fetch_balance(
                 account_id=account_id,
                 pool_id=pool_id,
                 block_height=upper_block_height,
@@ -127,7 +127,7 @@ def find_increased_balance(
 
         while lower_block_balance.block_height < temp_upper_block_height:
             try:
-                temp_block_balance: StakingBalance = staking_client.fetch_balance(
+                temp_block_balance: Balance = staking_client.fetch_balance(
                     account_id=account_id,
                     pool_id=pool_id,
                     block_height=temp_upper_block_height,
@@ -146,7 +146,7 @@ def find_increased_balance(
 
             while temp_lower_block_height < upper_block_balance.block_height:
                 try:
-                    temp_block_balance: StakingBalance = staking_client.fetch_balance(
+                    temp_block_balance: Balance = staking_client.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=temp_lower_block_height,
@@ -195,10 +195,10 @@ def find_increased_balance(
 def find_increased_balances(
     account_id: str,
     pool_id: str,
-    start_block_balance: StakingBalance,
+    start_block_balance: Balance,
     up_to_block_height: int,
     staking_client: StakingClient,
-) -> list[StakingBalance]:
+) -> list[Balance]:
     """
     Finds all total balance increases between
     the exclusive lower and inclusive upper block heights.
@@ -227,11 +227,11 @@ def find_increased_balances(
             If a total balance decrease is detected at an inspected block.
     """
 
-    balances: list[StakingBalance] = []
+    balances: list[Balance] = []
     lower_block_balance = start_block_balance
 
     while True:
-        next_balance: StakingBalance | None = find_increased_balance(
+        next_balance: Balance | None = find_increased_balance(
             account_id=account_id,
             pool_id=pool_id,
             start_block_balance=lower_block_balance,
@@ -256,7 +256,7 @@ def find_staking_snapshots(
     staking_client: StakingClient,
     snapshot_storage: SnapshotStorage,
     chunk_size: int = 1_000_000,
-    last_known_balance: StakingBalance | None = None,
+    last_known_balance: Balance | None = None,
 ) -> None:
     """
     Finds staking snapshots within a block range in fixed-size chunks.
@@ -365,7 +365,7 @@ def find_staking_snapshots(
 
             while block_height <= chunk_upper_block_height:
                 try:
-                    last_known_balance: StakingBalance = staking_client.fetch_balance(
+                    last_known_balance: Balance = staking_client.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=block_height,
@@ -380,7 +380,7 @@ def find_staking_snapshots(
             last_known_balance is not None
             and last_known_balance.block_height < chunk_upper_block_height
         ):
-            balances: list[StakingBalance] = find_increased_balances(
+            balances: list[Balance] = find_increased_balances(
                 staking_client=staking_client,
                 account_id=account_id,
                 pool_id=pool_id,

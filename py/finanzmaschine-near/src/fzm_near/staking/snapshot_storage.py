@@ -5,8 +5,8 @@ from pathlib import Path
 import polars as pl
 import yaml
 
-from fzm_near.orm.staking_balance import StakingBalance
-from fzm_near.orm.staking_key import StakingKey
+from fzm_near.orm.staking.balance import Balance
+from fzm_near.orm.staking.key import Key
 
 BLOCK_HEIGHT = "block_height"
 STAKED_YOCTO_STR = "staked_yocto_str"
@@ -35,7 +35,7 @@ class SnapshotStorage:
 
     def __init__(
         self,
-        key: StakingKey,
+        key: Key,
         target_dir: str | Path | None = None,
     ) -> None:
         """
@@ -51,7 +51,7 @@ class SnapshotStorage:
             ValueError:
                 From `self._validate_or_save_key`.
         """
-        self._key: StakingKey = key
+        self._key: Key = key
         self._df_balances = pl.DataFrame(schema=self.SCHEMA)
 
         if target_dir is not None:
@@ -65,7 +65,7 @@ class SnapshotStorage:
         self._validate_or_save_key()
 
     @property
-    def key(self) -> StakingKey:
+    def key(self) -> Key:
         return self._key
 
     @property
@@ -78,7 +78,7 @@ class SnapshotStorage:
 
     def add(
         self,
-        balance: StakingBalance,
+        balance: Balance,
     ) -> None:
         """
         Adds a balance snapshot to the in-memory storage.
@@ -116,7 +116,7 @@ class SnapshotStorage:
     def get(
         self,
         block_height: int,
-    ) -> StakingBalance | None:
+    ) -> Balance | None:
         """
         Returns the balance snapshot at the given block height.
 
@@ -145,7 +145,7 @@ class SnapshotStorage:
 
         row: dict = df_balance.row(0, named=True)
 
-        return StakingBalance(
+        return Balance(
             block_height=row[BLOCK_HEIGHT],
             staked_yocto_str=row[STAKED_YOCTO_STR],
             unstaked_yocto_str=row[UNSTAKED_YOCTO_STR],

@@ -11,7 +11,7 @@ from fzm_near.staking.snapshot_storage import (
     POOL_KEY,
     SnapshotStorage,
 )
-from fzm_near.orm.staking_key import StakingKey
+from fzm_near.orm.staking.key import Key
 
 STAKING_SNAPSHOT_SCHEMA = {
     ACCOUNT_KEY: pl.String,
@@ -36,7 +36,7 @@ def load_df_balances(file_path: str | Path) -> pl.DataFrame:
     )
 
 
-def load_key(file_path: str | Path) -> StakingKey:
+def load_key(file_path: str | Path) -> Key:
     """
     Loads staking key from a YAML file.
 
@@ -47,11 +47,11 @@ def load_key(file_path: str | Path) -> StakingKey:
         A staking key.
     """
     with Path(file_path).open("r", encoding="utf-8") as file:
-        return StakingKey.model_validate(yaml.safe_load(file))
+        return Key.model_validate(yaml.safe_load(file))
 
 
 def create_df_staking_snapshots(
-    key: StakingKey,
+    key: Key,
     df_balances: pl.DataFrame,
 ) -> pl.DataFrame:
     """

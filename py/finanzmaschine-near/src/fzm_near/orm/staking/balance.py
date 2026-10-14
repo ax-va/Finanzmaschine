@@ -3,7 +3,7 @@ from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class StakingBalance(SQLModel):
+class Balance(SQLModel):
     block_height: int = Field(
         primary_key=True,
         sa_type=BigInteger,

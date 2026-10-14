@@ -4,15 +4,15 @@ import json
 
 from fzm_keying import KeyMapping
 
-from fzm_near.orm.staking_action import StakingAction, StakingActionType
+from fzm_near.orm.staking.action import Action, ActionType
 
 
 def create_staking_actions(
     raw_txs: list[dict],
     key_mapping: KeyMapping,
-) -> list[StakingAction]:
+) -> list[Action]:
 
-    actions: list[StakingAction] = []
+    actions: list[Action] = []
 
     for raw_tx in raw_txs:
         if _contains_staking_action(raw_tx):
@@ -26,7 +26,7 @@ def create_staking_actions(
 def _create_staking_actions(
     raw_tx: dict,
     key_mapping: KeyMapping,
-) -> list[StakingAction]:
+) -> list[Action]:
     """Create staking actions from the transaction's successful initial receipts."""
 
     transaction = raw_tx["transaction"]
@@ -37,7 +37,7 @@ def _create_staking_actions(
         for item in raw_tx["receipts"]
     }
 
-    actions: list[StakingAction] = []
+    actions: list[Action] = []
 
     for receipt_id in receipt_ids:
         receipt = receipts_by_id.get(receipt_id)
@@ -59,7 +59,7 @@ def _create_staking_actions(
                 continue
 
             try:
-                action_type = StakingActionType(function_call.get("method_name"))
+                action_type = ActionType(function_call.get("method_name"))
             except (ValueError, TypeError):
                 continue
 
@@ -74,7 +74,7 @@ def _create_staking_actions(
 
         for action_index, function_call, action_type in recognized_actions:
             actions.append(
-                StakingAction(
+                Action(
                     receipt_key=key_mapping.get_key(receipt_id),
                     action_index=action_index,
                     transaction_key=key_mapping.get_key(transaction["hash"]),
@@ -103,7 +103,7 @@ def _contains_staking_action(raw_tx: dict) -> bool:
             continue
 
         try:
-            StakingActionType(function_call.get("method_name"))
+            ActionType(function_call.get("method_name"))
         except (ValueError, TypeError):
             continue
 
@@ -114,19 +114,19 @@ def _contains_staking_action(raw_tx: dict) -> bool:
 
 def _extract_operation_yocto_str(
     function_call: dict,
-    action_type: StakingActionType,
+    action_type: ActionType,
 ) -> str | None:
     """Extract the requested staking quantity in yoctoNEAR."""
     if action_type in (
-        StakingActionType.DEPOSIT,
-        StakingActionType.DEPOSIT_AND_STAKE,
+        ActionType.DEPOSIT,
+        ActionType.DEPOSIT_AND_STAKE,
     ):
         quantity = function_call["deposit"]
 
     elif action_type in (
-        StakingActionType.STAKE,
-        StakingActionType.UNSTAKE,
-        StakingActionType.WITHDRAW,
+        ActionType.STAKE,
+        ActionType.UNSTAKE,
+        ActionType.WITHDRAW,
     ):
         try:
             decoded_args = base64.b64decode(
@@ -148,9 +148,9 @@ def _extract_operation_yocto_str(
             ) from exc
 
     elif action_type in (
-        StakingActionType.STAKE_ALL,
-        StakingActionType.UNSTAKE_ALL,
-        StakingActionType.WITHDRAW_ALL,
+        ActionType.STAKE_ALL,
+        ActionType.UNSTAKE_ALL,
+        ActionType.WITHDRAW_ALL,
     ):
         return None
 

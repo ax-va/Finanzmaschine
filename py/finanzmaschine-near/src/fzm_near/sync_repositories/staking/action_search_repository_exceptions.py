@@ -1,0 +1,2 @@
+class ActionSearchRepositoryError(Exception):
+    pass

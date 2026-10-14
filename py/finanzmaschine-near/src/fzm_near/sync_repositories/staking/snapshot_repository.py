@@ -6,14 +6,14 @@ from sqlalchemy import Integer, func, type_coerce
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from fzm_near.orm.staking_key import StakingKey
-from fzm_near.orm.staking_snapshot import StakingSnapshot
+from fzm_near.orm.staking.key import Key
+from fzm_near.orm.staking.snapshot import Snapshot
 from fzm_near.staking.dataframes import load_key, load_df_balances, create_df_staking_snapshots
 
 logger = logging.getLogger(__name__)
 
 
-class StakingSnapshotRepository:
+class SnapshotRepository:
     """Provides synchronous database operations for NEAR staking snapshots."""
 
     def __init__(self, session: Session) -> None:
@@ -30,9 +30,9 @@ class StakingSnapshotRepository:
 
     def get(
         self,
-        key: StakingKey,
+        key: Key,
         block_height: int,
-    ) -> StakingSnapshot | None:
+    ) -> Snapshot | None:
         """
         Returns a staking snapshot by its snapshot key and block height.
 
@@ -44,11 +44,11 @@ class StakingSnapshotRepository:
             The staking snapshot or `None` if it does not exist.
         """
         return self._session.get(
-            StakingSnapshot,
+            Snapshot,
             (key.account_key, key.pool_key, block_height),
         )
 
-    def get_latest(self, key: StakingKey) -> StakingSnapshot | None:
+    def get_latest(self, key: Key) -> Snapshot | None:
         """
         Returns the latest staking snapshot for a key.
 
@@ -61,12 +61,12 @@ class StakingSnapshotRepository:
         """
         statement = select(
             type_coerce(
-                func.max(StakingSnapshot.block_height),
+                func.max(Snapshot.block_height),
                 Integer,
             )
         ).where(
-            StakingSnapshot.account_key == key.account_key,
-            StakingSnapshot.pool_key == key.pool_key,
+            Snapshot.account_key == key.account_key,
+            Snapshot.pool_key == key.pool_key,
         )
 
         block_height: int | None = self._session.exec(statement).one()
@@ -77,7 +77,7 @@ class StakingSnapshotRepository:
         return self.get(key, block_height)
 
 
-    def add(self, snapshot: StakingSnapshot) -> None:
+    def add(self, snapshot: Snapshot) -> None:
         """
         Adds a staking snapshot to the current database session.
 
@@ -90,7 +90,7 @@ class StakingSnapshotRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, snapshot: StakingSnapshot) -> bool:
+    def safe_add(self, snapshot: Snapshot) -> bool:
         """
         Adds and flushes a staking snapshot within a savepoint.
 
@@ -142,7 +142,7 @@ class StakingSnapshotRepository:
 
         logger.info(f"From source directory: {source_dir}")
 
-        key: StakingKey = load_key(source_dir / "key.yaml")
+        key: Key = load_key(source_dir / "key.yaml")
 
         logger.info(f"Loaded account key: {key.account_key}")
         logger.info(f"Loaded pool key: {key.pool_key}")
@@ -172,7 +172,7 @@ class StakingSnapshotRepository:
 
     def _import(
         self,
-        key: StakingKey,
+        key: Key,
         df_balances: pl.DataFrame,
     ) -> int:
         """
@@ -198,7 +198,7 @@ class StakingSnapshotRepository:
         )
 
         for row in df_staking_snapshots.iter_rows(named=True):
-            snapshot: StakingSnapshot = StakingSnapshot.model_validate(row)
+            snapshot: Snapshot = Snapshot.model_validate(row)
 
             if self.safe_add(snapshot):
                 imported_count += 1
