@@ -1,11 +1,11 @@
 from enum import StrEnum
 
 from pydantic import field_validator
-from sqlalchemy import BigInteger
+from sqlalchemy import Column, Enum, ForeignKeyConstraint
 from sqlmodel import Field, SQLModel
 
 
-class ActionType(StrEnum):
+class MethodNameType(StrEnum):
     DEPOSIT_AND_STAKE = "deposit_and_stake"
     DEPOSIT = "deposit"
     STAKE = "stake"
@@ -19,23 +19,28 @@ class ActionType(StrEnum):
 class Action(SQLModel, table=True):
     __tablename__ = "near_staking_actions"
 
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["receipt_key", "action_index"],
+            ["near_actions.receipt_key", "near_actions.action_index"],
+        ),
+    )
+
     receipt_key: str = Field(primary_key=True)
     action_index: int = Field(primary_key=True)
-    transaction_key: str = Field(index=True)
-    account_key: str = Field(index=True)
-    pool_key: str = Field(index=True)
 
-    tx_block_height: int = Field(
-        index=True,
-        sa_type=BigInteger,
+    method_name: MethodNameType = Field(
+        sa_column=Column(
+            Enum(
+                MethodNameType,
+                values_callable=lambda enum: [item.value for item in enum],
+                native_enum=False,
+                create_constraint=True,
+            ),
+            nullable=False,
+        )
     )
 
-    receipt_block_height: int = Field(
-        index=True,
-        sa_type=BigInteger,
-    )
-
-    action_type: ActionType
     operation_yocto_str: str | None = None
 
     @field_validator("operation_yocto_str")
