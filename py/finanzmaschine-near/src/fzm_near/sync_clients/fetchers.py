@@ -33,3 +33,19 @@ def fetch_raw_txs(
         ]
 
         return txs_client.fetch_raw_txs(tx_hashes=tx_hashes)
+
+
+def is_staking_pool_whitelisted(
+    pool_id: str,
+    block_height: int,
+) -> bool:
+
+    with httpx.Client(timeout=30) as http_client:
+        rpc_client = RpcClient(http_client)
+
+        is_whitelisted: bool = rpc_client.is_staking_pool_whitelisted(
+            pool_id=pool_id,
+            block_height=block_height,
+        )
+
+    return is_whitelisted

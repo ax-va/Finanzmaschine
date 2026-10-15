@@ -1,16 +1,9 @@
-from enum import StrEnum
-
-from sqlalchemy import BigInteger, Column, Enum
+from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class ActionType(StrEnum):
-    FUNCTION_CALL = "FunctionCall"
-    TRANSFER = "Transfer"
-
-
-class Action(SQLModel, table=True):
-    __tablename__ = "near_actions"
+class FunctionCallAction(SQLModel, table=True):
+    __tablename__ = "near_function_call_actions"
 
     receipt_key: str = Field(primary_key=True)
     action_index: int = Field(primary_key=True)
@@ -34,15 +27,6 @@ class Action(SQLModel, table=True):
     )
 
     execution_outcome_index: int
-
-    action_type: ActionType = Field(
-        sa_column=Column(
-            Enum(
-                ActionType,
-                values_callable=lambda enum: [item.value for item in enum],
-                native_enum=False,
-                create_constraint=True,
-            ),
-            nullable=False,
-        )
-    )
+    method_name: str
+    args_base64: str
+    deposit_yocto_str: str
