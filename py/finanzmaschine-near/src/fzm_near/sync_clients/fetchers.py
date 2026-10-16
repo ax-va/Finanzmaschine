@@ -11,12 +11,13 @@ def fetch_final_block_height() -> int:
         return rpc_client.fetch_final_block_height()
 
 
-def fetch_raw_txs(
+def fetch_txs(
     account_id: str,
     from_tx_block_height: int | None = None,
     up_to_tx_block_height: int | None = None,
-) -> list[dict]:
-    """Fetches raw account transactions within a block height range."""
+) -> dict[str, list[dict]]:
+    """Fetches transactions within a block height range."""
+
     with httpx.Client(timeout=30) as http_client:
         txs_client = TxsClient(http_client)
 
@@ -32,7 +33,12 @@ def fetch_raw_txs(
             for tx in account_txs
         ]
 
-        return txs_client.fetch_raw_txs(tx_hashes=tx_hashes)
+        raw_txs: list[dict] = txs_client.fetch_raw_txs(tx_hashes=tx_hashes)
+
+    return {
+        "account_txs": account_txs,
+        "raw_txs": raw_txs,
+    }
 
 
 def is_staking_pool_whitelisted(
