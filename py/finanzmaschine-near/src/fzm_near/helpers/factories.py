@@ -24,8 +24,6 @@ def create_actions(
 
         tx_block_height = account_tx["tx_block_height"]
 
-        tx_outcome = raw_tx["execution_outcome"]
-
         tx_key = key_mapping.get_key(tx["hash"])
         tx_signer_key = key_mapping.get_key(tx["signer_id"])
 
@@ -57,7 +55,6 @@ def create_actions(
                             receipt_predecessor_key=receipt_predecessor_key,
                             receiver_key=receiver_key,
                             tx_block_height=tx_block_height,
-                            tx_execution_outcome_block_height=tx_outcome["block_height"],
                             receipt_block_height=receipt["block_height"],
                             receipt_execution_outcome_block_height=receipt_outcome["block_height"],
                             receipt_execution_outcome_index=receipt_outcome["index"],

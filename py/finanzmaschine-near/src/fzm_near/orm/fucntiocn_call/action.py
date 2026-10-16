@@ -17,9 +17,6 @@ class Action(SQLModel, table=True):
         index=True,
         sa_type=BigInteger,
     )
-    tx_execution_outcome_block_height: int = Field(
-        sa_type=BigInteger,
-    )
     receipt_block_height: int = Field(
         sa_type=BigInteger,
     )
