@@ -1,5 +1,5 @@
 from fzm_keying import KeyMapping
-from fzm_near.orm.fucntiocn_call.action import Action
+from fzm_near.orm.function_call.action import Action
 
 
 def create_actions(
@@ -25,13 +25,13 @@ def create_actions(
 
         for raw_receipt in raw_tx["receipts"]:
             receipt = raw_receipt["receipt"]
-            receipt_outcome = raw_receipt["execution_outcome"]
+            execution_outcome = raw_receipt["execution_outcome"]
 
             action_receipt = receipt["receipt"].get("Action")
             if action_receipt is None:
                 continue
 
-            if "Failure" in receipt_outcome["outcome"]["status"]:
+            if "Failure" in execution_outcome["outcome"]["status"]:
                 continue
 
             receipt_key = key_mapping.get_key(receipt["receipt_id"])
@@ -52,8 +52,8 @@ def create_actions(
                             receiver_key=receiver_key,
                             tx_block_height=tx_block_height,
                             receipt_block_height=receipt["block_height"],
-                            receipt_execution_outcome_block_height=receipt_outcome["block_height"],
-                            receipt_execution_outcome_index=receipt_outcome["index"],
+                            exec_outcome_block_height=execution_outcome["block_height"],
+                            exec_outcome_index=execution_outcome["index"],
                             method_name=function_call["method_name"],
                             args_base64=function_call["args"],
                             deposit_yocto_str=function_call["deposit"],
@@ -62,8 +62,8 @@ def create_actions(
 
     function_calls.sort(
         key=lambda action: (
-            action.receipt_execution_outcome_block_height,
-            action.receipt_execution_outcome_index,
+            action.exec_outcome_block_height,
+            action.exec_outcome_index,
             action.action_index,
         )
     )
