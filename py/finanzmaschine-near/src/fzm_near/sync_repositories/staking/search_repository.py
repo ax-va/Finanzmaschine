@@ -1,11 +1,11 @@
 from sqlalchemy import update, CursorResult
 from sqlmodel import Session, col
 
-from fzm_near.orm.staking_key import StakingKey
-from fzm_near.orm.staking_search import StakingSearch
+from fzm_near.orm.staking.key import Key
+from fzm_near.orm.staking.search import Search
 
 
-class StakingSearchRepository:
+class SnapshotSearchRepository:
     """Provides synchronous database operations for snapshot searches."""
 
     def __init__(self, session: Session) -> None:
@@ -20,7 +20,7 @@ class StakingSearchRepository:
         """Returns the database session used by the repository."""
         return self._session
 
-    def lock(self, key: StakingKey) -> bool:
+    def lock(self, key: Key) -> bool:
         """
         Atomically locks the snapshot search for the given key.
 
@@ -33,11 +33,11 @@ class StakingSearchRepository:
         """
 
         statement =(
-            update(StakingSearch)
+            update(Search)
             .where(
-                col(StakingSearch.account_key) == key.account_key,
-                col(StakingSearch.pool_key) == key.pool_key,
-                col(StakingSearch.locked).is_(False)
+                col(Search.account_key) == key.account_key,
+                col(Search.pool_key) == key.pool_key,
+                col(Search.locked).is_(False)
             )
             .values(locked=True)
         )
@@ -45,7 +45,7 @@ class StakingSearchRepository:
         result: CursorResult = self._session.exec(statement)
         return result.rowcount == 1
 
-    def unlock(self, key: StakingKey) -> None:
+    def unlock(self, key: Key) -> None:
         """
         Unlocks the snapshot search for the given key.
 
@@ -54,17 +54,17 @@ class StakingSearchRepository:
         """
 
         statement = (
-            update(StakingSearch)
+            update(Search)
             .where(
-                col(StakingSearch.account_key) == key.account_key,
-                col(StakingSearch.pool_key) == key.pool_key,
+                col(Search.account_key) == key.account_key,
+                col(Search.pool_key) == key.pool_key,
             )
             .values(locked=False)
         )
 
         self._session.exec(statement)
 
-    def get(self, key: StakingKey) -> StakingSearch | None:
+    def get(self, key: Key) -> Search | None:
         """
         Returns the snapshot search for a key.
 
@@ -75,11 +75,10 @@ class StakingSearchRepository:
             The snapshot search or `None` if it does not exist.
         """
         return self._session.get(
-            StakingSearch,
-            (key.account_key, key.pool_key),
+            Search, (key.account_key, key.pool_key)
         )
 
-    def add(self, search: StakingSearch) -> None:
+    def add(self, search: Search) -> None:
         """
         Adds a snapshot search to the current database session.
 
