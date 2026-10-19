@@ -20,12 +20,12 @@ class Action(SQLModel, table=True):
     receipt_block_height: int = Field(
         sa_type=BigInteger,
     )
-    receipt_execution_outcome_block_height: int = Field(
+    exec_outcome_block_height: int = Field(
         index=True,
         sa_type=BigInteger,
     )
 
-    receipt_execution_outcome_index: int
+    exec_outcome_index: int
     method_name: str
     args_base64: str
     deposit_yocto_str: str
