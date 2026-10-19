@@ -5,7 +5,7 @@ from fzm_near.orm.function_call.action import Action
 def create_actions(
     txs: dict[str, list[dict]],
     key_mapping: KeyMapping,
-) -> dict[str, list]:
+) -> list[Action]:
     function_calls: list[Action] = []
 
     for account_tx, raw_tx in zip(
@@ -68,6 +68,4 @@ def create_actions(
         )
     )
 
-    return {
-        "function_calls": function_calls,
-    }
+    return function_calls

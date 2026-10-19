@@ -4,12 +4,12 @@ from sqlmodel import Session
 
 from fzm_keying import KeyMapping
 
-from fzm_near.orm.staking.action import Action
-from fzm_near.orm.staking.action_search import ActionSearch
-from fzm_near.staking.factories import create_staking_actions
-from fzm_near.sync_clients.fetchers import fetch_final_block_height, fetch_raw_txs
-from fzm_near.sync_repositories.staking.action_repository import ActionRepository
-from fzm_near.sync_repositories.staking.action_search_repository import ActionSearchRepository
+from fzm_near.orm.function_call.action import Action
+from fzm_near.orm.function_call.search import Search
+from fzm_near.helpers.function_call.factories import create_actions
+from fzm_near.sync_clients.fetchers import fetch_final_block_height, fetch_txs
+from fzm_near.sync_repositories.function_call.action_repository import ActionRepository
+from fzm_near.sync_repositories.function_call.search_repository import ActionSearchRepository
 
 logger = logging.getLogger(__name__)
 
@@ -28,49 +28,57 @@ class ActionService:
 
     def get_actions(
         self,
-        account_key: str,
-        pool_key: str | None = None,
+        tx_signer_key: str,
+        predecessor_key: str | None = None,
+        receiver_key: str | None = None,
+        tx_key: str | None = None,
         from_tx_block_height: int | None = None,
         up_to_tx_block_height: int | None = None,
         from_receipt_block_height: int | None = None,
         up_to_receipt_block_height: int | None = None,
+        from_exec_outcome_block_height: int | None = None,
+        up_to_exec_outcome_block_height: int | None = None,
     ) -> list[Action]:
 
         up_to_block_height: int = fetch_final_block_height()
 
         self.sync_actions(
-            account_key=account_key,
+            tx_signer_key=tx_signer_key,
             up_to_block_height=up_to_block_height,
         )
 
         actions: list[Action] = self._action_repo.get(
-            account_key=account_key,
-            pool_key=pool_key,
+            tx_signer_key=tx_signer_key,
+            predecessor_key=predecessor_key,
+            receiver_key=receiver_key,
+            tx_key=tx_key,
             from_tx_block_height=from_tx_block_height,
             up_to_tx_block_height=up_to_tx_block_height,
             from_receipt_block_height=from_receipt_block_height,
             up_to_receipt_block_height=up_to_receipt_block_height,
+            from_exec_outcome_block_height=from_exec_outcome_block_height,
+            up_to_exec_outcome_block_height=up_to_exec_outcome_block_height,
         )
 
         return actions
 
     def sync_actions(
         self,
-        account_key: str,
+        tx_signer_key: str,
         up_to_block_height: int,
     ) -> None:
         actions: list[Action]
         block_height: int | None
-        search: ActionSearch | None = None
+        search: Search | None = None
         locked = False
 
         try:
-            search = self._search_repo.get(account_key)
+            search = self._search_repo.get(tx_signer_key)
 
             if search is None:
-                # Create the first action search
-                search: ActionSearch = ActionSearch(
-                    account_key=account_key,
+                # Create the first function call search
+                search: Search = Search(
+                    tx_signer_key=tx_signer_key,
                 )
                 self._search_repo.safe_add(search)
                 self._session.commit()
@@ -88,7 +96,7 @@ class ActionService:
 
             actions = (
                 self.fetch_actions(
-                    account_key=account_key,
+                    tx_signer_key=tx_signer_key,
                     from_tx_block_height=(
                         block_height + 1
                         if block_height is not None
@@ -110,7 +118,12 @@ class ActionService:
 
         except Exception:
             self._session.rollback()
-            logger.exception("Failed to synchronize staking actions")
+
+            logger.exception(
+                f"Failed to synchronize function calls "
+                f"for `tx_signer_key`: {tx_signer_key}"
+            )
+
             raise
 
         finally:
@@ -120,24 +133,29 @@ class ActionService:
                     self._session.commit()
                 except Exception:
                     self._session.rollback()
-                    logger.exception("Failed to synchronize staking actions")
+
+                    logger.exception(
+                        f"Failed to synchronize function calls "
+                        f"for `tx_signer_key`: {tx_signer_key}"
+                    )
+
                     raise
 
     def fetch_actions(
         self,
-        account_key: str,
+        tx_signer_key: str,
         from_tx_block_height: int | None = None,
         up_to_tx_block_height: int | None = None,
     ) -> list[Action]:
 
-        raw_txs: list[dict] = fetch_raw_txs(
-           account_id=self._key_mapping.get_value(account_key),
+        txs:  dict[str, list[dict]] = fetch_txs(
+           account_id=self._key_mapping.get_value(tx_signer_key),
            up_to_tx_block_height=up_to_tx_block_height,
            from_tx_block_height=from_tx_block_height,
         )
 
-        actions: list[Action] = create_staking_actions(
-            raw_txs=raw_txs,
+        actions: list[Action] = create_actions(
+            txs=txs,
             key_mapping=self._key_mapping,
         )
 
