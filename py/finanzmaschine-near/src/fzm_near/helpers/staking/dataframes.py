@@ -3,7 +3,7 @@ from pathlib import Path
 import polars as pl
 import yaml
 
-from fzm_near.staking.snapshot_storage import (
+from fzm_near.storage.staking.snapshot_storage import (
     BLOCK_HEIGHT,
     STAKED_YOCTO_STR,
     UNSTAKED_YOCTO_STR,
