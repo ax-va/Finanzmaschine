@@ -132,4 +132,15 @@ class TxsClient:
             data = response.json()
             raw_txs.extend(data["transactions"])
 
+        # Order `raw_txs` by `tx_hashes`
+        raw_txs_by_hash = {
+            tx["transaction"]["hash"]: tx
+            for tx in raw_txs
+        }
+
+        raw_txs = [
+            raw_txs_by_hash[tx_hash]
+            for tx_hash in tx_hashes
+        ]
+
         return raw_txs
