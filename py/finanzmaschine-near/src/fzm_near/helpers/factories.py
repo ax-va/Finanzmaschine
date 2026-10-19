@@ -16,12 +16,7 @@ def create_actions(
         tx = raw_tx["transaction"]
 
         if account_tx["transaction_hash"] != tx["hash"]:
-            raise ValueError(
-                f"Mismatched `account_tx` and `raw_tx` "
-                f"with different transaction hashes: %s and %s",
-                key_mapping.get_value(account_tx["transaction_hash"]),
-                key_mapping.get_value(tx["hash"]),
-            )
+            raise ValueError("Mismatched `account_tx` and `raw_tx`")
 
         tx_block_height = account_tx["tx_block_height"]
 
