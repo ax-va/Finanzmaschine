@@ -35,7 +35,7 @@ def create_actions(
                 continue
 
             receipt_key = key_mapping.get_key(receipt["receipt_id"])
-            receipt_predecessor_key = key_mapping.get_key(receipt["predecessor_id"])
+            predecessor_key = key_mapping.get_key(receipt["predecessor_id"])
             receiver_key = key_mapping.get_key(receipt["receiver_id"])
 
             for action_index, raw_action in enumerate(action_receipt["actions"]):
@@ -48,7 +48,7 @@ def create_actions(
                             action_index=action_index,
                             tx_key=tx_key,
                             tx_signer_key=tx_signer_key,
-                            receipt_predecessor_key=receipt_predecessor_key,
+                            predecessor_key=predecessor_key,
                             receiver_key=receiver_key,
                             tx_block_height=tx_block_height,
                             receipt_block_height=receipt["block_height"],

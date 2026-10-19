@@ -43,7 +43,7 @@ class ActionRepository:
     def get(
         self,
         tx_signer_key: str,
-        receipt_predecessor_key: str | None = None,
+        predecessor_key: str | None = None,
         receiver_key: str | None = None,
         tx_key: str | None = None,
         from_tx_block_height: int | None = None,
@@ -60,7 +60,7 @@ class ActionRepository:
 
         Args:
             tx_signer_key: Transaction signer key. In the case of staking, account key.
-            receipt_predecessor_key: Optional receipt predecessor key. In the case of staking account key.
+            predecessor_key: Optional receipt predecessor key. In the case of staking account key.
             receiver_key: Optional receiver key. In the case of staking, pool key.
             tx_key: Optional transaction key mapping the transaction hash.
             from_tx_block_height: Optional inclusive lower transaction block height.
@@ -79,9 +79,9 @@ class ActionRepository:
             Action.tx_signer_key == tx_signer_key
         )
 
-        if receipt_predecessor_key is not None:
+        if predecessor_key is not None:
             statement = statement.where(
-                Action.receipt_predecessor_key == receipt_predecessor_key
+                Action.predecessor_key == predecessor_key
             )
 
         if receiver_key is not None:
@@ -137,7 +137,7 @@ class ActionRepository:
         Adds a function call action to the current database session.
 
         Args:
-            action: Faunction call action to add.
+            action: Function call action to add.
         """
         self._session.add(action)
 
