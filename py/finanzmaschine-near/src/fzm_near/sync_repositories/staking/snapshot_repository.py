@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
-from fzm_near.staking.dataframes import load_key, load_df_balances, create_df_staking_snapshots
+from fzm_near.helpers.staking.dataframes import load_key, load_df_balances, create_df_staking_snapshots
 
 logger = logging.getLogger(__name__)
 
