@@ -2,12 +2,12 @@ from sqlalchemy import update, CursorResult
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col
 
-from fzm_near.orm.staking.action_search import ActionSearch
-from fzm_near.sync_repositories.staking.action_search_repository_errors import ActionSearchRepositoryError
+from fzm_near.orm.function_call.search import Search
+from fzm_near.sync_repositories.function_call.search_repository_errors import SearchRepositoryError
 
 
 class ActionSearchRepository:
-    """Provides synchronous database operations for NEAR staking action searches."""
+    """Provides synchronous database operations for NEAR function call searches."""
 
     def __init__(self, session: Session) -> None:
         """
@@ -21,19 +21,19 @@ class ActionSearchRepository:
         """Returns the database session used by the repository."""
         return self._session
 
-    def lock(self, search: ActionSearch) -> None:
+    def lock(self, search: Search) -> None:
         """
-        Atomically locks the action search for the given key.
+        Atomically locks the function call search.
 
         Args:
-            search: Staking action search to update.
+            search: function call search to update.
         """
 
         statement =(
-            update(ActionSearch)
+            update(Search)
             .where(
-                col(ActionSearch.account_key) == search.account_key,
-                col(ActionSearch.locked).is_(False)
+                col(Search.tx_signer_key) == search.tx_signer_key,
+                col(Search.locked).is_(False)
             )
             .values(locked=True)
         )
@@ -41,24 +41,25 @@ class ActionSearchRepository:
         result: CursorResult = self._session.exec(statement)
         
         if result.rowcount != 1:
-            raise ActionSearchRepositoryError(
-                f"Cannot lock action search for account key: {search.account_key}"
+            raise SearchRepositoryError(
+                f"Cannot lock function call search "
+                f"for transaction signer key: {search.tx_signer_key}"
             )
 
         self._session.refresh(search)
 
-    def unlock(self, search: ActionSearch) -> None:
+    def unlock(self, search: Search) -> None:
         """
-        Unlocks the action search for the given key.
+        Unlocks the function call search.
 
         Args:
-            search: Staking action search to update.
+            search: Function call search to update.
         """
 
         statement = (
-            update(ActionSearch)
+            update(Search)
             .where(
-                col(ActionSearch.account_key) == search.account_key,
+                col(Search.tx_signer_key) == search.tx_signer_key,
             )
             .values(locked=False)
         )
@@ -66,36 +67,36 @@ class ActionSearchRepository:
         self._session.exec(statement)
         self._session.refresh(search)
 
-    def get(self, account_key: str) -> ActionSearch | None:
+    def get(self, tx_signer_key: str) -> Search | None:
         """
-        Returns a staking action search by account key.
+        Returns a function call search by transaction signer key.
 
         Args:
-            account_key: Account identifier.
+            tx_signer_key: Transaction signer key.
 
         Returns:
-            The staking action search or `None` if it does not exist.
+            The function call search or `None` if it does not exist.
         """
-        return self._session.get(ActionSearch, account_key)
+        return self._session.get(Search, tx_signer_key)
 
-    def add(self, search: ActionSearch) -> None:
+    def add(self, search: Search) -> None:
         """
-        Adds a staking action search to the current database session.
+        Adds a function call search to the current database session.
 
         Args:
-            search: Staking action search to add.
+            search: Function call search to add.
         """
         self._session.add(search)
 
-    def safe_add(self, search: ActionSearch) -> None:
+    def safe_add(self, search: Search) -> None:
         """
-        Adds and flushes a staking action search within a savepoint.
+        Adds and flushes a function call search within a savepoint.
 
         If an integrity conflict occurs, the savepoint is rolled back
         without rolling back the surrounding transaction.
 
         Args:
-            search: Staking action search to add.
+            search: Function call search to add.
         """
         try:
             with self._session.begin_nested():
@@ -104,35 +105,36 @@ class ActionSearchRepository:
                 self.flush()
 
         except IntegrityError:
-            raise ActionSearchRepositoryError(
-                f"Cannot add staking action search for account key: {search.account_key}"
+            raise SearchRepositoryError(
+                f"Cannot add function call search "
+                f"for transaction signer key: {search.tx_signer_key}"
             )
 
     def update(
         self,
-        search: ActionSearch,
+        search: Search,
         up_to_tx_block_height: int,
     ) -> None:
         """
-        Updates the upper transaction block height of a staking action search.
+        Updates the upper transaction block height of a function call search.
 
         Args:
-            search: Staking action search to update.
+            search: Function call search to update.
             up_to_tx_block_height: New inclusive upper transaction block height.
         """
         if not search.locked:
-            raise ActionSearchRepositoryError(
-                f"Staking action search is not locked "
-                f"to update for account key: {search.account_key}"
+            raise SearchRepositoryError(
+                f"Function call search is not locked "
+                f"to update for transaction signer key: {search.tx_signer_key}"
             )
         
         if (
             search.up_to_tx_block_height is not None
             and up_to_tx_block_height < search.up_to_tx_block_height
         ):
-            raise ActionSearchRepositoryError(
+            raise SearchRepositoryError(
                 f"`up_to_tx_block_height` must not decrease "
-                f"for account key: {search.account_key}"
+                f"for transaction signer key: {search.tx_signer_key}"
             )
 
         search.up_to_tx_block_height = up_to_tx_block_height
