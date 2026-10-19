@@ -8,10 +8,10 @@ class Action(SQLModel, table=True):
     receipt_key: str = Field(primary_key=True)
     action_index: int = Field(primary_key=True)
 
-    tx_key: str = Field(index=True)
     tx_signer_key: str = Field(index=True)
     receipt_predecessor_key: str = Field(index=True)
     receiver_key: str = Field(index=True)
+    tx_key: str = Field(index=True)
 
     tx_block_height: int = Field(
         index=True,

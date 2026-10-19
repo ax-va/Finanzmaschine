@@ -1,12 +1,12 @@
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, col
 
-from fzm_near.orm.staking.action import Action
-from fzm_near.sync_repositories.staking.action_repository_errors import ActionRepositoryError
+from fzm_near.orm.function_call.action import Action
+from fzm_near.sync_repositories.function_call.action_repository_errors import ActionRepositoryError
 
 
 class ActionRepository:
-    """Provides synchronous database operations for NEAR staking actions."""
+    """Provides synchronous database operations for NEAR function call actions."""
 
     def __init__(self, session: Session) -> None:
         """
@@ -26,14 +26,14 @@ class ActionRepository:
         action_index: int,
     ) -> Action | None:
         """
-        Returns a staking action by its composite primary key.
+        Returns a function call action by its composite primary key.
 
         Args:
             receipt_key: Receipt identifier.
             action_index: Index of the action within the receipt.
 
         Returns:
-            The staking action or `None` if it does not exist.
+            The function call action or `None` if it does not exist.
         """
         return self._session.get(
             Action,
@@ -42,36 +42,56 @@ class ActionRepository:
 
     def get(
         self,
-        account_key: str,
-        pool_key: str | None = None,
+        tx_signer_key: str,
+        receipt_predecessor_key: str | None = None,
+        receiver_key: str | None = None,
+        tx_key: str | None = None,
         from_tx_block_height: int | None = None,
         up_to_tx_block_height: int | None = None,
         from_receipt_block_height: int | None = None,
         up_to_receipt_block_height: int | None = None,
+        from_exec_outcome_block_height: int | None = None,
+        up_to_exec_outcome_block_height: int | None = None,
     ) -> list[Action]:
         """
-        Returns staking actions for an account, optionally filtered
-        by pool, transaction block heights, and receipt block heights.
+        Returns function call actions for a transaction signer key,
+        optionally filtered by keys of receipt predecessor ID, receiver ID and transaction hash,
+        as well as block heights of transaction, receipt and execution outcome.
 
         Args:
-            account_key: Account identifier.
-            pool_key: Optional staking pool identifier.
+            tx_signer_key: Transaction signer key. In the case of staking, account key.
+            receipt_predecessor_key: Optional receipt predecessor key. In the case of staking account key.
+            receiver_key: Optional receiver key. In the case of staking, pool key.
+            tx_key: Optional transaction key mapping the transaction hash.
             from_tx_block_height: Optional inclusive lower transaction block height.
             up_to_tx_block_height: Optional inclusive upper transaction block height.
             from_receipt_block_height: Optional inclusive lower receipt block height.
             up_to_receipt_block_height: Optional inclusive upper receipt block height.
+            from_exec_outcome_block_height: Optional inclusive upper execution outcome block height.
+            up_to_exec_outcome_block_height: Optional inclusive lower execution outcome block height.
 
         Returns:
-            Matching staking actions ordered by transaction block height,
-            receipt block height, receipt key, and action index.
+            Matching function call actions
+            ordered by execution outcome block height,
+            execution outcome index, and action index.
         """
         statement = select(Action).where(
-            Action.account_key == account_key
+            Action.tx_signer_key == tx_signer_key
         )
 
-        if pool_key is not None:
+        if receipt_predecessor_key is not None:
             statement = statement.where(
-                Action.pool_key == pool_key
+                Action.receipt_predecessor_key == receipt_predecessor_key
+            )
+
+        if receiver_key is not None:
+            statement = statement.where(
+                Action.receiver_key == receiver_key
+            )
+
+        if tx_key is not None:
+            statement = statement.where(
+                Action.tx_key == tx_key
             )
 
         if from_tx_block_height is not None:
@@ -94,10 +114,19 @@ class ActionRepository:
                 Action.receipt_block_height <= up_to_receipt_block_height
             )
 
+        if from_exec_outcome_block_height is not None:
+            statement = statement.where(
+                from_exec_outcome_block_height <= Action.exec_outcome_block_height
+            )
+
+        if up_to_exec_outcome_block_height is not None:
+            statement = statement.where(
+                Action.exec_outcome_block_height <= up_to_exec_outcome_block_height
+            )
+
         statement = statement.order_by(
-            col(Action.tx_block_height),
-            col(Action.receipt_block_height),
-            col(Action.receipt_key),
+            col(Action.exec_outcome_block_height),
+            col(Action.exec_outcome_index),
             col(Action.action_index),
         )
 
@@ -105,10 +134,10 @@ class ActionRepository:
 
     def add(self, action: Action) -> None:
         """
-        Adds a staking action to the current database session.
+        Adds a function call action to the current database session.
 
         Args:
-            action: Staking action to add.
+            action: Faunction call action to add.
         """
         self._session.add(action)
 
@@ -118,14 +147,14 @@ class ActionRepository:
 
     def safe_add(self, action: Action) -> None:
         """
-        Adds a staking action within a savepoint.
+        Adds a function call action within a savepoint.
 
         Ignores an integrity conflict
         if an action with the same primary key already exists.
         Raises an error otherwise.
 
         Args:
-            action: Staking action to add.
+            action: Function call action to add.
         """
         try:
             with self._session.begin_nested():
@@ -146,5 +175,6 @@ class ActionRepository:
                 return
 
             raise ActionRepositoryError(
-                f"Cannot add staking action for account key: {action.account_key}"
+                f"Cannot add function call action "
+                f"for transaction signer key: {action.tx_signer_key}"
             ) from e
