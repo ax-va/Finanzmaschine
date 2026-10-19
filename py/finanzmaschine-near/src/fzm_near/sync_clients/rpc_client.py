@@ -85,10 +85,6 @@ class RpcClient:
 
         Returns:
             Raw bytes returned by the view function.
-
-        Raises:
-            httpx.HTTPStatusError: If the HTTP request fails.
-            RuntimeError: If the NEAR RPC returns an error.
         """
         args_base64 = base64.b64encode(
             json.dumps(args).encode()
@@ -161,6 +157,39 @@ class RpcClient:
         )
 
         return int(block["header"]["timestamp_nanosec"])
+
+
+    def is_staking_pool_whitelisted(
+        self,
+        pool_id: str,
+        block_height: int,
+    ) -> bool:
+        """
+        Check whether a staking pool is whitelisted at a given block height.
+
+        Args:
+            pool_id: Staking pool ID.
+            block_height: Block height at which to query the pool state.
+
+        Returns:
+            `True` if staking pool is whitelisted, `False` otherwise.
+        """
+
+        result = self.call_view_function(
+            contract_id="lockup-whitelist.near",
+            method_name="is_whitelisted",
+            args={"staking_pool_account_id": pool_id},
+            block_height=block_height,
+        )
+
+        value = json.loads(result)
+
+        if not isinstance(value, bool):
+            raise ValueError(
+                f"Unexpected whitelist response for {pool_id}: {value!r}"
+            )
+
+        return value
 
     def _fetch_block(self, url: str, params: dict) -> dict:
         payload = {
