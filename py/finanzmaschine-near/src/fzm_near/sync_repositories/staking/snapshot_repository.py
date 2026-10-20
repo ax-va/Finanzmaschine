@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
 from fzm_near.helpers.staking.dataframes import load_key, load_df_balances, create_df_staking_snapshots
+from fzm_near.sync_repositories.staking.snapshot_repository_errors import SnapshotRepositoryError
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ class SnapshotRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, snapshot: Snapshot) -> bool:
+    def safe_add(self, snapshot: Snapshot) -> None:
         """
         Adds and flushes a staking snapshot within a savepoint.
 
@@ -100,9 +101,6 @@ class SnapshotRepository:
 
         Args:
             snapshot: Staking snapshot to add.
-
-        Returns:
-            `True` if the staking snapshot was successfully flushed, otherwise `False`.
         """
         try:
             with self._session.begin_nested():
@@ -110,10 +108,29 @@ class SnapshotRepository:
                 self.add(snapshot)
                 self.flush()
 
-            return True
+        except IntegrityError as e:
+            # The savepoint transaction is rolled back
+            snapshot_: Snapshot | None = self.get(
+                key=Key(
+                    account_key=snapshot.account_key,
+                    pool_key=snapshot.pool_key,
+                ),
+                block_height=snapshot.block_height,
+            )
 
-        except IntegrityError:
-            return False
+            if snapshot_ is not None:
+                # The snapshot failed to add
+                # already exists in the database.
+                return
+
+            raise SnapshotRepositoryError(
+                "Cannot add snapshot for key %s at block height %s",
+                Key(
+                    account_key=snapshot.account_key,
+                    pool_key=snapshot.pool_key,
+                ),
+                snapshot.block_height,
+            ) from e
 
     def import_from(
         self,

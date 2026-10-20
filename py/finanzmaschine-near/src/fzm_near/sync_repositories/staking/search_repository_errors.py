@@ -1,2 +1,2 @@
-class SnapshotSearchRepositoryError(Exception):
+class SearchRepositoryError(Exception):
     pass

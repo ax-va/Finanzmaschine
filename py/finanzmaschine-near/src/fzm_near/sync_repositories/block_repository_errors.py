@@ -1,0 +1,2 @@
+class BlockRepositoryError(Exception):
+    pass

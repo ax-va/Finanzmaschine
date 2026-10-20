@@ -1,0 +1,2 @@
+class ReceiverRepositoryError(Exception):
+    pass

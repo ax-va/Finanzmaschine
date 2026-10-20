@@ -1,8 +1,10 @@
 from sqlalchemy import update, CursorResult
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col
 
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.search import Search
+from fzm_near.sync_repositories.staking.search_repository_errors import SearchRepositoryError
 
 
 class SnapshotSearchRepository:
@@ -91,4 +93,28 @@ class SnapshotSearchRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
+    def safe_add(self, search: Search) -> None:
+        """
+        Adds and flushes a snapshot search within a savepoint.
+
+        If an integrity conflict occurs, the savepoint is rolled back
+        without rolling back the surrounding transaction.
+
+        Args:
+            search:  Snapshot search to add.
+        """
+        try:
+            with self._session.begin_nested():
+                # savepoint
+                self.add(search)
+                self.flush()
+
+        except IntegrityError:
+            raise SearchRepositoryError(
+                "Cannot add snapshot search for key: %s",
+                Key(
+                    account_key=search.account_key,
+                    pool_key=search.pool_key,
+                )
+            )
 

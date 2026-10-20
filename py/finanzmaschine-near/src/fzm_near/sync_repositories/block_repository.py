@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from fzm_near.orm.block import Block
+from fzm_near.sync_repositories.block_repository_errors import BlockRepositoryError
 
 
 class BlockRepository:
@@ -44,7 +45,7 @@ class BlockRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, block: Block) -> bool:
+    def safe_add(self, block: Block) -> None:
         """
         Adds and flushes a block within a savepoint.
 
@@ -55,8 +56,9 @@ class BlockRepository:
         Args:
             block: Block to add.
 
-        Returns:
-            `True` if the block was successfully flushed, otherwise `False`.
+        Raises:
+            BlockRepositoryError:
+                If the block already exists.
         """
         try:
             with self._session.begin_nested():
@@ -64,7 +66,17 @@ class BlockRepository:
                 self.add(block)
                 self.flush()
 
-            return True
+        except IntegrityError as e:
+            # The savepoint transaction is rolled back
+            block_: Block | None = self.get(
+                block_height=block.block_height,
+            )
 
-        except IntegrityError:
-            return False
+            if block_ is not None:
+                # The block failed to add
+                # already exists in the database.
+                return
+
+            raise BlockRepositoryError(
+                f"Cannot add block at block height: {block.block_height}"
+            ) from e
