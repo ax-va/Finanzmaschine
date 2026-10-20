@@ -1,8 +1,8 @@
 import logging
 
+from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
 from fzm_near.orm.staking.balance import Balance
-from fzm_near.staking.errors import UnexpectedBalanceDecreaseError
-from fzm_near.staking.snapshot_storage import SnapshotStorage
+from fzm_near.storage.staking.snapshot_storage import SnapshotStorage
 from fzm_near.sync_clients.errors import BlockHeightNotFoundError
 from fzm_near.sync_clients.staking_client import StakingClient
 
@@ -248,7 +248,7 @@ def find_increased_balances(
     return balances
 
 
-def find_staking_snapshots(
+def find_snapshots(
     account_id: str,
     pool_id: str,
     from_block_height: int,
@@ -297,7 +297,7 @@ def find_staking_snapshots(
             If `from_block_height` exceeds `up_to_block_height`.
             If `chunk_size` is less than or equal to zero.
             If `last_known_balance.block_height` is outside
-            the [`from_block_height`, `up_to_block_height`) interval.
+            the [`from_block_height`, `up_to_block_height`] interval.
             From `find_increased_balances`.
         UnexpectedBalanceDecreaseError:
             From `find_increased_balances`.
@@ -314,13 +314,27 @@ def find_staking_snapshots(
 
         if last_known_balance.block_height < from_block_height:
             raise ValueError(
-                f"`last_known_balance.block_height` must be greater than or equal to `from_block_height`"
+                "`last_known_balance.block_height` %s must be "
+                "greater than or equal to `from_block_height` %s",
+                last_known_balance.block_height, from_block_height
             )
 
-        if up_to_block_height <= last_known_balance.block_height:
+        if up_to_block_height < last_known_balance.block_height:
             raise ValueError(
-                f"`last_known_balance.block_height` must be less than `up_to_block_height`"
+                f"`last_known_balance.block_height` %s must be "
+                f"less than or equal to `up_to_block_height` %s",
+                last_known_balance.block_height, up_to_block_height
             )
+
+        if up_to_block_height == last_known_balance.block_height:
+
+            logger.info(
+                "There is nothing to search for: "
+                "`last_known_balance.block_height` %s is already equal to `up_to_block_height` %s",
+                last_known_balance.block_height, up_to_block_height
+            )
+
+            return
 
     logger.info(
         "Searching for staking snapshots in chunks in [%s, %s]",
