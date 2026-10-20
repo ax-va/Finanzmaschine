@@ -13,7 +13,7 @@ from fzm_near.storage.staking.snapshot_storage import (
 )
 from fzm_near.orm.staking.key import Key
 
-STAKING_SNAPSHOT_SCHEMA = {
+SNAPSHOT_SCHEMA = {
     ACCOUNT_KEY: pl.String,
     POOL_KEY: pl.String,
     **SnapshotStorage.SCHEMA,
@@ -86,7 +86,7 @@ def create_df_staking_snapshots(
         )
 
     if df_balances.is_empty():
-        return pl.DataFrame(schema=STAKING_SNAPSHOT_SCHEMA)
+        return pl.DataFrame(schema=SNAPSHOT_SCHEMA)
 
     return pl.DataFrame(
         data={
