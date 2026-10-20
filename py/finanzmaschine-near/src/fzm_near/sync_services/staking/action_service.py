@@ -2,7 +2,7 @@ import polars as pl
 from sqlmodel import Session
 
 from fzm_keying import KeyMapping
-from fzm_near.helpers.staking.method_name_enum import MethodNameEnum
+from fzm_near.helpers.staking.enums import MethodNameEnum
 from fzm_near.orm.function_call.action import Action as FunctionCallAction
 from fzm_near.helpers.staking.factories import extract_operation_yocto_str
 from fzm_near.sync_services.receiver_service import ReceiverService
