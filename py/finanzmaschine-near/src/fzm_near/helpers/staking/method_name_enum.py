@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class MethodName(StrEnum):
+class MethodNameEnum(StrEnum):
     """Supported staking pool methods."""
 
     DEPOSIT_AND_STAKE = "deposit_and_stake"
