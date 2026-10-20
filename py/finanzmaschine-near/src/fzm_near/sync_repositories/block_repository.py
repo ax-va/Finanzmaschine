@@ -45,7 +45,7 @@ class BlockRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, block: Block) -> None:
+    def safe_add(self, block: Block) -> Block:
         """
         Adds and flushes a block within a savepoint.
 
@@ -56,15 +56,20 @@ class BlockRepository:
         Args:
             block: Block to add.
 
+        Returns:
+            The added block or the existing block.
+
         Raises:
             BlockRepositoryError:
-                If the block already exists.
+                If the block could not be added.
         """
         try:
             with self._session.begin_nested():
                 # savepoint
                 self.add(block)
                 self.flush()
+
+            return block
 
         except IntegrityError as e:
             # The savepoint transaction is rolled back
@@ -75,7 +80,7 @@ class BlockRepository:
             if block_ is not None:
                 # The block failed to add
                 # already exists in the database.
-                return
+                return block_
 
             raise BlockRepositoryError(
                 f"Cannot add block at block height: {block.block_height}"

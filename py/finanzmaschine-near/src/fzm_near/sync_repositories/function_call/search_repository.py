@@ -88,7 +88,7 @@ class ActionSearchRepository:
         """
         self._session.add(search)
 
-    def safe_add(self, search: Search) -> None:
+    def safe_add(self, search: Search) -> Search:
         """
         Adds and flushes a function call search within a savepoint.
 
@@ -97,12 +97,21 @@ class ActionSearchRepository:
 
         Args:
             search: Function call search to add.
+
+        Returns:
+            The added function call search.
+
+        Raises:
+            SearchRepositoryError:
+                If the function call search could not be added.
         """
         try:
             with self._session.begin_nested():
                 # savepoint
                 self.add(search)
                 self.flush()
+
+            return search
 
         except IntegrityError:
             raise SearchRepositoryError(

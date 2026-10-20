@@ -93,7 +93,7 @@ class SnapshotSearchRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, search: Search) -> None:
+    def safe_add(self, search: Search) -> Search:
         """
         Adds and flushes a snapshot search within a savepoint.
 
@@ -101,13 +101,22 @@ class SnapshotSearchRepository:
         without rolling back the surrounding transaction.
 
         Args:
-            search:  Snapshot search to add.
+            search: Snapshot search to add.
+
+        Returns:
+            The added snapshot search.
+
+        Raises:
+            SearchRepositoryError:
+                If the snapshot search could not be added.
         """
         try:
             with self._session.begin_nested():
                 # savepoint
                 self.add(search)
                 self.flush()
+
+            return search
 
         except IntegrityError:
             raise SearchRepositoryError(

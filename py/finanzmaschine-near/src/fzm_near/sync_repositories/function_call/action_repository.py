@@ -145,7 +145,7 @@ class ActionRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, action: Action) -> None:
+    def safe_add(self, action: Action) -> Action:
         """
         Adds a function call action within a savepoint.
 
@@ -155,12 +155,21 @@ class ActionRepository:
 
         Args:
             action: Function call action to add.
+
+        Returns:
+            The added action or the existing action.
+
+        Raises:
+            ActionRepositoryError:
+                If function call action could not be added.
         """
         try:
             with self._session.begin_nested():
                 # savepoint
                 self.add(action)
                 self.flush()
+
+            return action
 
         except IntegrityError as e:
             # The savepoint transaction is rolled back
@@ -172,7 +181,7 @@ class ActionRepository:
             if action_ is not None:
                 # The action failed to add
                 # already exists in the database.
-                return
+                return action_
 
             raise ActionRepositoryError(
                 f"Cannot add function call action "

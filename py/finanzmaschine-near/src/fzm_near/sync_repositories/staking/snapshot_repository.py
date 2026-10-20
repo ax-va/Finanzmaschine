@@ -91,7 +91,7 @@ class SnapshotRepository:
         """Flushes pending changes to the database."""
         self._session.flush()
 
-    def safe_add(self, snapshot: Snapshot) -> None:
+    def safe_add(self, snapshot: Snapshot) -> Snapshot:
         """
         Adds and flushes a staking snapshot within a savepoint.
 
@@ -101,12 +101,21 @@ class SnapshotRepository:
 
         Args:
             snapshot: Staking snapshot to add.
+
+        Returns:
+            The added staking snapshot or the existing staking snapshot.
+
+        Raises:
+            SnapshotRepositoryError:
+                If the staking snapshot could not be added.
         """
         try:
             with self._session.begin_nested():
                 # savepoint
                 self.add(snapshot)
                 self.flush()
+
+            return snapshot
 
         except IntegrityError as e:
             # The savepoint transaction is rolled back
@@ -121,7 +130,7 @@ class SnapshotRepository:
             if snapshot_ is not None:
                 # The snapshot failed to add
                 # already exists in the database.
-                return
+                return snapshot_
 
             raise SnapshotRepositoryError(
                 "Cannot add snapshot for key %s at block height %s",

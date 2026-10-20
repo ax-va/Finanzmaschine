@@ -15,14 +15,22 @@ logger = logging.getLogger(__name__)
 
 
 class ActionService:
+    """Fetches, synchronizes, and retrieves NEAR function call actions."""
+
     def __init__(
         self,
         session: Session,
         key_mapping: KeyMapping,
     ) -> None:
+        """
+        Args:
+            session: Database session.
+            key_mapping: Mapping between keys and NEAR identifiers.
+        """
+
         self._session: Session = session
-        self._search_repo = ActionSearchRepository(session)
-        self._action_repo = ActionRepository(session)
+        self._search_repository = ActionSearchRepository(session)
+        self._action_repository = ActionRepository(session)
         self._key_mapping = key_mapping
 
 
@@ -39,6 +47,29 @@ class ActionService:
         from_exec_outcome_block_height: int | None = None,
         up_to_exec_outcome_block_height: int | None = None,
     ) -> list[Action]:
+        """
+        Synchronizes and retrieves function call actions matching the filters.
+
+        Synchronizes the signer's actions up to
+        the latest final block before querying the database.
+
+        Args:
+            tx_signer_key: Key identifying the transaction signer.
+            predecessor_key: Optional receipt predecessor key.
+            receiver_key: Optional receipt receiver key.
+            tx_key: Optional transaction key.
+            from_tx_block_height: Minimum transaction block height.
+            up_to_tx_block_height: Maximum transaction block height.
+            from_receipt_block_height: Minimum receipt block height.
+            up_to_receipt_block_height: Maximum receipt block height.
+            from_exec_outcome_block_height:
+                Minimum receipt execution outcome block height.
+            up_to_exec_outcome_block_height:
+                Maximum receipt execution outcome block height.
+
+        Returns:
+            List of function call actions matching the specified filters.
+        """
 
         up_to_block_height: int = fetch_final_block_height()
 
@@ -47,7 +78,7 @@ class ActionService:
             up_to_block_height=up_to_block_height,
         )
 
-        actions: list[Action] = self._action_repo.get(
+        actions: list[Action] = self._action_repository.get(
             tx_signer_key=tx_signer_key,
             predecessor_key=predecessor_key,
             receiver_key=receiver_key,
@@ -67,23 +98,35 @@ class ActionService:
         tx_signer_key: str,
         up_to_block_height: int,
     ) -> None:
+        """
+        Synchronizes a signer's function call actions up to a block height.
+
+        Uses a repository lock to prevent concurrent synchronization.
+        Fetches and stores actions not yet synchronized,
+        updates the synchronization progress, and releases the lock afterward.
+
+        Args:
+            tx_signer_key: Key identifying the transaction signer.
+            up_to_block_height: Block height through which to synchronize.
+        """
+
         actions: list[Action]
         block_height: int | None
         search: Search | None = None
         locked = False
 
         try:
-            search = self._search_repo.get(tx_signer_key)
+            search = self._search_repository.get(tx_signer_key)
 
             if search is None:
                 # Create the first function call search
                 search: Search = Search(
                     tx_signer_key=tx_signer_key,
                 )
-                self._search_repo.safe_add(search)
+                self._search_repository.safe_add(search)
                 self._session.commit()
 
-            self._search_repo.lock(search)
+            self._search_repository.lock(search)
             block_height = search.up_to_tx_block_height
             self._session.commit()
             locked = True
@@ -107,9 +150,9 @@ class ActionService:
             )
 
             for action in actions:
-                self._action_repo.safe_add(action)
+                self._action_repository.safe_add(action)
 
-            self._search_repo.update(
+            self._search_repository.update(
                 search=search,
                 up_to_tx_block_height=up_to_block_height,
             )
@@ -129,7 +172,7 @@ class ActionService:
         finally:
             if locked and search is not None:
                 try:
-                    self._search_repo.unlock(search)
+                    self._search_repository.unlock(search)
                     self._session.commit()
                 except Exception:
                     self._session.rollback()
@@ -147,6 +190,17 @@ class ActionService:
         from_tx_block_height: int | None = None,
         up_to_tx_block_height: int | None = None,
     ) -> list[Action]:
+        """
+        Fetches and creates function call actions for a transaction signer.
+
+        Args:
+            tx_signer_key: Key identifying the transaction signer.
+            from_tx_block_height: Minimum transaction block height.
+            up_to_tx_block_height: Maximum transaction block height.
+
+        Returns:
+            List of function call actions created from fetched transactions.
+        """
 
         txs:  dict[str, list[dict]] = fetch_txs(
            account_id=self._key_mapping.get_value(tx_signer_key),
