@@ -4,7 +4,7 @@ from sqlmodel import Session
 from fzm_keying import KeyMapping
 from fzm_near.helpers.enums import MethodNameEnum
 from fzm_near.helpers import constants as const
-from fzm_near.helpers.staking.dataframe_schemas import ACTION_SCHEMA
+from fzm_near.helpers.staking.df_schemas import ACTION_SCHEMA
 from fzm_near.orm.function_call.action import Action as FunctionCallAction
 from fzm_near.helpers.staking.factories import extract_operation_yocto_str
 from fzm_near.sync_services.receiver_service import ReceiverService
