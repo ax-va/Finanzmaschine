@@ -2,7 +2,7 @@ import polars as pl
 from sqlmodel import Session
 
 from fzm_keying import KeyMapping
-from fzm_near.helpers.enums import MethodNameEnum
+from fzm_near.helpers.staking.enums import MethodNameEnum
 from fzm_near.helpers import constants as const
 from fzm_near.helpers.staking.df_schemas import ACTION_SCHEMA
 from fzm_near.orm.function_call.action import Action as FunctionCallAction
