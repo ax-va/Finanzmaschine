@@ -4,7 +4,10 @@ import polars as pl
 import yaml
 
 from fzm_near.helpers import constants as const
-from fzm_near.helpers.staking.df_schemas import BALANCE_SCHEMA, SNAPSHOT_SCHEMA
+from fzm_near.helpers.staking.df_schemas import (
+    BALANCE_SCHEMA,
+    SNAPSHOT_SCHEMA,
+)
 from fzm_near.orm.staking.key import Key
 
 
