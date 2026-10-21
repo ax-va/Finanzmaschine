@@ -30,7 +30,7 @@ def create_df_snapshots(
     Raises:
         ValueError:
             If `df_balances` does not contain the columns
-            and data types defined by `SnapshotStorage.SCHEMA`.
+            and data types defined by `BALANCE_SCHEMA`.
     """
 
     # Validate schema
