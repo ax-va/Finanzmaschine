@@ -151,22 +151,22 @@ class SnapshotStorage:
 
     def save(
         self,
-        lower_block_height: int,
-        upper_block_height: int,
+        from_block_height: int,
+        up_to_block_height: int,
     ) -> None:
         """
         Persists the current balance snapshots and their block interval.
 
         Args:
-            lower_block_height: Lower block height, inclusive.
-            upper_block_height: Upper block height, inclusive.
+            from_block_height: Lower block height, inclusive.
+            up_to_block_height: Upper block height, inclusive.
 
         Raises:
             ValueError: If `upper_block_height` is less than `lower_block_height`.
         """
-        if upper_block_height < lower_block_height:
+        if up_to_block_height < from_block_height:
             raise ValueError(
-                "`upper_block_height` must be greater than or equal to `lower_block_height`"
+                "`up_to_block_height` must be greater than or equal to `from_block_height`"
             )
 
         snapshots_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -174,20 +174,20 @@ class SnapshotStorage:
         balances_path = self._target_dir / f"balances_{snapshots_id}.csv"
         interval_path = self._target_dir / f"interval_{snapshots_id}.yaml"
         interval_data = {
-            const.LOWER_BLOCK_HEIGHT: lower_block_height,
-            const.UPPER_BLOCK_HEIGHT: upper_block_height,
+            const.FROM_BLOCK_HEIGHT: from_block_height,
+            const.UP_TO_BLOCK_HEIGHT: up_to_block_height,
         }
 
         logger.debug(
             f"Saving balances for block heights "
-            f"{lower_block_height} to {upper_block_height}: {balances_path}"
+            f"{from_block_height} to {up_to_block_height}: {balances_path}"
         )
 
         self._df_balances.write_csv(balances_path)
 
         logger.debug(
             f"Saving interval for block heights "
-            f"{lower_block_height} to {upper_block_height}: {interval_path}"
+            f"{from_block_height} to {up_to_block_height}: {interval_path}"
         )
 
         with interval_path.open("w", encoding="utf-8") as file:

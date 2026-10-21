@@ -414,8 +414,8 @@ def find_snapshots(
         )
 
         snapshot_storage.save(
-            lower_block_height=chunk_lower_block_height,
-            upper_block_height=chunk_upper_block_height,
+            from_block_height=chunk_lower_block_height,
+            up_to_block_height=chunk_upper_block_height,
         )
 
         chunk_lower_block_height = chunk_upper_block_height + 1

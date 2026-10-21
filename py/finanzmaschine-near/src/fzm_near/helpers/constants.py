@@ -1,7 +1,7 @@
 BLOCK_HEIGHT = "block_height"
 EXEC_OUTCOME_BLOCK_HEIGHT = "exec_outcome_block_height"
-LOWER_BLOCK_HEIGHT = "lower_block_height"
-UPPER_BLOCK_HEIGHT = "upper_block_height"
+FROM_BLOCK_HEIGHT = "from_block_height"
+UP_TO_BLOCK_HEIGHT = "up_to_block_height"
 
 ACCOUNT_KEY = "account_key"
 POOL_KEY = "pool_key"

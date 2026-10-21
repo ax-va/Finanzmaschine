@@ -14,6 +14,12 @@ SNAPSHOT_SCHEMA = {
     **BALANCE_SCHEMA,
 }
 
+SNAPSHOT_INTERVAL_SCHEMA = {
+    const.POOL_KEY: pl.String,
+    const.FROM_BLOCK_HEIGHT: pl.Int64,
+    const.UP_TO_BLOCK_HEIGHT: pl.Int64,
+}
+
 ACTION_SCHEMA = {
     const.RECEIPT_KEY: pl.String,
     const.ACTION_INDEX: pl.Int64,
