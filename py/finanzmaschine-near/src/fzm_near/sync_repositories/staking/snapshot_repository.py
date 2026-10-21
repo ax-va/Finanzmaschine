@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
 from fzm_near.helpers.staking.factories import create_df_snapshots
-from fzm_near.helpers.staking.loaders import load_key, load_df_balances
+from fzm_near.helpers.staking.file_loaders import load_key, load_df_balances
 from fzm_near.sync_repositories.staking.snapshot_repository_errors import SnapshotRepositoryError
 
 logger = logging.getLogger(__name__)
