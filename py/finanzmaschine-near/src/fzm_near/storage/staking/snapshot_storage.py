@@ -5,16 +5,10 @@ from pathlib import Path
 import polars as pl
 import yaml
 
+from fzm_near.helpers import constants as const
+from fzm_near.helpers.staking.dataframe_schemas import BALANCE_SCHEMA
 from fzm_near.orm.staking.balance import Balance
 from fzm_near.orm.staking.key import Key
-
-BLOCK_HEIGHT = "block_height"
-STAKED_YOCTO_STR = "staked_yocto_str"
-UNSTAKED_YOCTO_STR = "unstaked_yocto_str"
-LOWER_BLOCK_HEIGHT = "lower_block_height"
-UPPER_BLOCK_HEIGHT = "upper_block_height"
-ACCOUNT_KEY = "account_key"
-POOL_KEY = "pool_key"
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +21,7 @@ class SnapshotStorage:
     and persists staking snapshots to disk.
     """
 
-    SCHEMA = {
-        BLOCK_HEIGHT: pl.Int64,
-        STAKED_YOCTO_STR: pl.String,
-        UNSTAKED_YOCTO_STR: pl.String,
-    }
+
 
     def __init__(
         self,
@@ -52,7 +42,7 @@ class SnapshotStorage:
                 From `self._validate_or_save_key`.
         """
         self._key: Key = key
-        self._df_balances = pl.DataFrame(schema=self.SCHEMA)
+        self._df_balances = pl.DataFrame(schema=BALANCE_SCHEMA)
 
         if target_dir is not None:
             self._target_dir = Path(target_dir)
@@ -91,26 +81,26 @@ class SnapshotStorage:
                 If a balance snapshot with the same block height already exists.
         """
         df_duplicates: pl.DataFrame = self._df_balances.filter(
-            (pl.col(BLOCK_HEIGHT) == balance.block_height)
+            (pl.col(const.BLOCK_HEIGHT) == balance.block_height)
         )
 
         if not df_duplicates.is_empty():
             raise ValueError(
-                f"Snapshot already exists for {BLOCK_HEIGHT}={balance.block_height}"
+                f"Snapshot already exists for {const.BLOCK_HEIGHT}={balance.block_height}"
             )
 
         df_row = pl.DataFrame(
             {
-                BLOCK_HEIGHT: [balance.block_height],
-                STAKED_YOCTO_STR: [balance.staked_yocto_str],
-                UNSTAKED_YOCTO_STR: [balance.unstaked_yocto_str],
+                const.BLOCK_HEIGHT: [balance.block_height],
+                const.STAKED_YOCTO_STR: [balance.staked_yocto_str],
+                const.UNSTAKED_YOCTO_STR: [balance.unstaked_yocto_str],
             },
-            schema=self.SCHEMA,
+            schema=BALANCE_SCHEMA,
         )
 
         self._df_balances: pl.DataFrame = (
             pl.concat([self._df_balances, df_row])
-            .sort([BLOCK_HEIGHT])
+            .sort([const.BLOCK_HEIGHT])
         )
 
     def get(
@@ -132,7 +122,7 @@ class SnapshotStorage:
                 If multiple balance snapshots exist at the given block height.
         """
         df_balance: pl.DataFrame = self._df_balances.filter(
-            (pl.col(BLOCK_HEIGHT) == block_height)
+            (pl.col(const.BLOCK_HEIGHT) == block_height)
         )
 
         if df_balance.is_empty():
@@ -140,15 +130,15 @@ class SnapshotStorage:
 
         if df_balance.height > 1:
             raise RuntimeError(
-                f"Multiple snapshots found for {BLOCK_HEIGHT}={block_height}"
+                f"Multiple snapshots found for {const.BLOCK_HEIGHT}={block_height}"
             )
 
         row: dict = df_balance.row(0, named=True)
 
         return Balance(
-            block_height=row[BLOCK_HEIGHT],
-            staked_yocto_str=row[STAKED_YOCTO_STR],
-            unstaked_yocto_str=row[UNSTAKED_YOCTO_STR],
+            block_height=row[const.BLOCK_HEIGHT],
+            staked_yocto_str=row[const.STAKED_YOCTO_STR],
+            unstaked_yocto_str=row[const.UNSTAKED_YOCTO_STR],
         )
 
     def clear(self) -> None:
@@ -157,7 +147,7 @@ class SnapshotStorage:
 
         Persisted snapshots are not affected.
         """
-        self._df_balances = pl.DataFrame(schema=self.SCHEMA)
+        self._df_balances = pl.DataFrame(schema=BALANCE_SCHEMA)
 
     def save(
         self,
@@ -184,8 +174,8 @@ class SnapshotStorage:
         balances_path = self._target_dir / f"balances_{snapshots_id}.csv"
         interval_path = self._target_dir / f"interval_{snapshots_id}.yaml"
         interval_data = {
-            LOWER_BLOCK_HEIGHT: lower_block_height,
-            UPPER_BLOCK_HEIGHT: upper_block_height,
+            const.LOWER_BLOCK_HEIGHT: lower_block_height,
+            const.UPPER_BLOCK_HEIGHT: upper_block_height,
         }
 
         logger.debug(
@@ -216,8 +206,8 @@ class SnapshotStorage:
             logger.debug(f"Comparing the key in the key file with the current values")
 
             for key_name, expected in (
-                (ACCOUNT_KEY, self._key.account_key),
-                (POOL_KEY, self._key.pool_key),
+                (const.ACCOUNT_KEY, self._key.account_key),
+                (const.POOL_KEY, self._key.pool_key),
             ):
                 if key_name not in key:
                     raise KeyError(f"Missing `{key_name}` in {key_path}")

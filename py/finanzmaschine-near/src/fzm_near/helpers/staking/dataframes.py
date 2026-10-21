@@ -3,21 +3,9 @@ from pathlib import Path
 import polars as pl
 import yaml
 
-from fzm_near.storage.staking.snapshot_storage import (
-    BLOCK_HEIGHT,
-    STAKED_YOCTO_STR,
-    UNSTAKED_YOCTO_STR,
-    ACCOUNT_KEY,
-    POOL_KEY,
-    SnapshotStorage,
-)
+from fzm_near.helpers import constants as const
+from fzm_near.helpers.staking.dataframe_schemas import BALANCE_SCHEMA, SNAPSHOT_SCHEMA
 from fzm_near.orm.staking.key import Key
-
-SNAPSHOT_SCHEMA = {
-    ACCOUNT_KEY: pl.String,
-    POOL_KEY: pl.String,
-    **SnapshotStorage.SCHEMA,
-}
 
 
 def load_df_balances(file_path: str | Path) -> pl.DataFrame:
@@ -32,7 +20,7 @@ def load_df_balances(file_path: str | Path) -> pl.DataFrame:
     """
     return pl.read_csv(
         file_path,
-        schema_overrides=SnapshotStorage.SCHEMA,
+        schema_overrides=BALANCE_SCHEMA,
     )
 
 
@@ -78,10 +66,10 @@ def create_df_staking_snapshots(
     # Validate schema
     if not all(
         df_balances.schema.get(column) == dtype
-        for column, dtype in SnapshotStorage.SCHEMA.items()
+        for column, dtype in BALANCE_SCHEMA.items()
     ):
         raise ValueError(
-            f"Expected schema to contain {SnapshotStorage.SCHEMA}, "
+            f"Expected schema to contain {BALANCE_SCHEMA}, "
             f"got {df_balances.schema}"
         )
 
@@ -90,11 +78,11 @@ def create_df_staking_snapshots(
 
     return pl.DataFrame(
         data={
-            ACCOUNT_KEY: key.account_key,
-            POOL_KEY: key.pool_key,
-            BLOCK_HEIGHT: df_balances[BLOCK_HEIGHT],
-            STAKED_YOCTO_STR: df_balances[STAKED_YOCTO_STR],
-            UNSTAKED_YOCTO_STR: df_balances[UNSTAKED_YOCTO_STR],
+            const.ACCOUNT_KEY: key.account_key,
+            const.POOL_KEY: key.pool_key,
+            const.BLOCK_HEIGHT: df_balances[const.BLOCK_HEIGHT],
+            const.STAKED_YOCTO_STR: df_balances[const.STAKED_YOCTO_STR],
+            const.UNSTAKED_YOCTO_STR: df_balances[const.UNSTAKED_YOCTO_STR],
         },
-        schema=SnapshotStorage.SCHEMA,
+        schema=SNAPSHOT_SCHEMA,
     )

@@ -2,24 +2,15 @@ import polars as pl
 from sqlmodel import Session
 
 from fzm_keying import KeyMapping
-from fzm_near.helpers.staking.enums import MethodNameEnum
+from fzm_near.helpers.enums import MethodNameEnum
+from fzm_near.helpers import constants as const
+from fzm_near.helpers.staking.dataframe_schemas import ACTION_SCHEMA
 from fzm_near.orm.function_call.action import Action as FunctionCallAction
 from fzm_near.helpers.staking.factories import extract_operation_yocto_str
 from fzm_near.sync_services.receiver_service import ReceiverService
 
 
 class ActionService:
-
-    ACTION_SCHEMA = {
-        "receipt_key": pl.String,
-        "action_index": pl.Int64,
-        "account_key": pl.String,
-        "pool_key": pl.String,
-        "exec_outcome_block_height": pl.Int64,
-        "exec_outcome_index": pl.Int64,
-        "method_name": pl.String,
-        "operation_yocto_str": pl.String,
-    }
 
     def __init__(
         self,
@@ -70,18 +61,19 @@ class ActionService:
                 continue
 
             rows.append(
-                dict(
-                    receipt_key=action.receipt_key,
-                    action_index=action.action_index,
-                    account_key=action.tx_signer_key,
-                    pool_key=action.receiver_key,
-                    exec_outcome_block_height=action.exec_outcome_block_height,
-                    method_name=method_name.value,
-                    operation_yocto_str=extract_operation_yocto_str(action=action)
-                )
+                {
+                    const.RECEIPT_KEY: action.receipt_key,
+                    const.ACTION_INDEX: action.action_index,
+                    const.ACCOUNT_KEY: action.tx_signer_key,
+                    const.POOL_KEY: action.receiver_key,
+                    const.EXEC_OUTCOME_BLOCK_HEIGHT: action.exec_outcome_block_height,
+                    const.EXEC_OUTCOME_INDEX: action.exec_outcome_index,
+                    const.METHOD_NAME: method_name.value,
+                    const.OPERATION_YOCTO_STR: extract_operation_yocto_str(action=action),
+                }
             )
 
         return pl.DataFrame(
             data=rows,
-            schema=self.ACTION_SCHEMA,
+            schema=ACTION_SCHEMA,
         )
