@@ -67,7 +67,7 @@ class SnapshotFactory:
 class SearchIntervalFactory:
 
     @staticmethod
-    def create_df_search_intervals(
+    def create_df_search_intervals_and_final_states(
         df_actions: pl.DataFrame,
         from_block_height: int,
         up_to_block_height: int,
