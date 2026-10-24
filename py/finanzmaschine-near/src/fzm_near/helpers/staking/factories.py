@@ -68,10 +68,10 @@ class SearchIntervalFactory:
 
     @staticmethod
     def create_df_search_intervals(
-            df_actions: pl.DataFrame,
-            from_block_height: int,
-            up_to_block_height: int,
-            df_last_states: pl.DataFrame | None = None,
+        df_actions: pl.DataFrame,
+        from_block_height: int,
+        up_to_block_height: int,
+        df_last_states: pl.DataFrame | None = None,
     ) -> dict[str, pl.DataFrame]:
         """Builds block-height intervals for searching staking pool balance changes."""
 
@@ -90,8 +90,8 @@ class SearchIntervalFactory:
 
         # Check `df_last_states` and collect `is_active_by_pool`
         for (pool_key,), df_pool_last in df_last_states.group_by(
-                const.POOL_KEY,
-                maintain_order=True,
+            const.POOL_KEY,
+            maintain_order=True,
         ):
             if df_pool_last.height != 1:
                 raise ValueError(
@@ -109,8 +109,8 @@ class SearchIntervalFactory:
 
         # Iterate through pools
         for (pool_key,), df_pool in df_actions.group_by(
-                const.POOL_KEY,
-                maintain_order=True,
+            const.POOL_KEY,
+            maintain_order=True,
         ):
             processed_pools.add(pool_key)
 
@@ -148,8 +148,8 @@ class SearchIntervalFactory:
 
             # Iterate through blocks
             for (block_height,), df_block in df_pool.group_by(
-                    const.EXEC_OUTCOME_BLOCK_HEIGHT,
-                    maintain_order=True,
+                const.EXEC_OUTCOME_BLOCK_HEIGHT,
+                maintain_order=True,
             ):
                 methods: pl.Series = df_block[const.METHOD_NAME]
 
@@ -167,7 +167,7 @@ class SearchIntervalFactory:
                 if lower_block_height is not None:  # active rewards
 
                     has_unstake_all = (
-                            methods == MethodNameEnum.UNSTAKE_ALL
+                        methods == MethodNameEnum.UNSTAKE_ALL
                     ).any()
 
                     # At first, check `WITHDRAW...`
@@ -199,7 +199,7 @@ class SearchIntervalFactory:
                         continue
 
                     has_deposit = (
-                            methods == MethodNameEnum.DEPOSIT
+                        methods == MethodNameEnum.DEPOSIT
                     ).any()
 
                     if has_deposit or has_withdraw:
