@@ -22,7 +22,7 @@ SEARCH_INTERVAL_SCHEMA = {
 
 FINAL_STATE_SCHEMA = {
     const.POOL_KEY: pl.String,
-    const.MAY_RECEIVE_REWARDS: pl.Boolean,
+    const.IS_ACTIVE: pl.Boolean,
 }
 
 ACTION_SCHEMA = {
