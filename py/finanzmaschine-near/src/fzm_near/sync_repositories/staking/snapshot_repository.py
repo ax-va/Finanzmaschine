@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
-from fzm_near.helpers.staking.factories import create_df_snapshots
+from fzm_near.helpers.staking.factories import SnapshotFactory
 from fzm_near.helpers.staking.file_loaders import load_key, load_df_balances
 from fzm_near.sync_repositories.staking.snapshot_repository_errors import SnapshotRepositoryError
 
@@ -219,7 +219,7 @@ class SnapshotRepository:
 
         imported_count: int = 0
 
-        df_snapshots: pl.DataFrame = create_df_snapshots(
+        df_snapshots: pl.DataFrame = SnapshotFactory.create_df_snapshots(
             key=key,
             df_balances=df_balances,
         )

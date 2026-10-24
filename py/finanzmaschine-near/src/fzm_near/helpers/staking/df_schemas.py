@@ -20,6 +20,11 @@ SEARCH_INTERVAL_SCHEMA = {
     const.UP_TO_BLOCK_HEIGHT: pl.Int64,
 }
 
+FINAL_STATE_SCHEMA = {
+    const.POOL_KEY: pl.String,
+    const.MAY_RECEIVE_REWARDS: pl.Boolean,
+}
+
 ACTION_SCHEMA = {
     const.RECEIPT_KEY: pl.String,
     const.ACTION_INDEX: pl.Int64,
