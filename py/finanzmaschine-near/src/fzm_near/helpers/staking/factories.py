@@ -4,8 +4,9 @@ from fzm_near.helpers import constants as const
 from fzm_near.helpers.staking.df_schemas import (
     BALANCE_SCHEMA,
     SNAPSHOT_SCHEMA,
+    ACTION_SCHEMA,
+    SEARCH_INTERVAL_SCHEMA,
     FINAL_STATE_SCHEMA,
-    SEARCH_INTERVAL_SCHEMA, ACTION_SCHEMA,
 )
 from fzm_near.helpers.staking.enums import MethodNameEnum
 from fzm_near.orm.staking.key import Key
