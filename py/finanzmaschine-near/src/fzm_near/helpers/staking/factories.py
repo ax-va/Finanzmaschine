@@ -149,7 +149,7 @@ class SearchIntervalFactory:
                 containing one `IS_OPEN` value per pool.
 
         Returns:
-            A dictionary containing:
+            A dictionary containing keys:
                 "search_intervals":
                     Block-height intervals for searching total balance snapshots.
                 "final_states":
