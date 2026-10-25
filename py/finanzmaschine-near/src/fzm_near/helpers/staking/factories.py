@@ -5,13 +5,19 @@ from fzm_near.helpers.staking.df_schemas import (
     BALANCE_SCHEMA,
     SNAPSHOT_SCHEMA,
     FINAL_STATE_SCHEMA,
-    SEARCH_INTERVAL_SCHEMA,
+    SEARCH_INTERVAL_SCHEMA, ACTION_SCHEMA,
 )
 from fzm_near.helpers.staking.enums import MethodNameEnum
 from fzm_near.orm.staking.key import Key
 
 
 class SnapshotFactory:
+    """
+    Creates staking snapshots from account and pool balance data.
+
+    Combines staking keys with balance snapshots
+    and produces dataframes conforming to the staking snapshot schema.
+    """
 
     @staticmethod
     def create_df_snapshots(
@@ -65,6 +71,18 @@ class SnapshotFactory:
 
 
 class SearchIntervalFactory:
+    """
+    Builds search intervals for historical staking pool balance changes.
+
+    Constructs block-height intervals
+    in which the total balance (staked + unstaked)
+    is expected to be monotonically non-decreasing.
+
+    Uses staking actions to determine interval boundaries
+    and maintains a heuristic state indicating
+    whether a search interval should remain logically open
+    across consecutive block ranges.
+    """
 
     @staticmethod
     def create_df_search_intervals_and_final_states(
@@ -86,23 +104,23 @@ class SearchIntervalFactory:
 
         Interval construction rules:
 
-            `DEPOSIT_AND_STAKE`, `STAKE`, and `STAKE_ALL` activate
+            - `DEPOSIT_AND_STAKE`, `STAKE`, and `STAKE_ALL` activate
             reward tracking and open an interval if none is open.
 
-            `DEPOSIT` does not interrupt an open interval
+            - `DEPOSIT` does not interrupt an open interval
             because it only increases the total balance.
 
-            `WITHDRAW` and `WITHDRAW_ALL` interrupt an open interval
+            - `WITHDRAW` and `WITHDRAW_ALL` interrupt an open interval
             because they decrease the total balance.
             The previous interval ends at the preceding block,
             and a new interval starts at the withdrawal block.
 
-            `UNSTAKE_ALL` closes an open interval at its block height,
+            - `UNSTAKE_ALL` closes an open interval at its block height,
             unless a staking action occurs in the same block.
 
-            `UNSTAKE` does not affect interval boundaries.
+            - `UNSTAKE` does not affect interval boundaries.
 
-            `DEPOSIT` and withdrawal actions occurring
+            - `DEPOSIT` and withdrawal actions occurring
             while rewards are inactive produce single-block intervals.
 
         When multiple actions occur in the same block, they are evaluated together
@@ -139,10 +157,20 @@ class SearchIntervalFactory:
 
         Raises:
             ValueError:
-                If the block-height range is invalid,
-                an action falls outside the requested range,
-                or `df_last_states` contains multiple states for the same pool.
+                - If an input dataframe has an invalid schema.
+                - If the block-height range is invalid, an action falls outside the requested range.
+                - If `df_last_states` contains multiple states for the same pool.
         """
+
+        # Verify schema
+        if not all(
+            df_actions.schema.get(column) == dtype
+            for column, dtype in ACTION_SCHEMA.items()
+        ):
+            raise ValueError(
+                f"Expected `df_actions` schema to contain {ACTION_SCHEMA}, "
+                f"got {df_actions.schema}"
+            )
 
         if from_block_height > up_to_block_height:
             raise ValueError(
@@ -151,9 +179,17 @@ class SearchIntervalFactory:
             )
 
         if df_last_states is None:
-            df_last_states = pl.DataFrame(
-                schema=FINAL_STATE_SCHEMA,
-            )
+            df_last_states = pl.DataFrame(schema=FINAL_STATE_SCHEMA)
+        else:
+            # Verify schema
+            if not all(
+                df_last_states.schema.get(column) == dtype
+                for column, dtype in FINAL_STATE_SCHEMA.items()
+            ):
+                raise ValueError(
+                    f"Expected `df_last_states` schema to contain {FINAL_STATE_SCHEMA}, "
+                    f"got {df_last_states.schema}"
+                )
 
         is_open_by_pool: dict[str, bool] = {}
 
@@ -206,8 +242,7 @@ class SearchIntervalFactory:
                     f"`up_to_block_height`: pool {pool_key}"
                 )
 
-            # Determine
-            # whether it is currently possible
+            # Determine whether it is currently possible
             # to open the first interval.
             lower_block_height: int | None = (
                 from_block_height
