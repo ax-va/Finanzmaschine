@@ -73,7 +73,76 @@ class SearchIntervalFactory:
         up_to_block_height: int,
         df_last_states: pl.DataFrame | None = None,
     ) -> dict[str, pl.DataFrame]:
-        """Builds block-height intervals for searching staking pool balance changes."""
+        """
+        Builds search intervals for staking pool total balance snapshots.
+
+        Each interval represents a block-height range
+        within which the account's total balance (staked + unstaked)
+        is expected to be monotonically non-decreasing.
+        The balance may increase due to staking rewards or deposits.
+
+        Intervals are constructed independently for each staking pool #
+        using successful contract actions grouped by block height.
+
+        Interval construction rules:
+
+            `DEPOSIT_AND_STAKE`, `STAKE`, and `STAKE_ALL` activate
+            reward tracking and open an interval if none is open.
+
+            `DEPOSIT` does not interrupt an open interval
+            because it only increases the total balance.
+
+            `WITHDRAW` and `WITHDRAW_ALL` interrupt an open interval
+            because they decrease the total balance.
+            The previous interval ends at the preceding block,
+            and a new interval starts at the withdrawal block.
+
+            `UNSTAKE_ALL` closes an open interval at its block height,
+            unless a staking action occurs in the same block.
+
+            `UNSTAKE` does not affect interval boundaries.
+
+            `DEPOSIT` and withdrawal actions occurring
+            while rewards are inactive produce single-block intervals.
+
+        When multiple actions occur in the same block, they are evaluated together
+        because only the final block snapshot is observable.
+        Staking actions take precedence over `UNSTAKE_ALL`
+        when determining whether reward tracking remains open.
+
+        The initial reward-tracking state is taken from `df_last_states`.
+        The `IS_OPEN` flag represents a heuristic estimate of
+        whether the account may receive staking rewards.
+        The flag is used to determine whether a search interval
+        should remain open across block ranges.
+        Pools without a previous state are considered inactive.
+        Previously open pools remain searchable even if no new actions occur.
+
+        Args:
+            df_actions:
+                Successful staking pool actions within the requested block-height range.
+            from_block_height:
+                Inclusive lower boundary of the search range.
+            up_to_block_height:
+                Inclusive upper boundary of the search range.
+            df_last_states:
+                Optional reward-tracking states from the previous range,
+                containing one `IS_OPEN` value per pool.
+
+        Returns:
+            A dictionary containing:
+                "search_intervals":
+                    Block-height intervals for searching total balance snapshots.
+                "final_states":
+                    Reward-tracking states for each pool at the end of the requested range,
+                    suitable for processing the next range.
+
+        Raises:
+            ValueError:
+                If the block-height range is invalid,
+                an action falls outside the requested range,
+                or `df_last_states` contains multiple states for the same pool.
+        """
 
         if from_block_height > up_to_block_height:
             raise ValueError(
@@ -86,9 +155,9 @@ class SearchIntervalFactory:
                 schema=FINAL_STATE_SCHEMA,
             )
 
-        is_active_by_pool: dict[str, bool] = {}
+        is_open_by_pool: dict[str, bool] = {}
 
-        # Check `df_last_states` and collect `is_active_by_pool`
+        # Check `df_last_states` and collect `is_open_by_pool`
         for (pool_key,), df_pool_last in df_last_states.group_by(
             const.POOL_KEY,
             maintain_order=True,
@@ -99,8 +168,8 @@ class SearchIntervalFactory:
                     f"one state for each pool: pool {pool_key}"
                 )
 
-            is_active_by_pool[pool_key] = df_pool_last.item(
-                0, const.IS_ACTIVE
+            is_open_by_pool[pool_key] = df_pool_last.item(
+                0, const.IS_OPEN
             )
 
         intervals: list[dict] = []
@@ -142,7 +211,7 @@ class SearchIntervalFactory:
             # to open the first interval.
             lower_block_height: int | None = (
                 from_block_height
-                if is_active_by_pool.get(pool_key, False)
+                if is_open_by_pool.get(pool_key, False)
                 else None
             )
 
@@ -159,12 +228,12 @@ class SearchIntervalFactory:
                     MethodNameEnum.DEPOSIT_AND_STAKE,
                 ]).any()
 
-                has_withdraw = methods.is_in([
-                    MethodNameEnum.WITHDRAW,
-                    MethodNameEnum.WITHDRAW_ALL,
-                ]).any()
+                if lower_block_height is not None:  # open search interval
 
-                if lower_block_height is not None:  # active rewards
+                    has_withdraw = methods.is_in([
+                        MethodNameEnum.WITHDRAW,
+                        MethodNameEnum.WITHDRAW_ALL,
+                    ]).any()
 
                     has_unstake_all = (
                         methods == MethodNameEnum.UNSTAKE_ALL
@@ -198,11 +267,16 @@ class SearchIntervalFactory:
                         lower_block_height = block_height
                         continue
 
+                    has_withdraw = methods.is_in([
+                        MethodNameEnum.WITHDRAW,
+                        MethodNameEnum.WITHDRAW_ALL,
+                    ]).any()
+
                     has_deposit = (
                         methods == MethodNameEnum.DEPOSIT
                     ).any()
 
-                    if has_deposit or has_withdraw:
+                    if has_withdraw or has_deposit:
                         SearchIntervalFactory._append_search_interval(
                             pool_key=pool_key,
                             lower_block_height=block_height,
@@ -222,18 +296,18 @@ class SearchIntervalFactory:
 
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
-                is_active=(lower_block_height is not None),
+                is_open=(lower_block_height is not None),
                 final_states=final_states,
             )
 
         # Pools without new actions
         # may still require searching
-        # if their previous state was active.
-        for pool_key, is_active in is_active_by_pool.items():
+        # if their previous state was open.
+        for pool_key, is_open in is_open_by_pool.items():
             if pool_key in processed_pools:
                 continue
 
-            if is_active:
+            if is_open:
                 SearchIntervalFactory._append_search_interval(
                     pool_key=pool_key,
                     lower_block_height=from_block_height,
@@ -243,7 +317,7 @@ class SearchIntervalFactory:
 
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
-                is_active=is_active,
+                is_open=is_open,
                 final_states=final_states,
             )
 
@@ -265,7 +339,16 @@ class SearchIntervalFactory:
         upper_block_height: int,
         intervals: list[dict],
     ) -> None:
-        """Append a non-empty search interval."""
+        """
+        Appends an inclusive block-height search interval.
+
+        The interval includes both boundary blocks
+        and must have a lower boundary not greater than its upper boundary.
+
+        Raises:
+            ValueError:
+                If the upper boundary is below the lower boundary.
+        """
 
         if upper_block_height < lower_block_height:
             raise ValueError(
@@ -281,13 +364,19 @@ class SearchIntervalFactory:
     @staticmethod
     def _append_final_state(
         pool_key: str,
-        is_active: bool,
+        is_open: bool,
         final_states: list[dict],
     ) -> None:
+        """
+        Appends the final reward-tracking state for a staking pool.
+
+        The state indicates whether the pool may continue
+        receiving staking rewards in the next block-height range.
+        """
 
         final_states.append(
             {
                 const.POOL_KEY: pool_key,
-                const.IS_ACTIVE: is_active,
+                const.IS_OPEN: is_open,
             }
         )

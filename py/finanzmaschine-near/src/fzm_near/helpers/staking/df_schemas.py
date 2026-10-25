@@ -22,7 +22,7 @@ SEARCH_INTERVAL_SCHEMA = {
 
 FINAL_STATE_SCHEMA = {
     const.POOL_KEY: pl.String,
-    const.IS_ACTIVE: pl.Boolean,
+    const.IS_OPEN: pl.Boolean,
 }
 
 ACTION_SCHEMA = {

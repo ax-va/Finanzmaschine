@@ -16,4 +16,4 @@ OPERATION_YOCTO_STR = "operation_yocto_str"
 STAKED_YOCTO_STR = "staked_yocto_str"
 UNSTAKED_YOCTO_STR = "unstaked_yocto_str"
 
-IS_ACTIVE = "is_active"
+IS_OPEN = "is_open"
