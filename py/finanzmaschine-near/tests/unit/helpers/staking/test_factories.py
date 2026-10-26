@@ -1,33 +1,53 @@
+from pathlib import Path
+
 import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
 
 from fzm_near.helpers.staking.factories import SearchIntervalFactory
+from tests.unit.helpers.staking.data_loaders import (
+    load_actions,
+    load_expected_final_states,
+    load_expected_search_intervals,
+)
 
 
 @pytest.mark.parametrize(
-    "actions, expected_search_intervals, expected_final_states, from_block_height, up_to_block_height",
+    "actions_file, expected_search_intervals_file, expected_final_states_file, from_block_height, up_to_block_height",
     [
         (
-            "simple_actions",
-            "simple_expected_search_intervals",
-            "simple_expected_final_states",
+            "helpers/staking/simple/actions.csv",
+            "helpers/staking/simple/expected_search_intervals.csv",
+            "helpers/staking/simple/expected_final_states.csv",
             100,
             500,
         ),
+        (
+            "helpers/staking/multiple_pools/actions.csv",
+            "helpers/staking/multiple_pools/expected_search_intervals.csv",
+            "helpers/staking/multiple_pools/expected_final_states.csv",
+            100,
+            500,
+        )
     ],
 )
 def test_create_df_search_intervals_and_final_states(
-    request: pytest.FixtureRequest,
-    actions: str,
-    expected_search_intervals: str,
-    expected_final_states: str,
+    data_dir: Path,
+    actions_file: str,
+    expected_search_intervals_file: str,
+    expected_final_states_file: str,
     from_block_height: int,
     up_to_block_height: int,
 ):
-    df_actions: pl.DataFrame = request.getfixturevalue(actions)
-    df_expected_intervals: pl.DataFrame = request.getfixturevalue(expected_search_intervals)
-    df_expected_states: pl.DataFrame = request.getfixturevalue(expected_final_states)
+    df_actions: pl.DataFrame = load_actions(
+        data_dir / actions_file,
+    )
+    df_expected_intervals: pl.DataFrame = load_expected_search_intervals(
+        data_dir / expected_search_intervals_file,
+    )
+    df_expected_states: pl.DataFrame = load_expected_final_states(
+        data_dir / expected_final_states_file,
+    )
 
     result = SearchIntervalFactory.create_df_search_intervals_and_final_states(
         df_actions=df_actions,

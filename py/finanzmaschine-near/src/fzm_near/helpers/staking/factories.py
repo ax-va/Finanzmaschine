@@ -361,11 +361,16 @@ class SearchIntervalFactory:
             "search_intervals": pl.DataFrame(
                 data=intervals,
                 schema=SEARCH_INTERVAL_SCHEMA,
-            ),
+            ).sort([
+                const.POOL_KEY,
+                const.FROM_BLOCK_HEIGHT,
+            ]),
             "final_states": pl.DataFrame(
                 data=final_states,
                 schema=FINAL_STATE_SCHEMA,
-            )
+            ).sort([
+                const.POOL_KEY,
+            ])
         }
 
     @staticmethod
