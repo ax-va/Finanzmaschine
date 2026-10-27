@@ -13,12 +13,16 @@ from tests.unit.helpers.staking.data_loaders import (
 
 
 @pytest.mark.parametrize(
-    "actions_file, expected_search_intervals_file, expected_final_states_file, from_block_height, up_to_block_height",
+    "actions_file, "
+    "expected_search_intervals_file, "
+    "expected_final_states_file, "
+    "from_block_height, "
+    "up_to_block_height",
     [
         (
-            "helpers/staking/simple/actions.csv",
-            "helpers/staking/simple/expected_search_intervals.csv",
-            "helpers/staking/simple/expected_final_states.csv",
+            "helpers/staking/single_pools/actions.csv",
+            "helpers/staking/single_pools/expected_search_intervals.csv",
+            "helpers/staking/single_pools/expected_final_states.csv",
             100,
             500,
         ),
