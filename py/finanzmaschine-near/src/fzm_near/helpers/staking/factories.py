@@ -284,6 +284,7 @@ class SearchIntervalFactory:
                                 upper_block_height=block_height - 1,
                                 intervals=intervals,
                             )
+                        # Open a new interval
                         lower_block_height = block_height
 
                     # Then, check `UNSTAKE_ALL` without `...STAKE...`

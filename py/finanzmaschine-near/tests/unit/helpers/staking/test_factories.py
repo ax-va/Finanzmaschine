@@ -32,6 +32,13 @@ from tests.unit.helpers.staking.data_loaders import (
             "helpers/staking/multiple_pools/expected_final_states.csv",
             100,
             500,
+        ),
+        (
+            "helpers/staking/complex_blocks/actions.csv",
+            "helpers/staking/complex_blocks/expected_search_intervals.csv",
+            "helpers/staking/complex_blocks/expected_final_states.csv",
+            100,
+            500,
         )
     ],
 )
@@ -58,6 +65,12 @@ def test_create_df_search_intervals_and_final_states(
         from_block_height=from_block_height,
         up_to_block_height=up_to_block_height,
     )
+
+    print("\nActual:")
+    print(result["search_intervals"])
+
+    print("\nExpected:")
+    print(df_expected_intervals)
 
     assert_frame_equal(
         result["search_intervals"],
