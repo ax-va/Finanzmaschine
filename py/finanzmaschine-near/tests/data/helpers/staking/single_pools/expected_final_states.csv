@@ -1,2 +1,2 @@
-pool_key,is_open
-test_pool,true
+pool_key,up_to_block_height,is_open
+test_pool,999,true

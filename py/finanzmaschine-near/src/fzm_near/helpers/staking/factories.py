@@ -146,7 +146,8 @@ class SearchIntervalFactory:
                 Inclusive upper boundary of the search range.
             df_last_states:
                 Optional reward-tracking states from the previous range,
-                containing one `IS_OPEN` value per pool.
+                containing the previous upper block height
+                and one `IS_OPEN` value per pool.
 
         Returns:
             A dictionary containing keys:
@@ -161,6 +162,8 @@ class SearchIntervalFactory:
                 - If an input dataframe has an invalid schema.
                 - If the block-height range is invalid, an action falls outside the requested range.
                 - If `df_last_states` contains multiple states for the same pool.
+                - If the current block range does not
+                  immediately follow the previous range for any pool.
         """
 
         # Verify schema
@@ -203,6 +206,17 @@ class SearchIntervalFactory:
                 raise ValueError(
                     f"`df_last_states` must have at most "
                     f"one state for each pool: pool {pool_key}"
+                )
+
+            if (
+                df_pool_last.item(
+                    0, const.UP_TO_BLOCK_HEIGHT
+                ) != from_block_height - 1
+            ):
+                raise ValueError(
+                    "The current block range must start "
+                    "immediately after the previous one "
+                    f"when `df_last_states` is provided: pool {pool_key}"
                 )
 
             is_open_by_pool[pool_key] = df_pool_last.item(
@@ -333,6 +347,7 @@ class SearchIntervalFactory:
 
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
+                up_to_block_height=up_to_block_height,
                 is_open=(lower_block_height is not None),
                 final_states=final_states,
             )
@@ -354,6 +369,7 @@ class SearchIntervalFactory:
 
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
+                up_to_block_height=up_to_block_height,
                 is_open=is_open,
                 final_states=final_states,
             )
@@ -406,6 +422,7 @@ class SearchIntervalFactory:
     @staticmethod
     def _append_final_state(
         pool_key: str,
+        up_to_block_height: int,
         is_open: bool,
         final_states: list[dict],
     ) -> None:
@@ -419,6 +436,7 @@ class SearchIntervalFactory:
         final_states.append(
             {
                 const.POOL_KEY: pool_key,
+                const.UP_TO_BLOCK_HEIGHT: up_to_block_height,
                 const.IS_OPEN: is_open,
             }
         )

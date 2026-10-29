@@ -1,0 +1,8 @@
+pool_key,up_to_block_height,is_open
+test_pool_1,299,true
+test_pool_1,499,true
+test_pool_2,499,true
+test_pool_1,599,false
+test_pool_2,599,true
+test_pool_1,999,false
+test_pool_2,999,false
