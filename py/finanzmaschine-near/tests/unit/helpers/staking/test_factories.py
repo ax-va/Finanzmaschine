@@ -19,27 +19,27 @@ from tests.unit.helpers.staking.data_loaders import (
     "block_ranges",
     [
         (
-            "helpers/staking/single_pools/actions.csv",
-            "helpers/staking/single_pools/expected_search_intervals.csv",
-            "helpers/staking/single_pools/expected_final_states.csv",
+            "single_pools/actions.csv",
+            "single_pools/expected_search_intervals.csv",
+            "single_pools/expected_final_states.csv",
             [(100, 999)],
         ),
         (
-            "helpers/staking/multiple_pools/actions.csv",
-            "helpers/staking/multiple_pools/expected_search_intervals.csv",
-            "helpers/staking/multiple_pools/expected_final_states.csv",
+            "multiple_pools/actions.csv",
+            "multiple_pools/expected_search_intervals.csv",
+            "multiple_pools/expected_final_states.csv",
             [(100, 999)],
         ),
         (
-            "helpers/staking/complex_blocks/actions.csv",
-            "helpers/staking/complex_blocks/expected_search_intervals.csv",
-            "helpers/staking/complex_blocks/expected_final_states.csv",
+            "complex_blocks/actions.csv",
+            "complex_blocks/expected_search_intervals.csv",
+            "complex_blocks/expected_final_states.csv",
             [(100, 999)],
         ),
         (
-            "helpers/staking/with_last_states/actions.csv",
-            "helpers/staking/with_last_states/expected_search_intervals.csv",
-            "helpers/staking/with_last_states/expected_final_states.csv",
+            "with_last_states/actions.csv",
+            "with_last_states/expected_search_intervals.csv",
+            "with_last_states/expected_final_states.csv",
             [(100, 299), (300, 499), (500, 599), (600, 999)],
         )
     ],
@@ -52,13 +52,13 @@ def test_create_df_search_intervals_and_final_states(
     block_ranges: list[tuple[int, int]],
 ):
     df_actions: pl.DataFrame = load_actions(
-        data_dir / actions_file,
+        data_dir / "helpers/staking" / actions_file,
     )
     df_expected_intervals: pl.DataFrame = load_expected_search_intervals(
-        data_dir / expected_search_intervals_file,
+        data_dir / "helpers/staking" / expected_search_intervals_file,
     )
     df_expected_states: pl.DataFrame = load_expected_final_states(
-        data_dir / expected_final_states_file,
+        data_dir / "helpers/staking" / expected_final_states_file,
     )
 
     states_offset: int = 0
