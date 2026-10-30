@@ -1,7 +1,7 @@
 import logging
 
 from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
-from fzm_near.helpers.staking.protocols import BalanceProvider
+from fzm_near.helpers.staking.protocols import BalanceFetcher
 from fzm_near.orm.staking.balance import Balance
 from fzm_near.storage.staking.snapshot_storage import SnapshotStorage
 from fzm_near.sync_clients.errors import BlockHeightNotFoundError
@@ -14,7 +14,7 @@ def find_increased_balance(
     pool_id: str,
     start_block_balance: Balance,
     up_to_block_height: int,
-    balance_provider: BalanceProvider,
+    balance_fetcher: BalanceFetcher,
 ) -> Balance | None:
     """
     Find the first total balance increase after the given lower block balance.
@@ -38,7 +38,7 @@ def find_increased_balance(
         pool_id: Staking pool associated with the account.
         start_block_balance: Lower-block balance that sets the lower block height, exclusive.
         up_to_block_height: Upper block height, inclusive.
-        balance_provider: Staking balance provider.
+        balance_fetcher: Protocol to fetch staking balance.
 
     Returns:
         The earliest available block balance
@@ -69,7 +69,7 @@ def find_increased_balance(
     while upper_block_height > lower_block_balance.block_height:
 
         try:
-            upper_block_balance: Balance = balance_provider.fetch_balance(
+            upper_block_balance: Balance = balance_fetcher.fetch_balance(
                 account_id=account_id,
                 pool_id=pool_id,
                 block_height=upper_block_height,
@@ -127,7 +127,7 @@ def find_increased_balance(
 
         while lower_block_balance.block_height < temp_upper_block_height:
             try:
-                temp_block_balance: Balance = balance_provider.fetch_balance(
+                temp_block_balance: Balance = balance_fetcher.fetch_balance(
                     account_id=account_id,
                     pool_id=pool_id,
                     block_height=temp_upper_block_height,
@@ -146,7 +146,7 @@ def find_increased_balance(
 
             while temp_lower_block_height < upper_block_balance.block_height:
                 try:
-                    temp_block_balance: Balance = balance_provider.fetch_balance(
+                    temp_block_balance: Balance = balance_fetcher.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=temp_lower_block_height,
@@ -197,7 +197,7 @@ def find_increased_balances(
     pool_id: str,
     start_block_balance: Balance,
     up_to_block_height: int,
-    balance_provider: BalanceProvider,
+    balance_fetcher: BalanceFetcher,
 ) -> list[Balance]:
     """
     Finds all total balance increases between
@@ -215,7 +215,7 @@ def find_increased_balances(
         pool_id: Staking pool associated with the account.
         start_block_balance: Lower-block balance that sets the lower block height, exclusive.
         up_to_block_height: Upper block height, inclusive.
-        balance_provider: Staking balance provider.
+        balance_fetcher: Protocol to fetch staking balance.
 
     Returns:
         The balances at which the total balance increases, ordered by block height.
@@ -236,7 +236,7 @@ def find_increased_balances(
             pool_id=pool_id,
             start_block_balance=lower_block_balance,
             up_to_block_height=up_to_block_height,
-            balance_provider=balance_provider,
+            balance_fetcher=balance_fetcher,
         )
 
         if next_balance is None:
@@ -253,7 +253,7 @@ def find_snapshots(
     pool_id: str,
     from_block_height: int,
     up_to_block_height: int,
-    balance_provider: BalanceProvider,
+    balance_fetcher: BalanceFetcher,
     snapshot_storage: SnapshotStorage,
     chunk_size: int = 1_000_000,
     last_known_balance: Balance | None = None,
@@ -282,7 +282,7 @@ def find_snapshots(
         pool_id: Staking pool associated with the account.
         from_block_height: Lower block height, inclusive.
         up_to_block_height: Upper block height, inclusive.
-        balance_provider: Staking balance provider.
+        balance_fetcher: Protocol to fetch staking balance.
         snapshot_storage: Temporal storage for staking key and snapshots.
         chunk_size: Maximum block-height range covered by each chunk.
         last_known_balance:
@@ -378,7 +378,7 @@ def find_snapshots(
 
             while block_height <= chunk_upper_block_height:
                 try:
-                    last_known_balance: Balance = balance_provider.fetch_balance(
+                    last_known_balance: Balance = balance_fetcher.fetch_balance(
                         account_id=account_id,
                         pool_id=pool_id,
                         block_height=block_height,
@@ -394,7 +394,7 @@ def find_snapshots(
             and last_known_balance.block_height < chunk_upper_block_height
         ):
             balances: list[Balance] = find_increased_balances(
-                balance_provider=balance_provider,
+                balance_fetcher=balance_fetcher,
                 account_id=account_id,
                 pool_id=pool_id,
                 start_block_balance=last_known_balance,

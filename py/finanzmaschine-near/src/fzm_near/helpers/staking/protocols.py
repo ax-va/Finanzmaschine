@@ -3,7 +3,7 @@ from typing import Protocol
 from fzm_near.orm.staking.balance import Balance
 
 
-class BalanceProvider(Protocol):
+class BalanceFetcher(Protocol):
     def fetch_balance(
         self,
         account_id: str,
