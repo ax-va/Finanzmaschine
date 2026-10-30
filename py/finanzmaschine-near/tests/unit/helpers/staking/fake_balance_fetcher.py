@@ -4,7 +4,7 @@ from fzm_near.orm.staking.balance import Balance
 from fzm_near.sync_clients.errors import BlockHeightNotFoundError
 
 
-class FakeBalanceProvider:
+class FakeBalanceFetcher:
     def __init__(
         self,
         get_balance: Callable[[int], Balance],
