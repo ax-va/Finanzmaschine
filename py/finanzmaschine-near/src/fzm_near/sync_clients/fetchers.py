@@ -12,7 +12,7 @@ def fetch_balance(
     block_height: int,
 ) -> Balance:
     """
-    Fetches a total balance of an account in a staking pool at a block height.
+    Fetches a staking total balance at the specified block height.
 
     Args:
          account_id: Account ID.
