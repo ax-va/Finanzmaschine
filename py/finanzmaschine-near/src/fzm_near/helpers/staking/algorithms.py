@@ -314,23 +314,22 @@ def find_snapshots(
 
         if last_known_balance.block_height < from_block_height:
             raise ValueError(
-                "`last_known_balance.block_height` %s must be "
-                "greater than or equal to `from_block_height` %s",
-                last_known_balance.block_height, from_block_height
+                f"`last_known_balance.block_height` {last_known_balance.block_height} "
+                f"must be greater than or equal to `from_block_height` {from_block_height}",
             )
 
         if up_to_block_height < last_known_balance.block_height:
             raise ValueError(
-                f"`last_known_balance.block_height` %s must be "
-                f"less than or equal to `up_to_block_height` %s",
-                last_known_balance.block_height, up_to_block_height
+                f"`last_known_balance.block_height` {last_known_balance.block_height} "
+                f"must be less than or equal to `up_to_block_height` {up_to_block_height}",
             )
 
         if up_to_block_height == last_known_balance.block_height:
 
             logger.info(
                 "There is nothing to search for: "
-                "`last_known_balance.block_height` %s is already equal to `up_to_block_height` %s",
+                "`last_known_balance.block_height` %s "
+                "is already equal to `up_to_block_height` %s",
                 last_known_balance.block_height, up_to_block_height
             )
 
