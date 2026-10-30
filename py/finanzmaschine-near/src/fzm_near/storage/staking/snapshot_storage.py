@@ -21,8 +21,6 @@ class SnapshotStorage:
     and persists staking snapshots to disk.
     """
 
-
-
     def __init__(
         self,
         key: Key,

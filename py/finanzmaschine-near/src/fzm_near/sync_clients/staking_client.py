@@ -68,6 +68,8 @@ class StakingClient:
         value = json.loads(raw.decode())
 
         if not isinstance(value, str):
-            raise RuntimeError(f"Expected balance must be a string, got: {value!r}")
+            raise RuntimeError(
+                f"Expected balance must be a string, got: {value!r}"
+            )
 
         return value

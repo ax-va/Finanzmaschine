@@ -1,8 +1,44 @@
 import httpx
 
+from fzm_near.orm.staking.balance import Balance
 from fzm_near.sync_clients.rpc_client import RpcClient
+from fzm_near.sync_clients.staking_client import StakingClient
 from fzm_near.sync_clients.txs_client import TxsClient
 
+
+def fetch_balance(
+    account_id: str,
+    pool_id: str,
+    block_height: int,
+) -> Balance:
+    """
+    Fetches a total balance of an account in a staking pool at a block height.
+
+    Args:
+         account_id: Account ID.
+         pool_id: Pool ID.
+         block_height: Block height.
+
+    Returns:
+        The total (staked and unstaked) balance.
+
+    Raises:
+        BlockHeightNotFoundError:
+            If the block height is not found.
+        RuntimeError:
+            The balance values are not a string.
+    """
+    with httpx.Client(timeout=30) as http_client:
+        rpc_client = RpcClient(http_client)
+        staking_client = StakingClient(rpc_client)
+
+        balance: Balance = staking_client.fetch_balance(
+            account_id=account_id,
+            pool_id=pool_id,
+            block_height=block_height,
+        )
+
+        return balance
 
 def fetch_final_block_height() -> int:
     """Fetches the height of the latest finalized NEAR block."""
