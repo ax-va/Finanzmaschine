@@ -36,7 +36,7 @@ def get_balance(block_height: int) -> Balance:
         (50, 250, 100),
         # Start after the first increase
         (101, 250, 200),
-        # Missing blocks (for example, 650 and 651) inside the search interval
+        # Missing blocks (for example, blocks 650 and 651) inside the search interval
         (600, 699, None),
         # Block 700 is missing
         (600, 750, 701),
