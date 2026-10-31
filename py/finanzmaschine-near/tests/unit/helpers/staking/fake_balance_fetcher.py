@@ -12,7 +12,7 @@ class FakeBalanceFetcher:
     ) -> None:
         self._get_balance = get_balance
         self._is_missing_block = is_missing_block or (lambda _: False)
-        self.requested_heights: list[int] = []
+        self.requested: list[dict[str, str | int]] = []
 
     def fetch_balance(
         self,
@@ -20,7 +20,13 @@ class FakeBalanceFetcher:
         pool_id: str,
         block_height: int,
     ) -> Balance:
-        self.requested_heights.append(block_height)
+        self.requested.append(
+            {
+                "account_id": account_id,
+                "pool_id": pool_id,
+                "block_height": block_height,
+            }
+        )
 
         if self._is_missing_block(block_height):
             raise BlockHeightNotFoundError(
