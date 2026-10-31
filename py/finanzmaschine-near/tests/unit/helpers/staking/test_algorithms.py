@@ -36,14 +36,14 @@ def get_balance(block_height: int) -> Balance:
         (50, 250, 100),
         # Start after the first increase
         (101, 250, 200),
-        # Blocks 650 and 651 are missing and block 700 is missing.
-        (652, 750, 701),
-        # Block 1300 is missing
-        (1250, 1350, 1301),
+        # Missing blocks (for example, 650 and 651) inside the search interval
+        (600, 699, None),
+        # Block 700 is missing
+        (600, 750, 701),
         # Upper boundary is missing
-        (652, 700, None),
+        (600, 700, None),
         # Increase at the upper boundary
-        (652, 701, 701),
+        (600, 701, 701),
         # Two consecutive missing blocks at the reward boundary
         (2050, 2150, 2102),
         # Both missing blocks are at the upper end of the search range
