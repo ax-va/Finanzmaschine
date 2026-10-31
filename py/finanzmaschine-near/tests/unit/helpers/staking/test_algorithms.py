@@ -1,6 +1,7 @@
 import pytest
 
 from fzm_near.helpers.staking.algorithms import find_increased_balance
+from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
 from fzm_near.orm.staking.balance import Balance
 from tests.unit.helpers.staking.fake_balance_fetcher import FakeBalanceFetcher
 
@@ -13,8 +14,18 @@ def is_missing_block(block_height: int) -> bool:
     )
 
 
-def get_balance(block_height: int) -> Balance:
+def get_increased_balance(block_height: int) -> Balance:
     staked_yocto = 100 + block_height // 100
+
+    return Balance(
+        block_height=block_height,
+        staked_yocto_str=str(staked_yocto),
+        unstaked_yocto_str="2",
+    )
+
+
+def get_decreased_balance(block_height: int) -> Balance:
+    staked_yocto = 100 if block_height < 200 else 99
 
     return Balance(
         block_height=block_height,
@@ -61,7 +72,7 @@ def test_find_increased_balance(
     pool_id = "test_pool"
 
     fake_balance_fetcher = FakeBalanceFetcher(
-        get_balance=get_balance,
+        get_balance=get_increased_balance,
         is_missing_block=is_missing_block,
     )
 
@@ -94,3 +105,27 @@ def test_find_increased_balance(
         assert request["account_id"] == account_id
         assert request["pool_id"] == pool_id
         assert start_block_height < request["block_height"] <= up_to_block_height
+
+
+def test_find_increased_balance_raises_on_balance_decrease() -> None:
+    account_id = "test_account"
+    pool_id = "test_pool"
+
+    fake_balance_fetcher = FakeBalanceFetcher(
+        get_balance=get_decreased_balance,
+    )
+
+    start_block_balance = fake_balance_fetcher.fetch_balance(
+        account_id=account_id,
+        pool_id=pool_id,
+        block_height=100,
+    )
+
+    with pytest.raises(UnexpectedBalanceDecreaseError):
+        find_increased_balance(
+            account_id=account_id,
+            pool_id=pool_id,
+            start_block_balance=start_block_balance,
+            up_to_block_height=300,
+            balance_fetcher=fake_balance_fetcher,
+        )
