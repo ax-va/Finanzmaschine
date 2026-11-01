@@ -129,3 +129,44 @@ def test_find_increased_balance_raises_on_balance_decrease() -> None:
             up_to_block_height=300,
             balance_fetcher=fake_balance_fetcher,
         )
+
+
+@pytest.mark.parametrize(
+    "start_block_height, "
+    "up_to_block_height",
+    [
+        # Upper boundary equals the start block height
+        (100, 100),
+        # Upper boundary is below the start block height
+        (100, 99),
+    ],
+)
+def test_find_increased_balance_raises_on_invalid_block_range(
+    start_block_height: int,
+    up_to_block_height: int,
+) -> None:
+    account_id = "test_account"
+    pool_id = "test_pool"
+
+    fake_balance_fetcher = FakeBalanceFetcher(
+        get_balance=get_increased_balance,
+    )
+
+    start_block_balance = fake_balance_fetcher.fetch_balance(
+        account_id=account_id,
+        pool_id=pool_id,
+        block_height=start_block_height,
+    )
+
+    fake_balance_fetcher.requested.clear()
+
+    with pytest.raises(ValueError):
+        find_increased_balance(
+            account_id=account_id,
+            pool_id=pool_id,
+            start_block_balance=start_block_balance,
+            up_to_block_height=up_to_block_height,
+            balance_fetcher=fake_balance_fetcher,
+        )
+
+    assert fake_balance_fetcher.requested == []
