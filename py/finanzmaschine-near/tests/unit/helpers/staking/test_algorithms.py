@@ -1,6 +1,6 @@
 import pytest
 
-from fzm_near.helpers.staking.algorithms import find_increased_balance
+from fzm_near.helpers.staking.algorithms import find_increased_balance, find_increased_balances
 from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
 from fzm_near.orm.staking.balance import Balance
 from tests.unit.helpers.staking.fake_balance_fetcher import FakeBalanceFetcher
@@ -47,7 +47,7 @@ def get_decreased_balance(block_height: int) -> Balance:
         (50, 250, 100),
         # Start after the first increase
         (101, 250, 200),
-        # Missing blocks (for example, blocks 650 and 651) inside the search interval
+        # Missing blocks (for example, blocks 649, 650, and 651) inside the search interval
         (600, 699, None),
         # Block 700 is missing
         (600, 750, 701),
@@ -170,3 +170,81 @@ def test_find_increased_balance_raises_on_invalid_block_range(
         )
 
     assert fake_balance_fetcher.requested == []
+
+
+@pytest.mark.parametrize(
+    "start_block_height, "
+    "up_to_block_height, "
+    "expected_block_heights",
+    [
+        # No balance increases
+        (1, 99, []),
+        # Single balance increase
+        (1, 100, [100]),
+        # Multiple balance increases
+        (50, 350, [100, 200, 300]),
+        # Start after the first increase
+        (101, 350, [200, 300]),
+        # Missing blocks inside the search interval
+        (600, 699, []),
+        # Reward increase at a missing block
+        (600, 750, [701]),
+        # Upper boundary is missing
+        (600, 700, []),
+        # Increase at the upper boundary
+        (600, 701, [701]),
+        # Multiple increases with missing reward blocks
+        (600, 950, [701, 800, 900]),
+        # Two consecutive missing blocks at the reward boundary
+        (2050, 2150, [2102]),
+        # Missing blocks at the upper end of the search range
+        (2050, 2101, []),
+        # First existing increased balance is the upper boundary
+        (2050, 2102, [2102]),
+    ],
+)
+def test_find_increased_balances(
+    start_block_height: int,
+    up_to_block_height: int,
+    expected_block_heights: list[int],
+) -> None:
+    account_id = "test_account"
+    pool_id = "test_pool"
+
+    fake_balance_fetcher = FakeBalanceFetcher(
+        get_balance=get_increased_balance,
+        is_missing_block=is_missing_block,
+    )
+
+    start_block_balance = fake_balance_fetcher.fetch_balance(
+        account_id=account_id,
+        pool_id=pool_id,
+        block_height=start_block_height,
+    )
+
+    fake_balance_fetcher.requested.clear()
+
+    balances: list[Balance] = find_increased_balances(
+        account_id=account_id,
+        pool_id=pool_id,
+        start_block_balance=start_block_balance,
+        up_to_block_height=up_to_block_height,
+        balance_fetcher=fake_balance_fetcher,
+    )
+
+    assert (
+        [balance.block_height for balance in balances]
+        == expected_block_heights
+    )
+
+    previous_total_yocto = start_block_balance.total_yocto
+
+    for balance in balances:
+        assert previous_total_yocto < balance.total_yocto
+        assert start_block_height < balance.block_height <= up_to_block_height
+        previous_total_yocto = balance.total_yocto
+
+    for request in fake_balance_fetcher.requested:
+        assert request["account_id"] == account_id
+        assert request["pool_id"] == pool_id
+        assert start_block_height < request["block_height"] <= up_to_block_height

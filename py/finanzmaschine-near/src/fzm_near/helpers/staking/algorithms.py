@@ -245,6 +245,9 @@ def find_increased_balances(
         balances.append(next_balance)
         lower_block_balance = next_balance
 
+        if next_balance.block_height == up_to_block_height:
+            break
+
     return balances
 
 
