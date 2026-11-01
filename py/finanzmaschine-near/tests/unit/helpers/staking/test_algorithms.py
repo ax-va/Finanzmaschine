@@ -201,6 +201,26 @@ def test_find_increased_balance_raises_on_invalid_block_range(
         (2050, 2101, []),
         # First existing increased balance is the upper boundary
         (2050, 2102, [2102]),
+        # Single-block interval without an increase
+        (101, 102, []),
+        # Single-block search interval
+        (199, 200, [200]),
+        # Increase immediately after the start block
+        (199, 201, [200]),
+        # Start block is itself a reward boundary
+        (100, 201, [200]),
+        # Upper boundary is immediately before the next increase
+        (100, 199, []),
+        # Multiple increases with the last one at the upper boundary
+        (50, 300, [100, 200, 300]),
+        # Multiple increases with the last one before the upper boundary
+        (50, 301, [100, 200, 300]),
+        # Missing block immediately after the start
+        (97, 101, [100]),
+        # No existing blocks after the start
+        (97, 98, []),
+        # Multiple increases after consecutive missing blocks
+        (2050, 2250, [2102, 2201]),
     ],
 )
 def test_find_increased_balances(
