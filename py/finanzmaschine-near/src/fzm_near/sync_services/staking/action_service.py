@@ -19,13 +19,13 @@ class ActionService:
     ) -> None:
 
         self._session: Session = session
-        self._key_mapping = key_mapping
+        self._key_mapping: KeyMapping = key_mapping
         self._receiver_service = ReceiverService(
             session=session,
             key_mapping=key_mapping,
         )
 
-    def create_df_staking_actions(
+    def create_df_actions(
         self,
         actions: list[FunctionCallAction],
     ) -> pl.DataFrame:

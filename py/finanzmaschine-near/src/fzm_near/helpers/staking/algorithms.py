@@ -1,9 +1,11 @@
 import logging
 
 from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
-from fzm_near.helpers.staking.protocols import BalanceFetcher
+from fzm_near.helpers.staking.protocols import (
+    BalanceFetcherProtocol,
+    SnapshotStorageProtocol,
+)
 from fzm_near.orm.staking.balance import Balance
-from fzm_near.storage.staking.snapshot_storage import SnapshotStorage
 from fzm_near.sync_clients.errors import BlockHeightNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -14,7 +16,7 @@ def find_increased_balance(
     pool_id: str,
     start_block_balance: Balance,
     up_to_block_height: int,
-    balance_fetcher: BalanceFetcher,
+    balance_fetcher: BalanceFetcherProtocol,
 ) -> Balance | None:
     """
     Find the first total balance increase after the given lower block balance.
@@ -197,7 +199,7 @@ def find_increased_balances(
     pool_id: str,
     start_block_balance: Balance,
     up_to_block_height: int,
-    balance_fetcher: BalanceFetcher,
+    balance_fetcher: BalanceFetcherProtocol,
 ) -> list[Balance]:
     """
     Finds all total balance increases between
@@ -256,8 +258,8 @@ def find_snapshots(
     pool_id: str,
     from_block_height: int,
     up_to_block_height: int,
-    balance_fetcher: BalanceFetcher,
-    snapshot_storage: SnapshotStorage,
+    balance_fetcher: BalanceFetcherProtocol,
+    snapshot_storage: SnapshotStorageProtocol,
     chunk_size: int = 1_000_000,
     last_known_balance: Balance | None = None,
 ) -> None:
@@ -286,7 +288,7 @@ def find_snapshots(
         from_block_height: Lower block height, inclusive.
         up_to_block_height: Upper block height, inclusive.
         balance_fetcher: Protocol to fetch staking balance.
-        snapshot_storage: Temporal storage for staking key and snapshots.
+        snapshot_storage: Protocol to store staking key and balances.
         chunk_size: Maximum block-height range covered by each chunk.
         last_known_balance:
             Last known balance within the search range, used to resume the search.

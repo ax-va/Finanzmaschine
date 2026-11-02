@@ -31,7 +31,7 @@ class ActionService:
         self._session: Session = session
         self._search_repository = ActionSearchRepository(session)
         self._action_repository = ActionRepository(session)
-        self._key_mapping = key_mapping
+        self._key_mapping: KeyMapping = key_mapping
 
 
     def get_actions(
@@ -164,7 +164,7 @@ class ActionService:
 
             logger.exception(
                 f"Failed to synchronize function calls "
-                f"for `tx_signer_key`: {tx_signer_key}"
+                f"for `tx_signer_key` {tx_signer_key}"
             )
 
             raise
@@ -179,7 +179,7 @@ class ActionService:
 
                     logger.exception(
                         f"Failed to synchronize function calls "
-                        f"for `tx_signer_key`: {tx_signer_key}"
+                        f"for `tx_signer_key` {tx_signer_key}"
                     )
 
                     raise

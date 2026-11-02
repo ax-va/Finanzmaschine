@@ -22,7 +22,7 @@ class ReceiverService:
 
         self._session: Session = session
         self._repository = ReceiverRepository(session)
-        self._key_mapping = key_mapping
+        self._key_mapping: KeyMapping = key_mapping
 
     def is_staking_pool(
         self,
