@@ -14,15 +14,40 @@ def is_missing_block(block_height: int) -> bool:
     )
 
 
-def get_increased_balance(block_height: int) -> Balance:
-    staked_yocto = 100 + block_height // 100
+def get_non_decreased_balance(block_height: int) -> Balance:
+    if block_height < 3050:
+        # Deposit and stake 101 YOCTO
+        rewards_yocto = block_height // 100
+        staked_yocto = 100 + rewards_yocto
+        unstaked_yocto = 1
+
+    elif block_height < 5050:
+        # Deposit and stake 202 YOCTO at the block height 3050
+        rewards_yocto = (block_height - 3000) // 100 + 2
+        staked_yocto = 330 + rewards_yocto
+        unstaked_yocto = 3
+
+    elif block_height < 5251:
+        # Deposit and stake 202 YOCTO at the block height 5050
+        rewards_yocto = (block_height - 5000) // 100 + 4
+        staked_yocto = 590 + rewards_yocto
+        unstaked_yocto = 5
+
+    elif block_height < 5275:
+        # Deposit 202 YOCTO at the block height 5251
+        staked_yocto = 800
+        unstaked_yocto = 7
+
+    else:
+        # Unstake all at the block height 5275
+        staked_yocto = 0
+        unstaked_yocto = 807
 
     return Balance(
         block_height=block_height,
         staked_yocto_str=str(staked_yocto),
-        unstaked_yocto_str="2",
+        unstaked_yocto_str=str(unstaked_yocto),
     )
-
 
 def get_decreased_balance(block_height: int) -> Balance:
     staked_yocto = 100 if block_height < 200 else 99
@@ -30,7 +55,7 @@ def get_decreased_balance(block_height: int) -> Balance:
     return Balance(
         block_height=block_height,
         staked_yocto_str=str(staked_yocto),
-        unstaked_yocto_str="2",
+        unstaked_yocto_str="1",
     )
 
 
@@ -61,6 +86,34 @@ def get_decreased_balance(block_height: int) -> Balance:
         (2050, 2101, None),
         # First existing block with increased balance is the upper boundary
         (2050, 2102, 2102),
+        # No increase before the second deposit
+        (3001, 3049, None),
+        # Second deposit at block 3050
+        (3001, 3050, 3050),
+        # Second deposit is the first increase in the interval
+        (3001, 3099, 3050),
+        # Regular reward after the second deposit
+        (3050, 3100, 3100),
+        # No increase between the second deposit and the next reward
+        (3050, 3099, None),
+        # No increase before the third deposit
+        (5001, 5049, None),
+        # Third deposit at block 5050
+        (5001, 5050, 5050),
+        # Third deposit is the first increase in the interval
+        (5001, 5099, 5050),
+        # Regular reward after the third deposit
+        (5050, 5100, 5100),
+        # No increase between the third deposit and the next reward
+        (5050, 5099, None),
+        # Fourth deposit at block 5251
+        (5249, 5251, 5251),
+        # No increase after the fourth deposit
+        (5251, 5274, None),
+        # Full unstake does not increase the total balance
+        (5251, 5275, None),
+        # No increase after the full unstake
+        (5275, 5300, None),
     ],
 )
 def test_find_increased_balance(
@@ -72,7 +125,7 @@ def test_find_increased_balance(
     pool_id = "test_pool"
 
     fake_balance_fetcher = FakeBalanceFetcher(
-        get_balance=get_increased_balance,
+        get_balance=get_non_decreased_balance,
         is_missing_block=is_missing_block,
     )
 
@@ -149,7 +202,7 @@ def test_find_increased_balance_raises_on_invalid_block_range(
     pool_id = "test_pool"
 
     fake_balance_fetcher = FakeBalanceFetcher(
-        get_balance=get_increased_balance,
+        get_balance=get_non_decreased_balance,
     )
 
     start_block_balance = fake_balance_fetcher.fetch_balance(
@@ -221,6 +274,40 @@ def test_find_increased_balance_raises_on_invalid_block_range(
         (97, 98, []),
         # Multiple increases after consecutive missing blocks
         (2050, 2250, [2102, 2201]),
+        # No increase before the second deposit
+        (3001, 3049, []),
+        # Second deposit at block 3050
+        (3001, 3050, [3050]),
+        # Second deposit followed by a regular reward
+        (3049, 3100, [3050, 3100]),
+        # No increase between the second deposit and the next reward
+        (3050, 3099, []),
+        # Regular reward after the second deposit
+        (3050, 3100, [3100]),
+        # No increase before the third deposit
+        (5001, 5048, []),
+        # Third deposit at block 5050
+        (5001, 5050, [5050]),
+        # Third deposit followed by a regular reward
+        (5001, 5100, [5050, 5100]),
+        # No increase between the third deposit and the next reward
+        (5050, 5099, []),
+        # Regular reward after the third deposit
+        (5050, 5100, [5100]),
+        # Fourth deposit at block 5251
+        (5249, 5251, [5251]),
+        # Fourth deposit followed by a full unstake
+        (5249, 5275, [5251]),
+        # Multiple rewards followed by the fourth deposit
+        (5050, 5251, [5100, 5202, 5251]),
+        # No increase after the fourth deposit
+        (5251, 5274, []),
+        # Full unstake does not increase the total balance
+        (5251, 5275, []),
+        # No increase after the full unstake
+        (5275, 5300, []),
+        # Full unstake is the only event in the interval
+        (5274, 5275, []),
     ],
 )
 def test_find_increased_balances(
@@ -232,7 +319,7 @@ def test_find_increased_balances(
     pool_id = "test_pool"
 
     fake_balance_fetcher = FakeBalanceFetcher(
-        get_balance=get_increased_balance,
+        get_balance=get_non_decreased_balance,
         is_missing_block=is_missing_block,
     )
 
