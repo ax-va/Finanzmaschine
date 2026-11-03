@@ -49,6 +49,7 @@ def get_non_decreased_balance(block_height: int) -> Balance:
         unstaked_yocto_str=str(unstaked_yocto),
     )
 
+
 def get_decreased_balance(block_height: int) -> Balance:
     staked_yocto = 100 if block_height < 200 else 99
 
