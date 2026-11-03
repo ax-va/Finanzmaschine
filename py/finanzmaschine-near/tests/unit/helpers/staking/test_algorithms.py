@@ -23,13 +23,13 @@ def get_non_decreased_balance(block_height: int) -> Balance:
 
     elif block_height < 5050:
         # Deposit and stake 202 YOCTO at the block height 3050
-        rewards_yocto = (block_height - 3000) // 100 + 2
+        rewards_yocto = (block_height - 3000) // 100 * 3
         staked_yocto = 330 + rewards_yocto
         unstaked_yocto = 3
 
     elif block_height < 5251:
         # Deposit and stake 202 YOCTO at the block height 5050
-        rewards_yocto = (block_height - 5000) // 100 + 4
+        rewards_yocto = (block_height - 5000) // 100 * 5
         staked_yocto = 590 + rewards_yocto
         unstaked_yocto = 5
 
