@@ -33,15 +33,21 @@ def get_non_decreased_balance(block_height: int) -> Balance:
         staked_yocto = 590 + rewards_yocto
         unstaked_yocto = 5
 
-    elif block_height < 5275:
+    elif block_height < 5550:
         # Deposit 202 YOCTO at the block height 5251
-        staked_yocto = 800
-        unstaked_yocto = 7
+        rewards_yocto = (block_height - 5000) // 100 * 5
+        staked_yocto = 590 + rewards_yocto
+        unstaked_yocto = 207
+
+    elif block_height < 6051:
+        # Unstake all at the block height 5550
+        staked_yocto = 0
+        unstaked_yocto = 822
 
     else:
-        # Unstake all at the block height 5275
+        # Deposit 202 YOCTO at the block height 6051
         staked_yocto = 0
-        unstaked_yocto = 807
+        unstaked_yocto = 1024
 
     return Balance(
         block_height=block_height,
@@ -73,7 +79,7 @@ def get_decreased_balance(block_height: int) -> Balance:
         (50, 250, 100),
         # Start after the first increase
         (101, 250, 200),
-        # Missing blocks (for example, blocks 649, 650, and 651) inside the search interval
+        # Missing blocks (for example, 649, 650, and 651) inside the search interval.
         (600, 699, None),
         # Block 700 is missing
         (600, 750, 701),
@@ -110,11 +116,17 @@ def get_decreased_balance(block_height: int) -> Balance:
         # Fourth deposit at block 5251
         (5249, 5251, 5251),
         # No increase after the fourth deposit
-        (5251, 5274, None),
+        (5251, 5299, None),
+        # First reward after the fourth deposit
+        (5251, 5300, 5300),
         # Full unstake does not increase the total balance
-        (5251, 5275, None),
+        (5501, 5550, None),
         # No increase after the full unstake
-        (5275, 5300, None),
+        (5550, 6050, None),
+        # Deposit after the full unstake
+        (5550, 6051, 6051),
+        # No rewards after deposit with the full unstake
+        (6051, 6100, None),
     ],
 )
 def test_find_increased_balance(
@@ -295,20 +307,24 @@ def test_find_increased_balance_raises_on_invalid_block_range(
         (5050, 5099, []),
         # Regular reward after the third deposit
         (5050, 5100, [5100]),
-        # Fourth deposit at block 5251
-        (5249, 5251, [5251]),
-        # Fourth deposit followed by a full unstake
-        (5249, 5275, [5251]),
         # Multiple rewards followed by the fourth deposit
         (5050, 5251, [5100, 5202, 5251]),
-        # No increase after the fourth deposit
-        (5251, 5274, []),
-        # Full unstake does not increase the total balance
-        (5251, 5275, []),
-        # No increase after the full unstake
-        (5275, 5300, []),
+        # Fourth deposit at block 5251
+        (5249, 5251, [5251]),
+        # Fourth deposit and rewards before the full unstake at block 5550
+        (5249, 5549, [5251, 5300, 5400, 5501]),
+        # Fourth deposit and rewards with the full unstake at block 5550
+        (5249, 5550, [5251, 5300, 5400, 5501]),
+        # Increases including fourth deposit and rewards before the fifth deposit at block 6051
+        (5249, 6050, [5251, 5300, 5400, 5501]),
         # Full unstake is the only event in the interval
-        (5274, 5275, []),
+        (5549, 5550, []),
+        # No increase after the full unstake at 5550 and before the fifth deposit at block 6051
+        (5550, 6050, []),
+        # The fifth deposit after the full unstake
+        (5550, 6051, [6051]),
+        # No increases after the fifth deposit
+        (6051, 6100, [])
     ],
 )
 def test_find_increased_balances(
