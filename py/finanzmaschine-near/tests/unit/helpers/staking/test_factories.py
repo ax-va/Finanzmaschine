@@ -4,6 +4,7 @@ import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
 
+from fzm_near.helpers import constants as const
 from fzm_near.helpers.staking.factories import SearchIntervalFactory as Factory
 from tests.unit.helpers.staking.data_loaders import (
     load_actions,
@@ -50,7 +51,7 @@ def test_create_df_search_intervals_and_final_states(
     expected_search_intervals_file: str,
     expected_final_states_file: str,
     block_ranges: list[tuple[int, int]],
-):
+) -> None:
     df_actions: pl.DataFrame = load_actions(
         data_dir / "helpers/staking" / actions_file,
     )
@@ -74,9 +75,9 @@ def test_create_df_search_intervals_and_final_states(
 
         # Compute the number of unique pools
         # that can be variable.
-        pool_keys: pl.Series = df_actions_slice["pool_key"]
+        pool_keys: pl.Series = df_actions_slice[const.POOL_KEY]
         if df_last_states is not None:
-            pool_keys = pool_keys.append(df_last_states["pool_key"])
+            pool_keys = pool_keys.append(df_last_states[const.POOL_KEY])
         num_pools = pool_keys.n_unique()
 
         result: dict[str, pl.DataFrame] = Factory.create_df_search_intervals_and_final_states(
@@ -87,8 +88,8 @@ def test_create_df_search_intervals_and_final_states(
         )
 
         df_expected_intervals_slice: pl.DataFrame = df_expected_intervals.filter(
-            (pl.col("from_block_height") >= from_block_height)
-            & (pl.col("up_to_block_height") <= up_to_block_height),
+            (pl.col(const.FROM_BLOCK_HEIGHT) >= from_block_height)
+            & (pl.col(const.UP_TO_BLOCK_HEIGHT) <= up_to_block_height),
         )
 
         assert_frame_equal(
@@ -110,7 +111,7 @@ def test_create_df_search_intervals_and_final_states(
             from_block_height <= block_height <= up_to_block_height
             for from_block_height, up_to_block_height in block_ranges
         )
-        for block_height in df_actions["exec_outcome_block_height"]
+        for block_height in df_actions[const.EXEC_OUTCOME_BLOCK_HEIGHT]
     )
 
     assert states_offset == df_expected_states.height

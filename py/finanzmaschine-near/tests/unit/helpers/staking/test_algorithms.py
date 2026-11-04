@@ -1,9 +1,17 @@
-import pytest
+from pathlib import Path
 
-from fzm_near.helpers.staking.algorithms import find_increased_balance, find_increased_balances
+import polars as pl
+import pytest
+from polars.testing import assert_frame_equal
+
+from fzm_near.helpers import constants as const
+from fzm_near.helpers.staking.algorithms import find_increased_balance, find_increased_balances, find_snapshots
+from fzm_near.helpers.staking.df_schemas import BALANCE_SCHEMA
 from fzm_near.helpers.staking.errors import UnexpectedBalanceDecreaseError
 from fzm_near.orm.staking.balance import Balance
+from tests.unit.helpers.staking.data_loaders import load_expected_snapshot_balances
 from tests.unit.helpers.staking.fake_balance_fetcher import FakeBalanceFetcher
+from tests.unit.helpers.staking.fake_snapshot_storage import FakeSnapshotStorage
 
 
 def is_missing_block(block_height: int) -> bool:
@@ -64,6 +72,22 @@ def get_decreased_balance(block_height: int) -> Balance:
         staked_yocto_str=str(staked_yocto),
         unstaked_yocto_str="1",
     )
+
+
+def balances_to_dataframe(balances: list[Balance]) -> pl.DataFrame:
+    df = pl.DataFrame(
+        [
+            {
+                "block_height": balance.block_height,
+                "staked_yocto_str": balance.staked_yocto_str,
+                "unstaked_yocto_str": balance.unstaked_yocto_str,
+            }
+            for balance in balances
+        ],
+        schema=BALANCE_SCHEMA,
+    ).sort(const.BLOCK_HEIGHT)
+
+    return df
 
 
 @pytest.mark.parametrize(
@@ -385,3 +409,100 @@ def test_find_increased_balances(
         assert request["account_id"] == account_id
         assert request["pool_id"] == pool_id
         assert start_block_height < request["block_height"] <= up_to_block_height
+
+
+@pytest.mark.parametrize(
+    "expected_balances_file, "
+    "from_block_height, "
+    "up_to_block_height, "
+    "chunk_size",
+    [
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            1000,
+        )
+    ]
+)
+def test_find_snapshots(
+    data_dir: Path,
+    expected_balances_file: str,
+    from_block_height: int,
+    up_to_block_height: int,
+    chunk_size: int,
+) -> None:
+    df_expected_balances: pl.DataFrame = load_expected_snapshot_balances(
+        data_dir / "helpers/staking" / expected_balances_file,
+    )
+
+    account_id = "test_account"
+    pool_id = "test_pool"
+
+    fake_balance_fetcher = FakeBalanceFetcher(
+        get_balance=get_non_decreased_balance,
+        is_missing_block=is_missing_block,
+    )
+
+    fake_snapshot_storage = FakeSnapshotStorage()
+
+    find_snapshots(
+        account_id=account_id,
+        pool_id=pool_id,
+        from_block_height=from_block_height,
+        up_to_block_height=up_to_block_height,
+        balance_fetcher=fake_balance_fetcher,
+        snapshot_storage=fake_snapshot_storage,
+        chunk_size=chunk_size,
+    )
+
+    # Check the number of chunks
+    assert len(fake_snapshot_storage.saved) == (
+        (up_to_block_height - from_block_height) // chunk_size + 1
+    )
+
+    expected_chunk_lower: int = from_block_height
+
+    # Check balances in each chunk
+    while expected_chunk_lower <= up_to_block_height:
+        expected_chunk_upper: int = min(
+            up_to_block_height, expected_chunk_lower + chunk_size - 1
+        )
+
+        actual_chunk_balances: list[Balance] = fake_snapshot_storage.saved[
+            (expected_chunk_lower, expected_chunk_upper)
+        ]
+
+        df_expected_chunk_balances: pl.DataFrame = df_expected_balances.filter(
+            pl.col(const.BLOCK_HEIGHT).is_between(
+                expected_chunk_lower,
+                expected_chunk_upper,
+            )
+        )
+
+        df_actual_chunk_balances: pl.DataFrame = (
+            balances_to_dataframe(actual_chunk_balances)
+        )
+
+        assert_frame_equal(
+            df_actual_chunk_balances,
+            df_expected_chunk_balances,
+        )
+
+        expected_chunk_lower = expected_chunk_upper + 1
+
+    # Check balances in all chunks
+    df_actual_balances: pl.DataFrame = balances_to_dataframe(
+        fake_snapshot_storage.saved_balances
+    )
+
+    assert_frame_equal(
+        df_actual_balances,
+        df_expected_balances,
+    )
+
+    # Check parameters when fetching
+    for request in fake_balance_fetcher.requested:
+        assert request["account_id"] == account_id
+        assert request["pool_id"] == pool_id
+        assert from_block_height <= request[const.BLOCK_HEIGHT] <= up_to_block_height

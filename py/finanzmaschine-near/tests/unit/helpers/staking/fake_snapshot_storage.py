@@ -4,25 +4,34 @@ from fzm_near.orm.staking.balance import Balance
 
 class FakeSnapshotStorage:
     def __init__(self) -> None:
-        self.balances: dict[int, Balance] = {}
-        self.saved: dict[tuple[int, int], dict[int, Balance]] = {}
+        self.balances: list[Balance] = []
+        self.saved: dict[tuple[int, int], list[Balance]] = {}
+
+    @property
+    def saved_balances(self) -> list[Balance]:
+        balances: list[Balance] = []
+        for values in self.saved.values():
+            balances += values
+        return balances
 
     def add(
         self,
         balance: Balance,
     ) -> None:
-        if balance.block_height in self.balances:
+        if self.get(balance.block_height) is not None:
             raise ValueError(
                 f"Snapshot already exists for {const.BLOCK_HEIGHT}={balance.block_height}"
             )
-
-        self.balances[balance.block_height] = balance
+        self.balances.append(balance)
 
     def get(
         self,
         block_height: int,
     ) -> Balance | None:
-        return self.balances.get(block_height)
+        for balance in self.balances:
+            if balance.block_height == block_height:
+                return balance
+        return None
 
     def clear(self) -> None:
         self.balances.clear()

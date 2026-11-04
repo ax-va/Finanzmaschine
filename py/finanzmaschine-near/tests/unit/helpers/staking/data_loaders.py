@@ -5,7 +5,7 @@ import polars as pl
 from fzm_near.helpers.staking.df_schemas import (
     ACTION_SCHEMA,
     FINAL_STATE_SCHEMA,
-    SEARCH_INTERVAL_SCHEMA,
+    SEARCH_INTERVAL_SCHEMA, BALANCE_SCHEMA,
 )
 
 
@@ -25,3 +25,7 @@ def load_expected_final_states(file_path: Path) -> pl.DataFrame:
 
 def load_expected_search_intervals(file_path: Path) -> pl.DataFrame:
     return pl.read_csv(file_path, schema_overrides=SEARCH_INTERVAL_SCHEMA)
+
+
+def load_expected_snapshot_balances(file_path: Path) -> pl.DataFrame:
+    return pl.read_csv(file_path, schema_overrides=BALANCE_SCHEMA)
