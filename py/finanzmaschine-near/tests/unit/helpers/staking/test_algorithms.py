@@ -523,6 +523,17 @@ def test_find_increased_balances(
             "snapshots/balances.csv",
             1,
             6100,
+            1100,
+            Balance(
+                block_height=1101,  # chunk's lower boundary
+                staked_yocto_str="111",
+                unstaked_yocto_str="1",
+            ),
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
             3000,
             None,
         ),
@@ -532,7 +543,7 @@ def test_find_increased_balances(
             6100,
             3000,
             Balance(
-                block_height=3000,
+                block_height=3000,  # skipped-chunk's upper boundary
                 staked_yocto_str="130",
                 unstaked_yocto_str="1",
             ),
