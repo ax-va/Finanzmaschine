@@ -324,7 +324,20 @@ def test_find_increased_balance_raises_on_invalid_block_range(
         # The fifth deposit after the full unstake
         (5550, 6051, [6051]),
         # No increases after the fifth deposit
-        (6051, 6100, [])
+        (6051, 6100, []),
+        # All increases
+        pytest.param(1, 6100,
+            [
+                100, 200, 300, 400, 500, 600, 701, 800, 900,
+                1000, 1101, 1200, 1301, 1401, 1500, 1600, 1700, 1800, 1900,
+                2000, 2102, 2201, 2300, 2400, 2500, 2601, 2700, 2801, 2900,
+                3000, 3050,3100, 3200, 3301, 3400, 3501, 3600, 3700, 3800, 3901,
+                4000, 4100, 4201, 4300, 4401, 4500, 4600, 4700, 4800, 4902,
+                5000, 5050, 5100, 5202, 5251, 5300, 5400, 5501,
+                6051,
+            ],
+            id="all-increases"
+        )
     ],
 )
 def test_find_increased_balances(
