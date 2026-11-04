@@ -474,7 +474,7 @@ def test_find_increased_balances(
                 block_height=5400,
                 staked_yocto_str="610",
                 unstaked_yocto_str="207",
-            )
+            ),
         ),
         (
             "snapshots/balances.csv",
@@ -485,7 +485,7 @@ def test_find_increased_balances(
                 block_height=5501,
                 staked_yocto_str="615",
                 unstaked_yocto_str="207",
-            )
+            ),
         ),
         (
             "snapshots/balances.csv",
