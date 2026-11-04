@@ -413,14 +413,122 @@ def test_find_increased_balances(
     "expected_balances_file, "
     "from_block_height, "
     "up_to_block_height, "
-    "chunk_size",
+    "chunk_size, "
+    "last_known_balance",
     [
         (
             "snapshots/balances.csv",
             1,
+            1,
+            1,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            2,
+            3,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            99,
+            1,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            100,
+            1,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            5500,  # missing block
+            5500,  # missing block
+            1,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            5500,  # missing block
+            5501,
+            3,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            6051,
+            6051,
+            3,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            5399,
+            6051,
+            3,
+            Balance(
+                block_height=5400,
+                staked_yocto_str="610",
+                unstaked_yocto_str="207",
+            )
+        ),
+        (
+            "snapshots/balances.csv",
+            5500,
+            6051,
+            3,
+            Balance(
+                block_height=5501,
+                staked_yocto_str="615",
+                unstaked_yocto_str="207",
+            )
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
             6100,
-            1000,
-        )
+            3,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            30,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            300,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            3000,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            6000,
+            None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            10_000,
+            None,
+        ),
     ]
 )
 def test_find_snapshots(
@@ -429,9 +537,20 @@ def test_find_snapshots(
     from_block_height: int,
     up_to_block_height: int,
     chunk_size: int,
+    last_known_balance: Balance | None,
 ) -> None:
+    expected_from_block_height: int = (
+        from_block_height
+        if last_known_balance is None
+        else last_known_balance.block_height + 1
+    )
+
     df_expected_balances: pl.DataFrame = load_expected_snapshot_balances(
         data_dir / "helpers/staking" / expected_balances_file,
+    ).filter(
+        pl.col(const.BLOCK_HEIGHT).is_between(
+            expected_from_block_height, up_to_block_height
+        )
     )
 
     account_id = "test_account"
@@ -452,6 +571,7 @@ def test_find_snapshots(
         balance_fetcher=fake_balance_fetcher,
         snapshot_storage=fake_snapshot_storage,
         chunk_size=chunk_size,
+        last_known_balance=last_known_balance,
     )
 
     # Check the number of chunks
