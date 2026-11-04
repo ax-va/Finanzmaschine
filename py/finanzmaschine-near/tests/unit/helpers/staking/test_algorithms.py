@@ -194,7 +194,7 @@ def test_find_increased_balance(
     for request in fake_balance_fetcher.requested:
         assert request["account_id"] == account_id
         assert request["pool_id"] == pool_id
-        assert start_block_height < request["block_height"] <= up_to_block_height
+        assert start_block_height < request[const.BLOCK_HEIGHT] <= up_to_block_height
 
 
 def test_find_increased_balance_raises_on_balance_decrease() -> None:
@@ -408,7 +408,7 @@ def test_find_increased_balances(
     for request in fake_balance_fetcher.requested:
         assert request["account_id"] == account_id
         assert request["pool_id"] == pool_id
-        assert start_block_height < request["block_height"] <= up_to_block_height
+        assert start_block_height < request[const.BLOCK_HEIGHT] <= up_to_block_height
 
 
 @pytest.mark.parametrize(
