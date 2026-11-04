@@ -75,7 +75,7 @@ def get_decreased_balance(block_height: int) -> Balance:
 
 
 def balances_to_dataframe(balances: list[Balance]) -> pl.DataFrame:
-    df = pl.DataFrame(
+    return pl.DataFrame(
         [
             {
                 "block_height": balance.block_height,
@@ -86,8 +86,6 @@ def balances_to_dataframe(balances: list[Balance]) -> pl.DataFrame:
         ],
         schema=BALANCE_SCHEMA,
     ).sort(const.BLOCK_HEIGHT)
-
-    return df
 
 
 @pytest.mark.parametrize(
