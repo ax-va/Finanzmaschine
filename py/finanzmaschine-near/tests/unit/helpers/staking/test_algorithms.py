@@ -512,8 +512,41 @@ def test_find_increased_balances(
             "snapshots/balances.csv",
             1,
             6100,
+            300,
+            Balance(
+                block_height=3050,
+                staked_yocto_str="330",
+                unstaked_yocto_str="3",
+            ),
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
             3000,
             None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            3000,
+            Balance(
+                block_height=3000,
+                staked_yocto_str="130",
+                unstaked_yocto_str="1",
+            ),
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            3000,
+            Balance(
+                block_height=3050,
+                staked_yocto_str="330",
+                unstaked_yocto_str="3",
+            ),
         ),
         (
             "snapshots/balances.csv",
@@ -526,8 +559,30 @@ def test_find_increased_balances(
             "snapshots/balances.csv",
             1,
             6100,
+            6000,
+            Balance(
+                block_height=3050,
+                staked_yocto_str="330",
+                unstaked_yocto_str="3",
+            ),
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
             10_000,
             None,
+        ),
+        (
+            "snapshots/balances.csv",
+            1,
+            6100,
+            10_000,
+            Balance(
+                block_height=3050,
+                staked_yocto_str="330",
+                unstaked_yocto_str="3",
+            ),
         ),
     ]
 )
@@ -575,9 +630,19 @@ def test_find_snapshots(
     )
 
     # Check the number of chunks
-    assert len(fake_snapshot_storage.saved) == (
+
+    expected_chunk_count: int = (
         (up_to_block_height - from_block_height) // chunk_size + 1
     )
+
+    if last_known_balance is not None:
+        skipped_chunk_count: int = (
+            last_known_balance.block_height - from_block_height + 1
+        ) // chunk_size
+
+        expected_chunk_count -= skipped_chunk_count
+
+    assert len(fake_snapshot_storage.saved) == expected_chunk_count
 
     expected_chunk_lower: int = from_block_height
 
@@ -586,6 +651,13 @@ def test_find_snapshots(
         expected_chunk_upper: int = min(
             up_to_block_height, expected_chunk_lower + chunk_size - 1
         )
+
+        if (
+            last_known_balance is not None
+            and expected_chunk_upper <= last_known_balance.block_height
+        ):
+            expected_chunk_lower = expected_chunk_upper + 1
+            continue
 
         actual_chunk_balances: list[Balance] = fake_snapshot_storage.saved[
             (expected_chunk_lower, expected_chunk_upper)
@@ -610,6 +682,7 @@ def test_find_snapshots(
         expected_chunk_lower = expected_chunk_upper + 1
 
     # Check balances in all chunks
+
     df_actual_balances: pl.DataFrame = balances_to_dataframe(
         fake_snapshot_storage.saved_balances
     )
