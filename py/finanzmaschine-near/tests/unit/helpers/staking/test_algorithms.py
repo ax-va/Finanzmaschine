@@ -708,3 +708,76 @@ def test_find_snapshots(
         assert request["account_id"] == account_id
         assert request["pool_id"] == pool_id
         assert from_block_height <= request[const.BLOCK_HEIGHT] <= up_to_block_height
+
+
+@pytest.mark.parametrize(
+    "from_block_height, "
+    "up_to_block_height, "
+    "chunk_size, "
+    "last_known_balance",
+    [
+        pytest.param(
+            100,
+            99,
+            10,
+            None,
+            id="invalid-block-range",
+        ),
+        pytest.param(
+            1,
+            100,
+            0,
+            None,
+            id="zero-chunk-size",
+        ),
+        pytest.param(
+            1,
+            100,
+            -1,
+            None,
+            id="negative-chunk-size",
+        ),
+        pytest.param(
+            100,
+            200,
+            10,
+            get_non_decreased_balance(99),
+            id="last-known-balance-before-range",
+        ),
+        pytest.param(
+            100,
+            200,
+            10,
+            get_non_decreased_balance(201),
+            id="last-known-balance-after-range",
+        ),
+    ],
+)
+def test_find_snapshots_invalid_arguments(
+    from_block_height: int,
+    up_to_block_height: int,
+    chunk_size: int,
+    last_known_balance: Balance | None,
+) -> None:
+    fake_balance_fetcher = FakeBalanceFetcher(
+        get_balance=get_non_decreased_balance,
+        is_missing_block=is_missing_block,
+    )
+
+    fake_snapshot_storage = FakeSnapshotStorage()
+
+    with pytest.raises(ValueError):
+        find_snapshots(
+            account_id="test_account",
+            pool_id="test_pool",
+            from_block_height=from_block_height,
+            up_to_block_height=up_to_block_height,
+            balance_fetcher=fake_balance_fetcher,
+            snapshot_storage=fake_snapshot_storage,
+            chunk_size=chunk_size,
+            last_known_balance=last_known_balance,
+        )
+
+    assert not fake_balance_fetcher.requested
+    assert not fake_snapshot_storage.saved
+    assert not fake_snapshot_storage.balances
