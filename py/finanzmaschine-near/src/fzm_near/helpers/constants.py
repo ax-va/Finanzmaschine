@@ -16,4 +16,4 @@ OPERATION_YOCTO_STR = "operation_yocto_str"
 STAKED_YOCTO_STR = "staked_yocto_str"
 UNSTAKED_YOCTO_STR = "unstaked_yocto_str"
 
-IS_OPEN = "is_open"
+IS_REWARD_TRACKING_ACTIVE = "is_reward_tracking_active"

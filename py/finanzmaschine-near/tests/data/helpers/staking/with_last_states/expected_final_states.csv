@@ -1,4 +1,4 @@
-pool_key,up_to_block_height,is_open
+pool_key,up_to_block_height,is_reward_tracking_active
 test_pool_1,299,true
 test_pool_1,499,true
 test_pool_2,499,true

@@ -23,7 +23,7 @@ SEARCH_INTERVAL_SCHEMA = {
 FINAL_STATE_SCHEMA = {
     const.POOL_KEY: pl.String,
     const.UP_TO_BLOCK_HEIGHT: pl.Int64,
-    const.IS_OPEN: pl.Boolean,
+    const.IS_REWARD_TRACKING_ACTIVE: pl.Boolean,
 }
 
 ACTION_SCHEMA = {

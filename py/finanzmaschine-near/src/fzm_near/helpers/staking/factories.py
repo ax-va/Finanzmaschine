@@ -195,9 +195,9 @@ class SearchIntervalFactory:
                     f"got {df_last_states.schema}"
                 )
 
-        is_open_by_pool: dict[str, bool] = {}
+        is_reward_tracking_active_by_pool: dict[str, bool] = {}
 
-        # Check `df_last_states` and collect `is_open_by_pool`
+        # Check `df_last_states` and collect `is_reward_tracking_active_by_pool`
         for (pool_key,), df_pool_last in df_last_states.group_by(
             const.POOL_KEY,
             maintain_order=True,
@@ -219,8 +219,8 @@ class SearchIntervalFactory:
                     f"when `df_last_states` is provided: pool {pool_key}"
                 )
 
-            is_open_by_pool[pool_key] = df_pool_last.item(
-                0, const.IS_OPEN
+            is_reward_tracking_active_by_pool[pool_key] = df_pool_last.item(
+                0, const.IS_REWARD_TRACKING_ACTIVE
             )
 
         intervals: list[dict] = []
@@ -261,7 +261,7 @@ class SearchIntervalFactory:
             # to open the first interval.
             lower_block_height: int | None = (
                 from_block_height
-                if is_open_by_pool.get(pool_key, False)
+                if is_reward_tracking_active_by_pool.get(pool_key, False)
                 else None
             )
 
@@ -348,18 +348,18 @@ class SearchIntervalFactory:
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
                 up_to_block_height=up_to_block_height,
-                is_open=(lower_block_height is not None),
+                is_reward_tracking_active=(lower_block_height is not None),
                 final_states=final_states,
             )
 
         # Pools without new actions
         # may still require searching
-        # if their previous state was open.
-        for pool_key, is_open in is_open_by_pool.items():
+        # if their reward tracking was active.
+        for pool_key, is_reward_tracking_active in is_reward_tracking_active_by_pool.items():
             if pool_key in processed_pools:
                 continue
 
-            if is_open:
+            if is_reward_tracking_active:
                 SearchIntervalFactory._append_search_interval(
                     pool_key=pool_key,
                     lower_block_height=from_block_height,
@@ -370,7 +370,7 @@ class SearchIntervalFactory:
             SearchIntervalFactory._append_final_state(
                 pool_key=pool_key,
                 up_to_block_height=up_to_block_height,
-                is_open=is_open,
+                is_reward_tracking_active=is_reward_tracking_active,
                 final_states=final_states,
             )
 
@@ -423,7 +423,7 @@ class SearchIntervalFactory:
     def _append_final_state(
         pool_key: str,
         up_to_block_height: int,
-        is_open: bool,
+        is_reward_tracking_active: bool,
         final_states: list[dict],
     ) -> None:
         """
@@ -437,6 +437,6 @@ class SearchIntervalFactory:
             {
                 const.POOL_KEY: pool_key,
                 const.UP_TO_BLOCK_HEIGHT: up_to_block_height,
-                const.IS_OPEN: is_open,
+                const.IS_REWARD_TRACKING_ACTIVE: is_reward_tracking_active,
             }
         )
