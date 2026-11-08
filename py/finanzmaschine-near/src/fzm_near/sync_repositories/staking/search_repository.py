@@ -89,6 +89,27 @@ class SnapshotSearchRepository:
         """
         self._session.add(search)
 
+    def update(
+        self,
+        search: Search,
+        up_to_block_height: int,
+        is_reward_tracking_active: bool,
+    ) -> None:
+        """
+        Updates the snapshot search progress and reward-tracking state.
+
+        Args:
+            search: Snapshot search to update.
+            up_to_block_height: Inclusive upper boundary of the processed range.
+            is_reward_tracking_active:
+                Whether reward tracking remains active after the processed range.
+        """
+
+        search.up_to_block_height = up_to_block_height
+        search.is_reward_tracking_active = is_reward_tracking_active
+
+        self._session.add(search)
+
     def flush(self) -> None:
         """Flushes pending changes to the database."""
         self._session.flush()
@@ -118,12 +139,13 @@ class SnapshotSearchRepository:
 
             return search
 
-        except IntegrityError:
+
+        except IntegrityError as e:
             raise SearchRepositoryError(
                 "Cannot add snapshot search for key: %s",
                 Key(
                     account_key=search.account_key,
                     pool_key=search.pool_key,
-                )
-            )
+                ),
+            ) from e
 

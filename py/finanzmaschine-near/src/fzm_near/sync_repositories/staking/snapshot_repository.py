@@ -1,18 +1,12 @@
 import logging
-from pathlib import Path
 
-import polars as pl
-from sqlalchemy import Integer, func, type_coerce
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
-from fzm_near.helpers.staking.factories import SnapshotFactory
-from fzm_near.helpers.staking.file_loaders import load_key, load_df_balances
 from fzm_near.sync_repositories.staking.snapshot_repository_errors import SnapshotRepositoryError
-
-logger = logging.getLogger(__name__)
 
 
 class SnapshotRepository:
@@ -62,22 +56,19 @@ class SnapshotRepository:
             or `None` if none exists.
         """
         statement = select(
-            type_coerce(
-                func.max(Snapshot.block_height),
-                Integer,
-            )
+            func.max(Snapshot.block_height),
         ).where(
             Snapshot.account_key == key.account_key,
             Snapshot.pool_key == key.pool_key,
         )
 
+        # noinspection PyTypeChecker
         block_height: int | None = self._session.exec(statement).one()
 
         if block_height is None:
             return None
 
         return self.get(key, block_height)
-
 
     def add(self, snapshot: Snapshot) -> None:
         """
@@ -141,101 +132,3 @@ class SnapshotRepository:
                 ),
                 snapshot.block_height,
             ) from e
-
-    def import_from(
-        self,
-        source_dir: str | Path,
-    ) -> None:
-        """
-        Imports staking snapshots from the given directory to the database.
-
-        Loads snapshot key from `key.yaml` in `source_dir`
-        and processes all CSV files in the directory.
-
-        For each balance snapshot, ensures that
-        the corresponding block exists in the database
-        before importing the staking snapshot.
-
-        Snapshots that cause an integrity conflict are not imported.
-
-        Args:
-            source_dir:
-                Directory containing staking `key.yaml` and balance snapshot CSV files.
-        """
-
-        logger.info("Starting staking snapshots import to the database")
-
-        source_dir = Path(source_dir)
-
-        logger.info(f"From source directory: {source_dir}")
-
-        key: Key = load_key(source_dir / "key.yaml")
-
-        logger.info(f"Loaded account key: {key.account_key}")
-        logger.info(f"Loaded pool key: {key.pool_key}")
-
-        csv_paths: list[Path] = sorted(source_dir.glob("*.csv"))
-        num_csv_paths: int = len(csv_paths)
-
-        logger.info(f"Found {num_csv_paths} CSV files")
-
-        for index, csv_path in enumerate(csv_paths, start=1):
-            logger.info(
-                f"Importing balance snapshots {index}/{num_csv_paths}: {csv_path.name}"
-            )
-
-            df_balances: pl.DataFrame = load_df_balances(csv_path)
-
-            logger.debug(f"Loaded {df_balances.height} balance snapshots")
-
-            imported_snapshots_count: int = self._import(
-                key=key,
-                df_balances=df_balances,
-            )
-
-            logger.debug(f"Imported {imported_snapshots_count} staking snapshots")
-
-        logger.info(f"Processed {num_csv_paths} staking snapshot files")
-
-    def _import(
-        self,
-        key: Key,
-        df_balances: pl.DataFrame,
-    ) -> int:
-        """
-        Imports staking snapshots into the database.
-
-        Snapshots that cause an integrity conflict are not imported.
-
-        Args:
-            key: Snapshot key containing the account and pool keys.
-            df_balances: Dataframe containing balance snapshots to import.
-
-        Returns:
-            The number of staking snapshots successfully imported.
-        """
-
-        logger.debug("Importing staking snapshots to the database")
-
-        imported_count: int = 0
-
-        df_snapshots: pl.DataFrame = SnapshotFactory.create_df_snapshots(
-            key=key,
-            df_balances=df_balances,
-        )
-
-        for row in df_snapshots.iter_rows(named=True):
-            snapshot: Snapshot = Snapshot.model_validate(row)
-
-            if self.safe_add(snapshot):
-                imported_count += 1
-                logger.debug(
-                    f"Imported staking snapshot at block {snapshot.block_height}"
-                )
-            else:
-                logger.debug(
-                    f"Staking snapshot at block height {snapshot.block_height} "
-                    f"was not inserted due to an integrity conflict"
-                )
-
-        return imported_count
