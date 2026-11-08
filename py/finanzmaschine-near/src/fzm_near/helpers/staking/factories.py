@@ -75,13 +75,11 @@ class SearchIntervalFactory:
     """
     Builds search intervals for historical staking pool balance changes.
 
-    Constructs block-height intervals
-    in which the total balance (staked + unstaked)
-    is expected to be monotonically non-decreasing.
+    Constructs block-height intervals in which the total (staked + unstaked)
+    balance is expected to be monotonically non-decreasing.
 
     Uses staking actions to determine interval boundaries
-    and maintains a heuristic state indicating
-    whether a search interval should remain logically open
+    and maintains a heuristic reward-tracking state
     across consecutive block ranges.
     """
 
@@ -93,77 +91,78 @@ class SearchIntervalFactory:
         df_last_states: pl.DataFrame | None = None,
     ) -> dict[str, pl.DataFrame]:
         """
-        Builds search intervals for staking pool total balance snapshots.
+        Builds search intervals and final reward-tracking states for staking pools.
 
-        Each interval represents a block-height range
-        within which the account's total balance (staked + unstaked)
-        is expected to be monotonically non-decreasing.
+        Each interval represents a block-height range in which the account's total
+        (staked + unstaked) balance is expected to be monotonically non-decreasing.
         The balance may increase due to staking rewards or deposits.
 
-        Intervals are constructed independently for each staking pool #
+        Intervals are constructed independently for each staking pool
         using successful contract actions grouped by block height.
 
         Interval construction rules:
 
-            - `DEPOSIT_AND_STAKE`, `STAKE`, and `STAKE_ALL` activate
-            reward tracking and open an interval if none is open.
+            - `DEPOSIT_AND_STAKE`, `STAKE`, and `STAKE_ALL` activate reward tracking
+            and start a search interval if none is active.
 
-            - `DEPOSIT` does not interrupt an open interval
+            - `DEPOSIT` does not interrupt an active search interval
             because it only increases the total balance.
 
-            - `WITHDRAW` and `WITHDRAW_ALL` interrupt an open interval
-            because they decrease the total balance.
-            The previous interval ends at the preceding block,
-            and a new interval starts at the withdrawal block.
+            - `WITHDRAW` and `WITHDRAW_ALL` interrupt an active search interval
+              because they decrease the total balance.
+              The previous interval ends at the preceding block,
+              and a new interval starts at the withdrawal block.
 
-            - `UNSTAKE_ALL` closes an open interval at its block height,
+            - `UNSTAKE_ALL` deactivates reward tracking
+            and ends the current search interval at its block height,
             unless a staking action occurs in the same block.
 
-            - `UNSTAKE` does not affect interval boundaries.
+            - `UNSTAKE` does not affect interval boundaries or reward tracking.
 
             - `DEPOSIT` and withdrawal actions occurring
-            while rewards are inactive produce single-block intervals.
+            while reward tracking is inactive produce single-block search intervals.
 
-        When multiple actions occur in the same block, they are evaluated together
+        Actions occurring in the same block are evaluated together
         because only the final block snapshot is observable.
         Staking actions take precedence over `UNSTAKE_ALL`
-        when determining whether reward tracking remains open.
+        when determining the final reward-tracking state.
 
         The initial reward-tracking state is taken from `df_last_states`.
-        The `IS_OPEN` flag represents a heuristic estimate of
-        whether the account may receive staking rewards.
-        The flag is used to determine whether a search interval
-        should remain open across block ranges.
+        The `IS_REWARD_TRACKING_ACTIVE` flag is a heuristic indicating
+        whether the account may continue receiving staking rewards.
+
         Pools without a previous state are considered inactive.
-        Previously open pools remain searchable even if no new actions occur.
+        Pools with active reward tracking remain searchable
+        even when no new staking actions occur.
 
         Args:
             df_actions:
-                Successful staking pool actions within the requested block-height range.
+                Successful staking pool actions within the requested block range.
             from_block_height:
                 Inclusive lower boundary of the search range.
             up_to_block_height:
                 Inclusive upper boundary of the search range.
             df_last_states:
-                Optional reward-tracking states from the previous range,
-                containing the previous upper block height
-                and one `IS_OPEN` value per pool.
+                Optional reward-tracking states from the previous block range,
+                containing its upper block height and one
+                `IS_REWARD_TRACKING_ACTIVE` value per pool.
 
         Returns:
-            A dictionary containing keys:
+            A dictionary containing:
                 "search_intervals":
                     Block-height intervals for searching total balance snapshots.
                 "final_states":
-                    Reward-tracking states for each pool at the end of the requested range,
-                    suitable for processing the next range.
+                    Reward-tracking states for each pool at the end of
+                    the requested block range, suitable for processing the next range.
 
         Raises:
             ValueError:
-                - If an input dataframe has an invalid schema.
-                - If the block-height range is invalid, an action falls outside the requested range.
-                - If `df_last_states` contains multiple states for the same pool.
-                - If the current block range does not
-                  immediately follow the previous range for any pool.
+                If an input dataframe has an invalid schema.
+                If the block range is invalid.
+                If an action falls outside the requested range.
+                If `df_last_states` contains multiple states for the same pool.
+                If the current block range does not immediately
+                follow the previous range for any pool.
         """
 
         # Verify schema
@@ -258,7 +257,7 @@ class SearchIntervalFactory:
                 )
 
             # Determine whether it is currently possible
-            # to open the first interval.
+            # to start the first interval.
             lower_block_height: int | None = (
                 from_block_height
                 if is_reward_tracking_active_by_pool.get(pool_key, False)
@@ -278,7 +277,7 @@ class SearchIntervalFactory:
                     MethodNameEnum.DEPOSIT_AND_STAKE,
                 ]).any()
 
-                if lower_block_height is not None:  # open search interval
+                if lower_block_height is not None:  # active search interval
 
                     has_withdraw = methods.is_in([
                         MethodNameEnum.WITHDRAW,
@@ -298,7 +297,7 @@ class SearchIntervalFactory:
                                 upper_block_height=block_height - 1,
                                 intervals=intervals,
                             )
-                        # Open a new interval
+                        # Start a new interval
                         lower_block_height = block_height
 
                     # Then, check `UNSTAKE_ALL` without `...STAKE...`
@@ -400,8 +399,11 @@ class SearchIntervalFactory:
         """
         Appends an inclusive block-height search interval.
 
-        The interval includes both boundary blocks
-        and must have a lower boundary not greater than its upper boundary.
+        Args:
+            pool_key: Key identifying the staking pool.
+            lower_block_height: Inclusive lower boundary.
+            upper_block_height: Inclusive upper boundary.
+            intervals: List to which the interval is appended.
 
         Raises:
             ValueError:
@@ -429,8 +431,14 @@ class SearchIntervalFactory:
         """
         Appends the final reward-tracking state for a staking pool.
 
-        The state indicates whether the pool may continue
-        receiving staking rewards in the next block-height range.
+        The state indicates whether the account may continue
+        receiving staking rewards in the next block range.
+
+        Args:
+            pool_key: Key identifying the staking pool.
+            up_to_block_height: Inclusive upper boundary of the processed range.
+            is_reward_tracking_active: Whether reward tracking remains active.
+            final_states: List to which the state is appended.
         """
 
         final_states.append(
