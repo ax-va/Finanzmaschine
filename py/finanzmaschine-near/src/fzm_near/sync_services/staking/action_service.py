@@ -1,7 +1,7 @@
 import polars as pl
 from sqlmodel import Session
 
-from fzm_keying import KeyMapping
+from fzm_keying import KeyMappingProtocol
 from fzm_near.helpers.staking.enums import MethodNameEnum
 from fzm_near.helpers import constants as const
 from fzm_near.helpers.staking.df_schemas import ACTION_SCHEMA
@@ -15,11 +15,11 @@ class ActionService:
     def __init__(
         self,
         session: Session,
-        key_mapping: KeyMapping,
+        key_mapping: KeyMappingProtocol,
     ) -> None:
 
         self._session: Session = session
-        self._key_mapping: KeyMapping = key_mapping
+        self._key_mapping: KeyMappingProtocol = key_mapping
         self._receiver_service = ReceiverService(
             session=session,
             key_mapping=key_mapping,

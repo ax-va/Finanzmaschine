@@ -1,3 +1,3 @@
-from .key_mapping import KeyMapping
+from .protocols import KeyMappingProtocol
 
-__all__ = ["KeyMapping"]
+__all__ = ["KeyMappingProtocol"]

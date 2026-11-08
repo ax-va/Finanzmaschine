@@ -1,7 +1,7 @@
 from typing import Protocol
 
 
-class KeyMapping(Protocol):
+class KeyMappingProtocol(Protocol):
     def get_key(self, value: str) -> str:
         ...
 

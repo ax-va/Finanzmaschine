@@ -1,6 +1,6 @@
 from sqlmodel import Session
 
-from fzm_keying import KeyMapping
+from fzm_keying import KeyMappingProtocol
 from fzm_near.orm.receiver import Receiver
 from fzm_near.sync_clients.fetchers import fetch_final_block_height, is_staking_pool_whitelisted
 from fzm_near.sync_repositories.receiver_repository import ReceiverRepository
@@ -12,17 +12,17 @@ class ReceiverService:
     def __init__(
         self,
         session: Session,
-        key_mapping: KeyMapping,
+        key_mapping: KeyMappingProtocol,
     ) -> None:
         """
         Args:
             session: Database session.
-            key_mapping: Mapping between receiver keys and receiver IDs.
+            key_mapping: Protocol for mapping between receiver keys and receiver IDs.
         """
 
         self._session: Session = session
         self._repository = ReceiverRepository(session)
-        self._key_mapping: KeyMapping = key_mapping
+        self._key_mapping: KeyMappingProtocol = key_mapping
 
     def is_staking_pool(
         self,

@@ -1,10 +1,10 @@
-from fzm_keying import KeyMapping
+from fzm_keying import KeyMappingProtocol
 from fzm_near.orm.function_call.action import Action
 
 
 def create_actions(
     txs: dict[str, list[dict]],
-    key_mapping: KeyMapping,
+    key_mapping: KeyMappingProtocol,
 ) -> list[Action]:
     function_calls: list[Action] = []
 

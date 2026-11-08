@@ -5,11 +5,10 @@ from uuid import uuid4
 import polars as pl
 from filelock import FileLock
 
-from fzm_keying.key_mapping import KeyMapping
-from fzm_keying.key_mapping_exceptions import KeyMappingIntegrityError
+from fzm_keying.errors import KeyMappingIntegrityError
 
 
-class CsvKeyMapping(KeyMapping):
+class CsvKeyMapping:
     SCHEMA = {
         "key": pl.String,
         "value": pl.String,

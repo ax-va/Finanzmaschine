@@ -2,7 +2,7 @@ import logging
 
 from sqlmodel import Session
 
-from fzm_keying import KeyMapping
+from fzm_keying import KeyMappingProtocol
 
 from fzm_near.orm.function_call.action import Action
 from fzm_near.orm.function_call.search import Search
@@ -20,18 +20,18 @@ class ActionService:
     def __init__(
         self,
         session: Session,
-        key_mapping: KeyMapping,
+        key_mapping: KeyMappingProtocol,
     ) -> None:
         """
         Args:
             session: Database session.
-            key_mapping: Mapping between keys and NEAR identifiers.
+            key_mapping: Protocol for mapping between keys and NEAR identifiers.
         """
 
         self._session: Session = session
         self._search_repository = ActionSearchRepository(session)
         self._action_repository = ActionRepository(session)
-        self._key_mapping: KeyMapping = key_mapping
+        self._key_mapping: KeyMappingProtocol = key_mapping
 
 
     def get_actions(
