@@ -133,13 +133,13 @@ class ActionService:
             self._search_repository.lock(search)
             # Determine up to which block height
             # the function call search was already synchronized.
-            search_up_to_tx__block_height: int | None = search.up_to_tx_block_height
+            previous_block_height: int | None = search.up_to_tx_block_height
             self._session.commit()
             locked = True
 
             if (
-                search_up_to_tx__block_height is not None
-                and search_up_to_tx__block_height >= up_to_tx_block_height
+                previous_block_height is not None
+                and previous_block_height >= up_to_tx_block_height
             ):
                 # Function call actions were already synchronized
                 # up to the specified transaction block height.
@@ -149,8 +149,8 @@ class ActionService:
                 self.fetch_actions(
                     tx_signer_key=tx_signer_key,
                     from_tx_block_height=(
-                        search_up_to_tx__block_height + 1
-                        if search_up_to_tx__block_height is not None
+                        previous_block_height + 1
+                        if previous_block_height is not None
                         else None
                     ),
                     up_to_tx_block_height=up_to_tx_block_height,
