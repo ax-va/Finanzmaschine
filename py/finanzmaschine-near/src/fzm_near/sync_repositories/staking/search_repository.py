@@ -7,7 +7,7 @@ from fzm_near.orm.staking.search import Search
 from fzm_near.sync_repositories.staking.search_repository_errors import SearchRepositoryError
 
 
-class SnapshotSearchRepository:
+class SearchRepository:
     """Provides synchronous database operations for snapshot searches."""
 
     def __init__(self, session: Session) -> None:

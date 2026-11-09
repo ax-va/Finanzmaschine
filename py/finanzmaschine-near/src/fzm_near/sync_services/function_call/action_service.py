@@ -9,7 +9,7 @@ from fzm_near.orm.function_call.search import Search
 from fzm_near.helpers.function_call.factories import create_actions
 from fzm_near.sync_clients.fetchers import fetch_final_block_height, fetch_txs
 from fzm_near.sync_repositories.function_call.action_repository import ActionRepository
-from fzm_near.sync_repositories.function_call.search_repository import ActionSearchRepository
+from fzm_near.sync_repositories.function_call.search_repository import SearchRepository
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class ActionService:
         """
 
         self._session: Session = session
-        self._search_repository = ActionSearchRepository(session)
+        self._search_repository = SearchRepository(session)
         self._action_repository = ActionRepository(session)
         self._key_mapping: KeyMappingProtocol = key_mapping
 
@@ -71,11 +71,11 @@ class ActionService:
             List of function call actions matching the specified filters.
         """
 
-        up_to_block_height: int = fetch_final_block_height()
+        final_block_height: int = fetch_final_block_height()
 
         self.sync_actions(
             tx_signer_key=tx_signer_key,
-            up_to_block_height=up_to_block_height,
+            up_to_tx_block_height=final_block_height,
         )
 
         actions: list[Action] = self._action_repository.get(
@@ -96,7 +96,7 @@ class ActionService:
     def sync_actions(
         self,
         tx_signer_key: str,
-        up_to_block_height: int,
+        up_to_tx_block_height: int | None = None,
     ) -> None:
         """
         Synchronizes a signer's function call actions up to a block height.
@@ -107,16 +107,20 @@ class ActionService:
 
         Args:
             tx_signer_key: Key identifying the transaction signer.
-            up_to_block_height: Block height through which to synchronize.
+            up_to_tx_block_height: Optional transaction block height through which to synchronize.
         """
 
+        if up_to_tx_block_height is None:
+            up_to_tx_block_height: int = fetch_final_block_height()
+
+        # function call actions
         actions: list[Action]
         block_height: int | None
         search: Search | None = None
         locked = False
 
         try:
-            search = self._search_repository.get(tx_signer_key)
+            search: Search | None = self._search_repository.get(tx_signer_key)
 
             if search is None:
                 # Create the first function call search
@@ -127,34 +131,40 @@ class ActionService:
                 self._session.commit()
 
             self._search_repository.lock(search)
-            block_height = search.up_to_tx_block_height
+            # Determine up to which block height
+            # the function call search was already synchronized.
+            search_up_to_tx__block_height: int | None = search.up_to_tx_block_height
             self._session.commit()
             locked = True
 
             if (
-                block_height is not None
-                and block_height >= up_to_block_height
+                search_up_to_tx__block_height is not None
+                and search_up_to_tx__block_height >= up_to_tx_block_height
             ):
+                # Function call actions were already synchronized
+                # up to the specified transaction block height.
                 return
 
-            actions = (
+            actions: list[Action] = (
                 self.fetch_actions(
                     tx_signer_key=tx_signer_key,
                     from_tx_block_height=(
-                        block_height + 1
-                        if block_height is not None
+                        search_up_to_tx__block_height + 1
+                        if search_up_to_tx__block_height is not None
                         else None
                     ),
-                    up_to_tx_block_height=up_to_block_height,
+                    up_to_tx_block_height=up_to_tx_block_height,
                 )
             )
 
             for action in actions:
                 self._action_repository.safe_add(action)
 
+            # Update up to which block height
+            # the function call search is synchronized now.
             self._search_repository.update(
                 search=search,
-                up_to_tx_block_height=up_to_block_height,
+                up_to_tx_block_height=up_to_tx_block_height,
             )
 
             self._session.commit()
@@ -170,7 +180,10 @@ class ActionService:
             raise
 
         finally:
-            if locked and search is not None:
+            if (
+                locked is True
+                and search is not None
+            ):
                 try:
                     self._search_repository.unlock(search)
                     self._session.commit()
@@ -178,7 +191,8 @@ class ActionService:
                     self._session.rollback()
 
                     logger.exception(
-                        f"Failed to synchronize function calls "
+                        f"Failed to unlock the function call search "
+                        f"when synchronizing function calls "
                         f"for `tx_signer_key` {tx_signer_key}"
                     )
 
@@ -202,7 +216,7 @@ class ActionService:
             List of function call actions created from fetched transactions.
         """
 
-        txs:  dict[str, list[dict]] = fetch_txs(
+        txs: dict[str, list[dict]] = fetch_txs(
            account_id=self._key_mapping.get_value(tx_signer_key),
            up_to_tx_block_height=up_to_tx_block_height,
            from_tx_block_height=from_tx_block_height,

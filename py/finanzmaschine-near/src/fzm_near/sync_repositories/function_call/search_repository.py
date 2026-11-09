@@ -6,7 +6,7 @@ from fzm_near.orm.function_call.search import Search
 from fzm_near.sync_repositories.function_call.search_repository_errors import SearchRepositoryError
 
 
-class ActionSearchRepository:
+class SearchRepository:
     """Provides synchronous database operations for NEAR function call searches."""
 
     def __init__(self, session: Session) -> None:
