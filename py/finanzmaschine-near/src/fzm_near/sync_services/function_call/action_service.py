@@ -132,7 +132,7 @@ class ActionService:
 
             self._search_repository.lock(search)
             # Determine up to which block height
-            # the function call search was already synchronized.
+            # the function call search was already processed.
             previous_block_height: int | None = search.up_to_tx_block_height
             self._session.commit()
             locked = True
@@ -161,7 +161,7 @@ class ActionService:
                 self._action_repository.safe_add(action)
 
             # Update up to which block height
-            # the function call search is synchronized now.
+            # the function call search is processed now.
             self._search_repository.update(
                 search=search,
                 up_to_tx_block_height=up_to_tx_block_height,
