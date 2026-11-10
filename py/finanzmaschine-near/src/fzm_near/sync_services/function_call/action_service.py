@@ -97,7 +97,7 @@ class ActionService:
         self,
         tx_signer_key: str,
         up_to_tx_block_height: int | None = None,
-    ) -> None:
+    ) -> int | None:
         """
         Synchronizes a signer's function call actions up to a block height.
 
@@ -108,6 +108,15 @@ class ActionService:
         Args:
             tx_signer_key: Key identifying the transaction signer.
             up_to_tx_block_height: Optional transaction block height through which to synchronize.
+
+        Returns:
+            The block height up to which function call actions
+            have been successfully synchronized.
+            Returns None if the search lock could not be acquired.
+
+        Raises:
+            Exception:
+                If synchronization or unlocking fails.
         """
 
         if up_to_tx_block_height is None:
@@ -121,17 +130,19 @@ class ActionService:
 
             if search is None:
                 # Create the first function call search
-                search: Search = Search(
+                search = Search(
                     tx_signer_key=tx_signer_key,
                 )
+                # noinspection PyTypeChecker
                 self._search_repository.safe_add(search)
                 self._session.commit()
 
+            # noinspection PyTypeChecker
             is_locked = self._search_repository.lock(search)
 
             if not is_locked:
                 self._session.rollback()
-                return
+                return None
 
             # Read the search progress after acquiring the lock
             self._session.refresh(search)
@@ -146,8 +157,7 @@ class ActionService:
                 and previous_block_height >= up_to_tx_block_height
             ):
                 # Function call actions were already synchronized
-                # up to the specified transaction block height.
-                return
+                return previous_block_height
 
             actions: list[Action] = (
                 self.fetch_actions(
@@ -166,12 +176,15 @@ class ActionService:
 
             # Update up to which block height
             # the function call search is processed now.
+            # noinspection PyTypeChecker
             self._search_repository.update(
                 search=search,
                 up_to_tx_block_height=up_to_tx_block_height,
             )
 
             self._session.commit()
+
+            return up_to_tx_block_height
 
         except Exception:
             self._session.rollback()
@@ -184,13 +197,11 @@ class ActionService:
             raise
 
         finally:
-            if (
-                is_locked
-                and search is not None
-            ):
+            if is_locked and search is not None:
                 try:
                     self._search_repository.unlock(search)
                     self._session.commit()
+
                 except Exception:
                     self._session.rollback()
 
