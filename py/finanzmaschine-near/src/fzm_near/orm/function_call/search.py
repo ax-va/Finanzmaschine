@@ -13,4 +13,4 @@ class Search(SQLModel, table=True):
         sa_type=BigInteger,
     )
 
-    locked: bool = Field(default=False)
+    is_locked: bool = Field(default=False)

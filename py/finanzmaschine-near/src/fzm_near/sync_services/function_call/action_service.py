@@ -113,14 +113,11 @@ class ActionService:
         if up_to_tx_block_height is None:
             up_to_tx_block_height: int = fetch_final_block_height()
 
-        # function call actions
-        actions: list[Action]
-        block_height: int | None
         search: Search | None = None
-        locked = False
+        is_locked = False
 
         try:
-            search: Search | None = self._search_repository.get(tx_signer_key)
+            search = self._search_repository.get(tx_signer_key)
 
             if search is None:
                 # Create the first function call search
@@ -130,12 +127,19 @@ class ActionService:
                 self._search_repository.safe_add(search)
                 self._session.commit()
 
-            self._search_repository.lock(search)
+            is_locked = self._search_repository.lock(search)
+
+            if not is_locked:
+                self._session.rollback()
+                return
+
+            # Read the search progress after acquiring the lock
+            self._session.refresh(search)
             # Determine up to which block height
             # the function call search was already processed.
             previous_block_height: int | None = search.up_to_tx_block_height
+
             self._session.commit()
-            locked = True
 
             if (
                 previous_block_height is not None
@@ -181,7 +185,7 @@ class ActionService:
 
         finally:
             if (
-                locked is True
+                is_locked
                 and search is not None
             ):
                 try:

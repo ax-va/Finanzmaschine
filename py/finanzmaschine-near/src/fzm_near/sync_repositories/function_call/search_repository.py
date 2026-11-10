@@ -21,7 +21,7 @@ class SearchRepository:
         """Returns the database session used by the repository."""
         return self._session
 
-    def lock(self, search: Search) -> None:
+    def lock(self, search: Search) -> bool:
         """
         Atomically locks the function call search.
 
@@ -29,24 +29,17 @@ class SearchRepository:
             search: function call search to update.
         """
 
-        statement =(
+        statement = (
             update(Search)
             .where(
                 col(Search.tx_signer_key) == search.tx_signer_key,
-                col(Search.locked).is_(False)
+                col(Search.is_locked).is_(False),
             )
-            .values(locked=True)
+            .values(is_locked=True)
         )
 
         result: CursorResult = self._session.exec(statement)
-        
-        if result.rowcount != 1:
-            raise SearchRepositoryError(
-                f"Cannot lock function call search "
-                f"for transaction signer key: {search.tx_signer_key}"
-            )
-
-        self._session.refresh(search)
+        return result.rowcount == 1
 
     def unlock(self, search: Search) -> None:
         """
@@ -61,7 +54,7 @@ class SearchRepository:
             .where(
                 col(Search.tx_signer_key) == search.tx_signer_key,
             )
-            .values(locked=False)
+            .values(is_locked=False)
         )
 
         self._session.exec(statement)
@@ -131,7 +124,7 @@ class SearchRepository:
             search: Function call search to update.
             up_to_tx_block_height: New inclusive upper transaction block height.
         """
-        if not search.locked:
+        if not search.is_locked:
             raise SearchRepositoryError(
                 f"Function call search is not locked "
                 f"to update for transaction signer key: {search.tx_signer_key}"

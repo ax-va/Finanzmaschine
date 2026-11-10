@@ -39,9 +39,9 @@ class SearchRepository:
             .where(
                 col(Search.account_key) == key.account_key,
                 col(Search.pool_key) == key.pool_key,
-                col(Search.locked).is_(False)
+                col(Search.is_locked).is_(False)
             )
-            .values(locked=True)
+            .values(is_locked=True)
         )
 
         result: CursorResult = self._session.exec(statement)
@@ -61,7 +61,7 @@ class SearchRepository:
                 col(Search.account_key) == key.account_key,
                 col(Search.pool_key) == key.pool_key,
             )
-            .values(locked=False)
+            .values(is_locked=False)
         )
 
         self._session.exec(statement)

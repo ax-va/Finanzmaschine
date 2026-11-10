@@ -23,4 +23,4 @@ class Search(
     is_reward_tracking_active: bool = Field(default=False)
 
     # Whether the search is locked for other processes
-    locked: bool = Field(default=False)
+    is_locked: bool = Field(default=False)
