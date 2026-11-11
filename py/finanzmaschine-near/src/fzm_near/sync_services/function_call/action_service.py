@@ -104,15 +104,16 @@ class ActionService:
         Uses a repository lock to prevent concurrent synchronization.
         Fetches and stores actions not yet synchronized,
         updates the synchronization progress, and releases the lock afterward.
+        A successfully processed range may contain no function call actions.
 
         Args:
             tx_signer_key: Key identifying the transaction signer.
             up_to_tx_block_height: Optional transaction block height through which to synchronize.
 
         Returns:
-            The block height up to which function call actions
-            have been successfully synchronized.
-            Returns None if the search lock could not be acquired.
+            The transaction block height through which function call actions have been
+            successfully synchronized, including when no new synchronization was necessary.
+            `None` if the search lock could not be acquired.
 
         Raises:
             Exception:
@@ -130,14 +131,12 @@ class ActionService:
 
             if search is None:
                 # Create the first function call search
-                search = Search(
+                search: Search = Search(
                     tx_signer_key=tx_signer_key,
                 )
-                # noinspection PyTypeChecker
                 self._search_repository.safe_add(search)
                 self._session.commit()
 
-            # noinspection PyTypeChecker
             is_locked = self._search_repository.lock(search)
 
             if not is_locked:
@@ -176,7 +175,6 @@ class ActionService:
 
             # Update up to which block height
             # the function call search is processed now.
-            # noinspection PyTypeChecker
             self._search_repository.update(
                 search=search,
                 up_to_tx_block_height=up_to_tx_block_height,
