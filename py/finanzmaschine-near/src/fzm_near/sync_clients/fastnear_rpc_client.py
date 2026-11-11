@@ -46,9 +46,9 @@ def handle_block_height_not_found(func):
     return wrapper
 
 
-class RpcClient:
-    RPC_MAINNET_URL = "https://rpc.mainnet.fastnear.com"
-    ARCHIVAL_RPC_MAINNET_URL = "https://archival-rpc.mainnet.fastnear.com"
+class FastnearRpcClient:
+    _RPC_MAINNET_URL = "https://rpc.mainnet.fastnear.com"
+    _ARCHIVAL_RPC_MAINNET_URL = "https://archival-rpc.mainnet.fastnear.com"
 
     def __init__(self, client: httpx.Client) -> None:
         self._client = client
@@ -104,7 +104,7 @@ class RpcClient:
         }
 
         data = self._post(
-            self.ARCHIVAL_RPC_MAINNET_URL,
+            self._ARCHIVAL_RPC_MAINNET_URL,
             payload=payload,
         )
 
@@ -127,7 +127,7 @@ class RpcClient:
     def fetch_final_block_height(self) -> int:
 
         block = self._fetch_block(
-            url=self.RPC_MAINNET_URL,
+            url=self._RPC_MAINNET_URL,
             params={
                 "finality": "final",
             }
@@ -150,7 +150,7 @@ class RpcClient:
     @handle_block_height_not_found
     def fetch_block_timestamp_nanoseconds(self, block_height: int) -> int:
         block = self._fetch_block(
-            url=self.ARCHIVAL_RPC_MAINNET_URL,
+            url=self._ARCHIVAL_RPC_MAINNET_URL,
             params={
                 "block_id": block_height,
             }

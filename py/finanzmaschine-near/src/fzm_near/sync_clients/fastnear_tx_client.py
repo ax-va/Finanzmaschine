@@ -1,7 +1,7 @@
 import httpx
 
 
-class TxsClient:
+class FastnearTxClient:
     _TX_MAIN_URL = "https://tx.main.fastnear.com"
     _PAGE_LIMIT = 200
     _TXS_BATCH_SIZE = 20
