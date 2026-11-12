@@ -1,7 +1,7 @@
 import httpx
 
 
-class FastnearTxClient:
+class FastNEARTxClient:
     _TX_MAIN_URL = "https://tx.main.fastnear.com"
     _PAGE_LIMIT = 200
     _TXS_BATCH_SIZE = 20
@@ -23,6 +23,13 @@ class FastnearTxClient:
 
         Retrieves all matching transactions, automatically following pagination
         using the resume token returned by the API.
+
+        WARNING:
+            Transactions may be missing
+            if FastNEAR has not yet indexed the corresponding blocks.
+            A successful response does not guarantee
+            that all transactions within the requested block height range
+            have been indexed.
 
         Args:
             account_id: NEAR account ID to fetch transactions for.
@@ -111,6 +118,11 @@ class FastnearTxClient:
         Fetch raw transactions by their hashes.
 
         Requests transactions in batches according to the API batch size limit.
+
+        WARNING:
+            Raw transaction data may be incomplete
+            if FastNEAR has not yet indexed all associated receipts and execution outcomes.
+            A successful API response does not guarantee data completeness.
 
         Args:
             tx_hashes: Transaction hashes to fetch.

@@ -3,7 +3,7 @@ import httpx
 from fzm_near.orm.staking.balance import Balance
 from fzm_near.sync_clients.fastnear_rpc_client import FastnearRpcClient
 from fzm_near.sync_clients.staking_client import StakingClient
-from fzm_near.sync_clients.fastnear_tx_client import FastnearTxClient
+from fzm_near.sync_clients.fastnear_tx_client import FastNEARTxClient
 
 
 def fetch_balance(
@@ -55,7 +55,7 @@ def fetch_txs(
     """Fetches transactions within a block height range."""
 
     with httpx.Client(timeout=30) as http_client:
-        tx_client = FastnearTxClient(http_client)
+        tx_client = FastNEARTxClient(http_client)
 
         account_txs: list[dict] = tx_client.fetch_account_txs(
             account_id=account_id,
