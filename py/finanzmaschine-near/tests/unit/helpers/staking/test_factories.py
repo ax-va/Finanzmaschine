@@ -5,7 +5,7 @@ import pytest
 from polars.testing import assert_frame_equal
 
 from fzm_near.helpers import constants as const
-from fzm_near.helpers.staking.factories import SearchIntervalFactory as Factory
+from fzm_near.helpers.staking.factories import SnapshotSearchIntervalFactory
 from tests.unit.helpers.staking.data_loaders import (
     load_actions,
     load_expected_final_states,
@@ -80,11 +80,13 @@ def test_create_df_search_intervals_and_final_states(
             pool_keys = pool_keys.append(df_last_states[const.POOL_KEY])
         num_pools = pool_keys.n_unique()
 
-        result: dict[str, pl.DataFrame] = Factory.create_df_search_intervals_and_final_states(
-            df_actions=df_actions_slice,
-            from_block_height=from_block_height,
-            up_to_block_height=up_to_block_height,
-            df_last_states=df_last_states,
+        result: dict[str, pl.DataFrame] = (
+            SnapshotSearchIntervalFactory.create_df_search_intervals_and_final_states(
+                df_actions=df_actions_slice,
+                from_block_height=from_block_height,
+                up_to_block_height=up_to_block_height,
+                df_last_states=df_last_states,
+            )
         )
 
         df_expected_intervals_slice: pl.DataFrame = df_expected_intervals.filter(

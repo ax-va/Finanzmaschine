@@ -71,9 +71,9 @@ class SnapshotFactory:
         )
 
 
-class SearchIntervalFactory:
+class SnapshotSearchIntervalFactory:
     """
-    Builds search intervals for historical staking pool balance changes.
+    Builds snapshot search intervals for historical staking pool balance changes.
 
     Constructs block-height intervals in which the total (staked + unstaked)
     balance is expected to be monotonically non-decreasing.
@@ -83,8 +83,9 @@ class SearchIntervalFactory:
     across consecutive block ranges.
     """
 
-    @staticmethod
+    @classmethod
     def create_df_search_intervals_and_final_states(
+        cls,
         df_actions: pl.DataFrame,
         from_block_height: int,
         up_to_block_height: int,
@@ -291,7 +292,7 @@ class SearchIntervalFactory:
                     # At first, check `WITHDRAW...`
                     if has_withdraw:
                         if lower_block_height < block_height:
-                            SearchIntervalFactory._append_search_interval(
+                            cls._append_search_interval(
                                 pool_key=pool_key,
                                 lower_block_height=lower_block_height,
                                 upper_block_height=block_height - 1,
@@ -303,7 +304,7 @@ class SearchIntervalFactory:
                     # Then, check `UNSTAKE_ALL` without `...STAKE...`
                     if has_unstake_all and not has_stake:
                         # noinspection PyTypeChecker
-                        SearchIntervalFactory._append_search_interval(
+                        cls._append_search_interval(
                             pool_key=pool_key,
                             lower_block_height=lower_block_height,
                             upper_block_height=block_height,
@@ -327,7 +328,7 @@ class SearchIntervalFactory:
                     ).any()
 
                     if has_withdraw or has_deposit:
-                        SearchIntervalFactory._append_search_interval(
+                        cls._append_search_interval(
                             pool_key=pool_key,
                             lower_block_height=block_height,
                             upper_block_height=block_height,
@@ -337,14 +338,14 @@ class SearchIntervalFactory:
             if lower_block_height is not None:
                 # Close the final interval
                 # and add it to the intervals.
-                SearchIntervalFactory._append_search_interval(
+                cls._append_search_interval(
                     pool_key=pool_key,
                     lower_block_height=lower_block_height,
                     upper_block_height=up_to_block_height,
                     intervals=intervals,
                 )
 
-            SearchIntervalFactory._append_final_state(
+            cls._append_final_state(
                 pool_key=pool_key,
                 up_to_block_height=up_to_block_height,
                 is_reward_tracking_active=(lower_block_height is not None),
@@ -359,14 +360,14 @@ class SearchIntervalFactory:
                 continue
 
             if is_reward_tracking_active:
-                SearchIntervalFactory._append_search_interval(
+                cls._append_search_interval(
                     pool_key=pool_key,
                     lower_block_height=from_block_height,
                     upper_block_height=up_to_block_height,
                     intervals=intervals,
                 )
 
-            SearchIntervalFactory._append_final_state(
+            cls._append_final_state(
                 pool_key=pool_key,
                 up_to_block_height=up_to_block_height,
                 is_reward_tracking_active=is_reward_tracking_active,
