@@ -2,8 +2,8 @@ from sqlalchemy import BigInteger
 from sqlmodel import Field, SQLModel
 
 
-class Search(SQLModel, table=True):
-    __tablename__ = "near_function_call_searches"
+class ActionSearch(SQLModel, table=True):
+    __tablename__ = "near_function_call_action_searches"
 
     tx_signer_key: str = Field(primary_key=True)
 

@@ -1,2 +1,0 @@
-class ActionRepositoryError(Exception):
-    pass

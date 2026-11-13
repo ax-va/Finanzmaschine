@@ -1,12 +1,10 @@
-import logging
-
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from fzm_near.orm.staking.key import Key
 from fzm_near.orm.staking.snapshot import Snapshot
-from fzm_near.sync_repositories.staking.snapshot_repository_errors import SnapshotRepositoryError
+from fzm_near.sync_repositories.staking.errors import SnapshotRepositoryError
 
 
 class SnapshotRepository:
@@ -62,7 +60,6 @@ class SnapshotRepository:
             Snapshot.pool_key == key.pool_key,
         )
 
-        # noinspection PyTypeChecker
         block_height: int | None = self._session.exec(statement).one()
 
         if block_height is None:

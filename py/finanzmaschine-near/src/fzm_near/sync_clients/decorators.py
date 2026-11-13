@@ -2,7 +2,42 @@ import functools
 import logging
 import time
 
+import httpx
+
+from fzm_near.sync_clients.errors import BlockHeightNotFoundError
+
 logger = logging.getLogger(__name__)
+
+
+def handle_block_height_not_found(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code != 422:
+                raise
+
+            data = exc.response.json()
+            error = data.get("error", {})
+            cause = error.get("cause", {})
+
+            if cause.get("name") != "UNKNOWN_BLOCK":
+                raise
+
+            block_height = (
+                cause
+                .get("info", {})
+                .get("block_reference", {})
+                .get("block_id")
+            )
+
+            raise BlockHeightNotFoundError(
+                f"Block height {block_height} not found"
+            ) from exc
+
+    return wrapper
 
 
 def retry(

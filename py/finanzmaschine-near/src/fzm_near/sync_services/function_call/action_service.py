@@ -1,15 +1,24 @@
 import logging
 
+import polars as pl
 from sqlmodel import Session
 
 from fzm_keying import KeyMappingProtocol
 
 from fzm_near.orm.function_call.action import Action
-from fzm_near.orm.function_call.search import Search
+from fzm_near.orm.function_call.action_search import ActionSearch
+from fzm_near.helpers import constants as const
 from fzm_near.helpers.function_call.factories import create_actions
-from fzm_near.sync_clients.fetchers import fetch_final_block_height, fetch_txs
+from fzm_near.helpers.staking.df_schemas import ACTION_SCHEMA as STAKING_ACTION_SCHEMA
+from fzm_near.helpers.staking.enums import MethodNameEnum
+from fzm_near.helpers.staking.extractors import extract_operation_yocto_str
+from fzm_near.sync_clients.fastnear_fetchers import (
+    fetch_final_block_height,
+    fetch_txs,
+)
 from fzm_near.sync_repositories.function_call.action_repository import ActionRepository
-from fzm_near.sync_repositories.function_call.search_repository import SearchRepository
+from fzm_near.sync_repositories.function_call.action_search_repository import ActionSearchRepository
+from fzm_near.sync_services.function_call.receiver_service import ReceiverService
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +38,9 @@ class ActionService:
         """
 
         self._session: Session = session
-        self._search_repository = SearchRepository(session)
         self._action_repository = ActionRepository(session)
+        self._search_repository = ActionSearchRepository(session)
         self._key_mapping: KeyMappingProtocol = key_mapping
-
 
     def get_actions(
         self,
@@ -123,7 +131,7 @@ class ActionService:
         if up_to_tx_block_height is None:
             up_to_tx_block_height: int = fetch_final_block_height()
 
-        search: Search | None = None
+        search: ActionSearch | None = None
         is_locked = False
 
         try:
@@ -131,7 +139,7 @@ class ActionService:
 
             if search is None:
                 # Create the first function call search
-                search: Search = Search(
+                search: ActionSearch = ActionSearch(
                     tx_signer_key=tx_signer_key,
                 )
                 self._search_repository.safe_add(search)
@@ -241,3 +249,61 @@ class ActionService:
         )
 
         return actions
+
+    def create_df_staking_actions(
+        self,
+        actions: list[Action],
+    ) -> pl.DataFrame:
+        """
+        Filters function call actions and converts them into staking actions.
+
+        Preserves the original action order and checks each unique receiver only once.
+
+        Args:
+            actions: Function call actions to process.
+
+        Returns:
+            Dataframe with staking actions for verified staking pool receivers.
+        """
+
+        receiver_service = ReceiverService(
+            session=self._session,
+            key_mapping=self._key_mapping,
+        )
+
+        receiver_results: dict[str, bool] = {}
+        rows: list[dict] = []
+
+        for action in actions:
+            try:
+                method_name = MethodNameEnum(action.method_name)
+            except ValueError:
+                continue
+
+            receiver_key = action.receiver_key
+
+            if receiver_key not in receiver_results:
+                receiver_results[receiver_key] = (
+                    receiver_service.is_staking_pool(receiver_key)
+                )
+
+            if not receiver_results[receiver_key]:
+                continue
+
+            rows.append(
+                {
+                    const.RECEIPT_KEY: action.receipt_key,
+                    const.ACTION_INDEX: action.action_index,
+                    const.ACCOUNT_KEY: action.tx_signer_key,
+                    const.POOL_KEY: action.receiver_key,
+                    const.EXEC_OUTCOME_BLOCK_HEIGHT: action.exec_outcome_block_height,
+                    const.EXEC_OUTCOME_INDEX: action.exec_outcome_index,
+                    const.METHOD_NAME: method_name.value,
+                    const.OPERATION_YOCTO_STR: extract_operation_yocto_str(action=action),
+                }
+            )
+
+        return pl.DataFrame(
+            data=rows,
+            schema=STAKING_ACTION_SCHEMA,
+        )

@@ -1,71 +1,17 @@
 import base64
-import functools
 import json
 import logging
+from typing import Any
 
-import httpx
-
-from fzm_near.sync_clients.decorators import retry, rate_limit
-from fzm_near.sync_clients.errors import BlockHeightNotFoundError
-
-MAX_RETRIES = 10
-MIN_RETRY_DELAY_SEC = 3.0
-MIN_INTERVAL_SEC = 3.0
+from fzm_near.sync_clients.http_client import HttpClient
 
 logger = logging.getLogger(__name__)
 
 
-def handle_block_height_not_found(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-
-        except httpx.HTTPStatusError as exc:
-            if exc.response.status_code != 422:
-                raise
-
-            data = exc.response.json()
-            error = data.get("error", {})
-            cause = error.get("cause", {})
-
-            if cause.get("name") != "UNKNOWN_BLOCK":
-                raise
-
-            block_height = (
-                cause
-                .get("info", {})
-                .get("block_reference", {})
-                .get("block_id")
-            )
-
-            raise BlockHeightNotFoundError(
-                f"Block height {block_height} not found"
-            ) from exc
-
-    return wrapper
-
-
-class FastnearRpcClient:
+class FastNearRpcClient(HttpClient):
     _RPC_MAINNET_URL = "https://rpc.mainnet.fastnear.com"
     _ARCHIVAL_RPC_MAINNET_URL = "https://archival-rpc.mainnet.fastnear.com"
 
-    def __init__(self, client: httpx.Client) -> None:
-        self._client = client
-
-    @retry(
-        max_retries=MAX_RETRIES,
-        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
-        exceptions=(
-            httpx.HTTPStatusError,
-            httpx.ReadTimeout,
-            httpx.RemoteProtocolError,
-        ),
-    )
-    @rate_limit(
-        min_interval_sec=MIN_INTERVAL_SEC,
-    )
-    @handle_block_height_not_found
     def call_view_function(
         self,
         contract_id: str,
@@ -104,28 +50,16 @@ class FastnearRpcClient:
         }
 
         data = self._post(
-            self._ARCHIVAL_RPC_MAINNET_URL,
+            url=self._ARCHIVAL_RPC_MAINNET_URL,
             payload=payload,
+            error_name="FastNEAR RPC error",
         )
 
         result = data["result"]["result"]
 
         return bytes(result)
 
-    @retry(
-        max_retries=MAX_RETRIES,
-        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
-        exceptions=(
-            httpx.HTTPStatusError,
-            httpx.ReadTimeout,
-            httpx.RemoteProtocolError,
-        ),
-    )
-    @rate_limit(
-        min_interval_sec=MIN_INTERVAL_SEC,
-    )
     def fetch_final_block_height(self) -> int:
-
         block = self._fetch_block(
             url=self._RPC_MAINNET_URL,
             params={
@@ -135,20 +69,10 @@ class FastnearRpcClient:
 
         return block["header"]["height"]
 
-    @retry(
-        max_retries=MAX_RETRIES,
-        min_retry_delay_sec=MIN_RETRY_DELAY_SEC,
-        exceptions=(
-            httpx.HTTPStatusError,
-            httpx.ReadTimeout,
-            httpx.RemoteProtocolError,
-        ),
-    )
-    @rate_limit(
-        min_interval_sec=MIN_INTERVAL_SEC,
-    )
-    @handle_block_height_not_found
-    def fetch_block_timestamp_nanoseconds(self, block_height: int) -> int:
+    def fetch_block_timestamp_nanoseconds(
+        self,
+        block_height: int,
+    ) -> int:
         block = self._fetch_block(
             url=self._ARCHIVAL_RPC_MAINNET_URL,
             params={
@@ -157,7 +81,6 @@ class FastnearRpcClient:
         )
 
         return int(block["header"]["timestamp_nanosec"])
-
 
     def is_staking_pool_whitelisted(
         self,
@@ -191,7 +114,11 @@ class FastnearRpcClient:
 
         return value
 
-    def _fetch_block(self, url: str, params: dict) -> dict:
+    def _fetch_block(
+        self,
+        url: str,
+        params: dict[str, Any],
+    ) -> dict[str, Any]:
         payload = {
             "jsonrpc": "2.0",
             "id": "staking",
@@ -202,22 +129,7 @@ class FastnearRpcClient:
         data = self._post(
             url=url,
             payload=payload,
+            error_name="FastNEAR RPC error",
         )
 
         return data["result"]
-
-    def _post(self, url: str, payload: dict) -> dict:
-        response = self._client.post(
-            url=url,
-            json=payload,
-        )
-
-        response.raise_for_status()
-        data = response.json()
-
-        if "error" in data:
-            raise RuntimeError(
-                f"NEAR RPC error: {data['error']}"
-            )
-
-        return data

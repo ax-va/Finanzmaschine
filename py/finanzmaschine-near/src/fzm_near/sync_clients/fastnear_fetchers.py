@@ -1,9 +1,9 @@
 import httpx
 
 from fzm_near.orm.staking.balance import Balance
-from fzm_near.sync_clients.fastnear_rpc_client import FastnearRpcClient
+from fzm_near.sync_clients.fastnear_rpc_client import FastNearRpcClient
 from fzm_near.sync_clients.staking_client import StakingClient
-from fzm_near.sync_clients.fastnear_tx_client import FastNEARTxClient
+from fzm_near.sync_clients.fastnear_tx_client import FastNearTxClient
 
 
 def fetch_balance(
@@ -29,7 +29,7 @@ def fetch_balance(
             The balance values are not a string.
     """
     with httpx.Client(timeout=30) as http_client:
-        rpc_client = FastnearRpcClient(http_client)
+        rpc_client = FastNearRpcClient(http_client)
         staking_client = StakingClient(rpc_client)
 
         balance: Balance = staking_client.fetch_balance(
@@ -43,7 +43,7 @@ def fetch_balance(
 def fetch_final_block_height() -> int:
     """Fetches the height of the latest finalized NEAR block."""
     with httpx.Client(timeout=30) as http_client:
-        rpc_client = FastnearRpcClient(http_client)
+        rpc_client = FastNearRpcClient(http_client)
         return rpc_client.fetch_final_block_height()
 
 
@@ -55,7 +55,7 @@ def fetch_txs(
     """Fetches transactions within a block height range."""
 
     with httpx.Client(timeout=30) as http_client:
-        tx_client = FastNEARTxClient(http_client)
+        tx_client = FastNearTxClient(http_client)
 
         account_txs: list[dict] = tx_client.fetch_account_txs(
             account_id=account_id,
@@ -83,7 +83,7 @@ def is_staking_pool_whitelisted(
 ) -> bool:
 
     with httpx.Client(timeout=30) as http_client:
-        rpc_client = FastnearRpcClient(http_client)
+        rpc_client = FastNearRpcClient(http_client)
 
         is_whitelisted: bool = rpc_client.is_staking_pool_whitelisted(
             pool_id=pool_id,

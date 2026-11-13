@@ -1,12 +1,12 @@
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
-from fzm_near.orm.receiver import Receiver
-from fzm_near.sync_repositories.receiver_repository_errors import ReceiverRepositoryError
+from fzm_near.orm.function_call.receiver import Receiver
+from fzm_near.sync_repositories.function_call.errors import ReceiverRepositoryError
 
 
 class ReceiverRepository:
-    """Manages receiver records in the database."""
+    """Manages function call receiver records in the database."""
 
     def __init__(self, session: Session):
         """
@@ -22,10 +22,10 @@ class ReceiverRepository:
 
     def get(self, receiver_key: str) -> Receiver | None:
         """
-        Retrieves a receiver by its key.
+        Retrieves a function call receiver by its key.
 
         Args:
-            receiver_key: Unique key identifying the receiver.
+            receiver_key: Unique key identifying the function call receiver.
 
         Returns:
             The receiver if found, otherwise `None`.
@@ -34,10 +34,10 @@ class ReceiverRepository:
 
     def add(self, receiver: Receiver) -> None:
         """
-        Adds a receiver to the database session.
+        Adds a function call receiver to the database session.
 
         Args:
-            receiver: Receiver to add.
+            receiver: Function call receiver to add.
         """
         self._session.add(receiver)
 
@@ -47,20 +47,20 @@ class ReceiverRepository:
 
     def safe_add(self, receiver: Receiver) -> Receiver:
         """
-        Adds a receiver or return the existing record if it already exists.
+        Adds a function call receiver or return the existing record if it already exists.
 
         Uses a savepoint to handle integrity conflicts without rolling back
         the surrounding transaction.
 
         Args:
-            receiver: Receiver to add.
+            receiver: Function call receiver to add.
 
         Returns:
-            The added receiver or the existing receiver.
+            The added function call receiver or the existing one.
 
         Raises:
             ReceiverRepositoryError:
-                If the receiver could not be added in the database.
+                If the function call receiver could not be added in the database.
         """
         try:
             with self._session.begin_nested():
@@ -82,5 +82,5 @@ class ReceiverRepository:
                 return receiver_
 
             raise ReceiverRepositoryError(
-                f"Cannot add receiver for receiver key: {receiver.receiver_key}"
+                f"Cannot add function call receiver for receiver key: {receiver.receiver_key}"
             ) from e

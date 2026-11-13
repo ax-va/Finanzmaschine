@@ -1,13 +1,12 @@
-import httpx
+from typing import Any
+
+from fzm_near.sync_clients.http_client import HttpClient
 
 
-class FastNEARTxClient:
+class FastNearTxClient(HttpClient):
     _TX_MAIN_URL = "https://tx.main.fastnear.com"
     _PAGE_LIMIT = 200
     _TXS_BATCH_SIZE = 20
-
-    def __init__(self, client: httpx.Client) -> None:
-        self._client = client
 
     def fetch_account_txs(
         self,
@@ -92,13 +91,12 @@ class FastNEARTxClient:
             payload["is_success"] = is_success
 
         while True:
-            response = self._client.post(
-                f"{self._TX_MAIN_URL}/v0/account",
-                json=payload,
+            data: dict[str, Any] = self._post(
+                url=self._TX_MAIN_URL + "/v0/account",
+                payload=payload,
+                error_name="FastNEAR Tx error",
             )
-            response.raise_for_status()
 
-            data = response.json()
             account_txs.extend(data.get("account_txs", []))
 
             resume_token: str | None = data.get("resume_token")
@@ -136,12 +134,16 @@ class FastNEARTxClient:
         raw_txs: list[dict] = []
 
         for i in range(0, len(tx_hashes), self._TXS_BATCH_SIZE):
-            response = self._client.post(
-                f"{self._TX_MAIN_URL}/v0/transactions",
-                json={"tx_hashes": tx_hashes[i : i + self._TXS_BATCH_SIZE]},
+            payload = {
+                "tx_hashes": tx_hashes[i : i + self._TXS_BATCH_SIZE],
+            }
+
+            data: dict[str, Any] = self._post(
+                url=self._TX_MAIN_URL + "/v0/transactions",
+                payload=payload,
+                error_name="FastNEAR Tx error",
             )
-            response.raise_for_status()
-            data = response.json()
+
             raw_txs.extend(data["transactions"])
 
         # Order `raw_txs` by `tx_hashes`
@@ -156,3 +158,41 @@ class FastNEARTxClient:
         ]
 
         return raw_txs
+
+    def fetch_block_txs(
+        self,
+        block_height: int,
+    ) -> list[dict]:
+        """
+        Fetches transactions included in a specific NEAR block.
+
+        The returned transaction records may contain `is_completed`,
+        which indicates whether FastNEAR considers the transaction data
+        complete or still expects additional receipts.
+
+        Args:
+            block_height: Height of the block to fetch.
+
+        Returns:
+            Transaction records included in the requested block.
+
+        Raises:
+            httpx.HTTPStatusError:
+                If the API request returns an unsuccessful HTTP status code.
+            KeyError:
+                If the response does not contain `block_txs`.
+        """
+        payload = {
+            "block_id": block_height,
+            "with_transactions": True,
+        }
+
+        data: dict[str, Any] = self._post(
+            url=self._TX_MAIN_URL + "/v0/block",
+            payload=payload,
+            error_name="FastNEAR Tx error",
+        )
+
+        return data["block_txs"]
+
+

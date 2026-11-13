@@ -1,9 +1,12 @@
 from sqlmodel import Session
 
 from fzm_keying import KeyMappingProtocol
-from fzm_near.orm.receiver import Receiver
-from fzm_near.sync_clients.fetchers import fetch_final_block_height, is_staking_pool_whitelisted
-from fzm_near.sync_repositories.receiver_repository import ReceiverRepository
+from fzm_near.orm.function_call.receiver import Receiver
+from fzm_near.sync_clients.fastnear_fetchers import (
+    fetch_final_block_height,
+    is_staking_pool_whitelisted,
+)
+from fzm_near.sync_repositories.function_call.receiver_repository import ReceiverRepository
 
 
 class ReceiverService:

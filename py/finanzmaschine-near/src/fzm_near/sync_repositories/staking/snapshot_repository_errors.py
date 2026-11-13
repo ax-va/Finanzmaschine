@@ -1,2 +1,0 @@
-class SnapshotRepositoryError(Exception):
-    pass

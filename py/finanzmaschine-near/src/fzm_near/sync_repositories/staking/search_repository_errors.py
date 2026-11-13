@@ -1,2 +1,0 @@
-class SearchRepositoryError(Exception):
-    pass

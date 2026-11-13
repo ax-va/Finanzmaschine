@@ -1,13 +1,13 @@
 from fzm_near.orm.block import Block
-from fzm_near.sync_clients.fastnear_rpc_client import FastnearRpcClient
+from fzm_near.sync_clients.protocols import RpcClientProtocol
 
 
 class BlockClient:
-    def __init__(self, rpc_client: FastnearRpcClient) -> None:
+    def __init__(self, rpc_client: RpcClientProtocol) -> None:
         self._rpc_client = rpc_client
 
     @property
-    def rpc_client(self) -> FastnearRpcClient:
+    def rpc_client(self) -> RpcClientProtocol:
         return self._rpc_client
 
     def fetch_block(self, block_height: int) -> Block:

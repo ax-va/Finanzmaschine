@@ -6,6 +6,8 @@ class Action(SQLModel, table=True):
     __tablename__ = "near_function_call_actions"
 
     receipt_key: str = Field(primary_key=True)
+    # zero-based position among all actions in the receipt,
+    # not just FunctionCall actions
     action_index: int = Field(primary_key=True)
 
     # transaction singer key
