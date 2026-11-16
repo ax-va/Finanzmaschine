@@ -109,7 +109,7 @@ class FastNearTxClient(HttpClient):
 
     def wait_for_completed_txs(
         self,
-        account_txs: list[dict],
+        pending_txs: dict[str, int],
         poll_interval: float | int = 1.0,
         timeout: float | int = 120.0,
     ) -> None:
@@ -125,13 +125,13 @@ class FastNearTxClient(HttpClient):
             within a block height range have been indexed.
 
         Args:
-            account_txs: Transactions to check for completion.
+            pending_txs: Mapping of transaction hashes to block heights.
             poll_interval: Delay between polling rounds, in seconds.
             timeout: Maximum waiting time, in seconds.
 
         Raises:
             ValueError: If polling parameters are invalid.
-            TimeoutError: If some transactions remain incomplete.
+            TiimeoutError: If some transactions remain incomplete.
         """
         if poll_interval <= 0:
             raise ValueError("`poll_interval` must be positive")
@@ -139,12 +139,9 @@ class FastNearTxClient(HttpClient):
         if timeout <= 0:
             raise ValueError("`timeout` must be positive")
 
-        pending_txs = {
-            tx["transaction_hash"]: tx["tx_block_height"]
-            for tx in account_txs
-        }
-
         deadline = time.monotonic() + timeout
+
+        pending_txs = pending_txs.copy()
 
         while pending_txs:
             for tx_block_height in set(pending_txs.values()):
