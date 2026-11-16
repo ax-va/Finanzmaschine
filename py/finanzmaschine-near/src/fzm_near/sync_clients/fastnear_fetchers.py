@@ -68,8 +68,10 @@ def fetch_txs(
             tx["transaction_hash"]: tx["tx_block_height"]
             for tx in account_txs
         }
-        # Wait until FastNEAR has indexed all receipts and execution outcomes.
-        # Otherwise, successful transactions may still have incomplete data.
+        # Wait until FastNEAR has indexed
+        # all receipts and execution outcomes.
+        # Otherwise, successful transactions
+        # may still have incomplete data.
         tx_client.wait_for_completed_txs(
             pending_txs=tx_hash_to_tx_block_height,
         )
