@@ -1,3 +1,4 @@
+import time
 from typing import Any
 
 from fzm_near.sync_clients.http_client import HttpClient
@@ -51,11 +52,10 @@ class FastNearTxClient(HttpClient):
 
         Raises:
             ValueError:
-                 "`from_tx_block_height` must not exceed `up_to_tx_block_height`"
+                If `from_tx_block_height` exceeds `up_to_tx_block_height`.
             httpx.HTTPStatusError:
                 If an API request returns an unsuccessful HTTP status code.
         """
-
         if (
             from_tx_block_height is not None
             and up_to_tx_block_height is not None
@@ -75,13 +75,12 @@ class FastNearTxClient(HttpClient):
         }
 
         if from_tx_block_height is not None:
-            # `from_tx_block_height` is inclusive
-            shifted_block_height = from_tx_block_height - 1
-            # `payload["from_tx_block_height"]` must be exclusive
-            payload["from_tx_block_height"] = shifted_block_height
+            # The public lower bound is inclusive.
+            # FastNEAR expects an exclusive lower bound.
+            payload["from_tx_block_height"] = from_tx_block_height - 1
 
         if up_to_tx_block_height is not None:
-            # `up_to_tx_block_height` and `payload["to_tx_block_height"]` are inclusive
+            # Both upper bounds are inclusive.
             payload["to_tx_block_height"] = up_to_tx_block_height
 
         if is_function_call is not None:
@@ -108,19 +107,89 @@ class FastNearTxClient(HttpClient):
 
         return account_txs
 
+    def wait_for_completed_txs(
+        self,
+        account_txs: list[dict],
+        poll_interval: float | int = 1.0,
+        timeout: float | int = 120.0,
+    ) -> None:
+        """
+        Waits until FastNEAR marks all specified transactions as completed.
+
+        Checks `is_completed` using the block endpoint.
+        Completed transactions are excluded from subsequent polls.
+
+        WARNING:
+            This method checks only transactions already returned
+            by FastNEAR. It does not guarantee that all transactions
+            within a block height range have been indexed.
+
+        Args:
+            account_txs: Transactions to check for completion.
+            poll_interval: Delay between polling rounds, in seconds.
+            timeout: Maximum waiting time, in seconds.
+
+        Raises:
+            ValueError: If polling parameters are invalid.
+            TimeoutError: If some transactions remain incomplete.
+        """
+        if poll_interval <= 0:
+            raise ValueError("`poll_interval` must be positive")
+
+        if timeout <= 0:
+            raise ValueError("`timeout` must be positive")
+
+        pending_txs = {
+            tx["transaction_hash"]: tx["tx_block_height"]
+            for tx in account_txs
+        }
+
+        deadline = time.monotonic() + timeout
+
+        while pending_txs:
+            for tx_block_height in set(pending_txs.values()):
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(
+                        f"Transactions are not completed: {list(pending_txs)}"
+                    )
+
+                block_txs = self.fetch_block_txs(tx_block_height)
+
+                for block_tx in block_txs:
+                    tx_hash = block_tx["transaction_hash"]
+
+                    if (
+                        tx_hash in pending_txs
+                        and block_tx.get("is_completed") is True
+                    ):
+                        del pending_txs[tx_hash]
+
+            if pending_txs:
+                remaining = deadline - time.monotonic()
+
+                if remaining <= 0:
+                    raise TimeoutError(
+                        f"Transactions are not completed: {list(pending_txs)}"
+                    )
+
+                time.sleep(min(poll_interval, remaining))
+
     def fetch_raw_txs(
         self,
         tx_hashes: list[str],
     ) -> list[dict]:
         """
-        Fetch raw transactions by their hashes.
+        Fetches raw transactions by their hashes.
 
         Requests transactions in batches according to the API batch size limit.
 
         WARNING:
             Raw transaction data may be incomplete
-            if FastNEAR has not yet indexed all associated receipts and execution outcomes.
-            A successful API response does not guarantee data completeness.
+            if FastNEAR has not yet indexed all associated receipts
+            and execution outcomes.
+
+            Call `wait_for_completed_txs()` before this method
+            when complete transaction data is required.
 
         Args:
             tx_hashes: Transaction hashes to fetch.
@@ -129,7 +198,10 @@ class FastNearTxClient(HttpClient):
             Raw transaction records returned by the API.
 
         Raises:
-            httpx.HTTPStatusError: If an API request returns an unsuccessful HTTP status code.
+            httpx.HTTPStatusError:
+                If an API request returns an unsuccessful HTTP status code.
+            KeyError:
+                If the response is missing a requested transaction.
         """
         raw_txs: list[dict] = []
 
@@ -146,18 +218,16 @@ class FastNearTxClient(HttpClient):
 
             raw_txs.extend(data["transactions"])
 
-        # Order `raw_txs` by `tx_hashes`
+        # Preserve the order of the requested transaction hashes.
         raw_txs_by_hash = {
             tx["transaction"]["hash"]: tx
             for tx in raw_txs
         }
 
-        raw_txs = [
+        return [
             raw_txs_by_hash[tx_hash]
             for tx_hash in tx_hashes
         ]
-
-        return raw_txs
 
     def fetch_block_txs(
         self,
@@ -194,5 +264,3 @@ class FastNearTxClient(HttpClient):
         )
 
         return data["block_txs"]
-
-
