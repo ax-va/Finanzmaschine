@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class FastNearRpcClient(HttpClient):
-    _RPC_MAINNET_URL = "https://rpc.mainnet.fastnear.com"
-    _ARCHIVAL_RPC_MAINNET_URL = "https://archival-rpc.mainnet.fastnear.com"
+    RPC_MAINNET_URL = "https://rpc.mainnet.fastnear.com"
+    ARCHIVAL_RPC_MAINNET_URL = "https://archival-rpc.mainnet.fastnear.com"
 
     def call_view_function(
         self,
@@ -49,8 +49,8 @@ class FastNearRpcClient(HttpClient):
                 }
         }
 
-        data = self._post(
-            url=self._ARCHIVAL_RPC_MAINNET_URL,
+        data = self.post(
+            url=self.ARCHIVAL_RPC_MAINNET_URL,
             payload=payload,
             error_name="FastNEAR RPC error",
         )
@@ -61,7 +61,7 @@ class FastNearRpcClient(HttpClient):
 
     def fetch_final_block_height(self) -> int:
         block = self._fetch_block(
-            url=self._RPC_MAINNET_URL,
+            url=self.RPC_MAINNET_URL,
             params={
                 "finality": "final",
             }
@@ -74,7 +74,7 @@ class FastNearRpcClient(HttpClient):
         block_height: int,
     ) -> int:
         block = self._fetch_block(
-            url=self._ARCHIVAL_RPC_MAINNET_URL,
+            url=self.ARCHIVAL_RPC_MAINNET_URL,
             params={
                 "block_id": block_height,
             }
@@ -126,7 +126,7 @@ class FastNearRpcClient(HttpClient):
             "params": params,
         }
 
-        data = self._post(
+        data = self.post(
             url=url,
             payload=payload,
             error_name="FastNEAR RPC error",

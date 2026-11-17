@@ -5,9 +5,9 @@ from fzm_near.sync_clients.http_client import HttpClient
 
 
 class FastNearTxClient(HttpClient):
-    _TX_MAIN_URL = "https://tx.main.fastnear.com"
-    _PAGE_LIMIT = 200
-    _TXS_BATCH_SIZE = 20
+    TX_MAIN_URL = "https://tx.main.fastnear.com"
+    PAGE_LIMIT = 200
+    TXS_BATCH_SIZE = 20
 
     def fetch_account_txs(
         self,
@@ -70,17 +70,18 @@ class FastNearTxClient(HttpClient):
         payload = {
             "account_id": account_id,
             "is_signer": True,
-            "limit": self._PAGE_LIMIT,
+            "limit": self.PAGE_LIMIT,
             "desc": desc,
         }
 
         if from_tx_block_height is not None:
-            # The public lower bound is inclusive.
-            # FastNEAR expects an exclusive lower bound.
-            payload["from_tx_block_height"] = from_tx_block_height - 1
+            # FastNEAR expects an inclusive lower bound.
+            # Test that behavior with integration tests.
+            payload["from_tx_block_height"] = from_tx_block_height
 
         if up_to_tx_block_height is not None:
-            # Both upper bounds are inclusive.
+            # FastNEAR expects an inclusive upper bound.
+            # Test that behavior with integration tests.
             payload["to_tx_block_height"] = up_to_tx_block_height
 
         if is_function_call is not None:
@@ -90,8 +91,8 @@ class FastNearTxClient(HttpClient):
             payload["is_success"] = is_success
 
         while True:
-            data: dict[str, Any] = self._post(
-                url=self._TX_MAIN_URL + "/v0/account",
+            data: dict[str, Any] = self.post(
+                url=self.TX_MAIN_URL + "/v0/account",
                 payload=payload,
                 error_name="FastNEAR Tx error",
             )
@@ -119,19 +120,14 @@ class FastNearTxClient(HttpClient):
         Checks `is_completed` using the block endpoint.
         Completed transactions are excluded from subsequent polls.
 
-        WARNING:
-            This method checks only transactions already returned
-            by FastNEAR. It does not guarantee that all transactions
-            within a block height range have been indexed.
-
         Args:
             pending_txs: Mapping of transaction hashes to block heights.
             poll_interval: Delay between polling rounds, in seconds.
-            timeout: Maximum waiting time, in seconds.
+            timeout: Maximum time allowed for polling, in seconds.
 
         Raises:
             ValueError: If polling parameters are invalid.
-            TiimeoutError: If some transactions remain incomplete.
+            TimeoutError: If some transactions remain incomplete.
         """
         if poll_interval <= 0:
             raise ValueError("`poll_interval` must be positive")
@@ -140,24 +136,28 @@ class FastNearTxClient(HttpClient):
             raise ValueError("`timeout` must be positive")
 
         deadline = time.monotonic() + timeout
-
         pending_txs = pending_txs.copy()
 
         while pending_txs:
             for tx_block_height in set(pending_txs.values()):
-                if time.monotonic() >= deadline:
+                remaining = deadline - time.monotonic()
+
+                if remaining <= 0:
                     raise TimeoutError(
                         f"Transactions are not completed: {list(pending_txs)}"
                     )
 
-                block_txs = self.fetch_block_txs(tx_block_height)
+                block_txs = self.fetch_block_txs(
+                    tx_block_height,
+                    timeout=remaining,
+                )
 
                 for block_tx in block_txs:
                     tx_hash = block_tx["transaction_hash"]
 
                     if (
-                        tx_hash in pending_txs
-                        and block_tx.get("is_completed") is True
+                            tx_hash in pending_txs
+                            and block_tx.get("is_completed") is True
                     ):
                         del pending_txs[tx_hash]
 
@@ -202,13 +202,13 @@ class FastNearTxClient(HttpClient):
         """
         raw_txs: list[dict] = []
 
-        for i in range(0, len(tx_hashes), self._TXS_BATCH_SIZE):
+        for i in range(0, len(tx_hashes), self.TXS_BATCH_SIZE):
             payload = {
-                "tx_hashes": tx_hashes[i : i + self._TXS_BATCH_SIZE],
+                "tx_hashes": tx_hashes[i : i + self.TXS_BATCH_SIZE],
             }
 
-            data: dict[str, Any] = self._post(
-                url=self._TX_MAIN_URL + "/v0/transactions",
+            data: dict[str, Any] = self.post(
+                url=self.TX_MAIN_URL + "/v0/transactions",
                 payload=payload,
                 error_name="FastNEAR Tx error",
             )
@@ -227,37 +227,20 @@ class FastNearTxClient(HttpClient):
         ]
 
     def fetch_block_txs(
-        self,
-        block_height: int,
+            self,
+            block_height: int,
+            timeout: float | None = None,
     ) -> list[dict]:
-        """
-        Fetches transactions included in a specific NEAR block.
-
-        The returned transaction records may contain `is_completed`,
-        which indicates whether FastNEAR considers the transaction data
-        complete or still expects additional receipts.
-
-        Args:
-            block_height: Height of the block to fetch.
-
-        Returns:
-            Transaction records included in the requested block.
-
-        Raises:
-            httpx.HTTPStatusError:
-                If the API request returns an unsuccessful HTTP status code.
-            KeyError:
-                If the response does not contain `block_txs`.
-        """
         payload = {
             "block_id": block_height,
             "with_transactions": True,
         }
 
-        data: dict[str, Any] = self._post(
-            url=self._TX_MAIN_URL + "/v0/block",
+        data: dict[str, Any] = self.post(
+            url=self.TX_MAIN_URL + "/v0/block",
             payload=payload,
             error_name="FastNEAR Tx error",
+            timeout=timeout,
         )
 
         return data["block_txs"]

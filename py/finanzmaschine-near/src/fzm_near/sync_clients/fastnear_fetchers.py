@@ -76,9 +76,8 @@ def fetch_txs(
             pending_txs=tx_hash_to_tx_block_height,
         )
 
-        tx_hashes: list[str] = list(tx_hash_to_tx_block_height)
         raw_txs: list[dict] = tx_client.fetch_raw_txs(
-            tx_hashes=tx_hashes,
+            tx_hashes=list(tx_hash_to_tx_block_height),
         )
 
     return {

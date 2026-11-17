@@ -27,15 +27,17 @@ class HttpClient:
         min_interval_sec=const.MIN_INTERVAL_SEC,
     )
     @handle_block_height_not_found
-    def _post(
+    def post(
         self,
         url: str,
         payload: dict[str, Any],
         error_name: str = "",
+        timeout: float | int | None = None,
     ) -> dict[str, Any]:
         response = self._client.post(
             url=url,
             json=payload,
+            timeout=timeout,
         )
 
         response.raise_for_status()
